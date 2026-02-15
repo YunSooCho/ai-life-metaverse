@@ -1,0 +1,108 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: #1a1a2e;
+  padding: 12px 16px;
+  border-bottom: 2px solid #2a2a4e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #888;
+  flex-wrap: wrap;
+}
+
+.stats span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.canvas-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 8px;
+}
+
+canvas {
+  border: 2px solid #2a2a4e;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+}
+
+.controls {
+  background: #1a1a2e;
+  padding: 8px 16px;
+  border-top: 2px solid #2a2a4e;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .header {
+    padding: 8px 12px;
+  }
+
+  .header h1 {
+    font-size: 16px;
+  }
+
+  .stats {
+    gap: 8px;
+    font-size: 10px;
+  }
+
+  .canvas-container {
+    padding: 4px;
+  }
+
+  .controls {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 14px;
+  }
+
+  .stats {
+    gap: 6px;
+    font-size: 9px;
+  }
+}
