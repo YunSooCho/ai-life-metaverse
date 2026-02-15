@@ -22,6 +22,10 @@ const MAP_SIZE = { width: 1000, height: 700 }
 // 캐릭터 저장소
 const characters = {}
 
+// 채팅 히스토리 (최근 30개 메시지)
+const chatHistory = []
+const MAX_CHAT_HISTORY = 30
+
 // AI 캐릭터 초기화
 const aiCharacter = {
   id: 'ai-agent-1',
@@ -44,6 +48,9 @@ io.on('connection', (socket) => {
   // 기존 캐릭터들 전송
   socket.emit('characters', characters)
 
+  // 채팅 히스토리 전송
+  socket.emit('chatHistory', chatHistory)
+
   // 새 캐릭터 등록
   socket.on('join', (character) => {
     console.log('📝 캐릭터 등록:', character.name)
@@ -56,6 +63,35 @@ io.on('connection', (socket) => {
     console.log('🚶 캐릭터 이동:', character.name, `(${character.x}, ${character.y})`)
     characters[character.id] = character
     io.emit('characterUpdate', character)
+  })
+
+  // 채팅 메시지 수신
+  socket.on('chatMessage', (data) => {
+    const { message, characterId } = data
+    const character = characters[characterId]
+
+    if (!character) {
+      console.log('⚠️ 캐릭터를 찾을 수 없음:', characterId)
+      return
+    }
+
+    const chatData = {
+      characterId,
+      characterName: character.name,
+      message,
+      timestamp: Date.now()
+    }
+
+    console.log('💬 채팅 메시지:', character.name,(':', message))
+
+    // 채팅 히스토리에 저장
+    chatHistory.push(chatData)
+    if (chatHistory.length > MAX_CHAT_HISTORY) {
+      chatHistory.shift()
+    }
+
+    // 모든 클라이언트에 브로드캐스트
+    io.emit('chatBroadcast', chatData)
   })
 
   // 연결 종료

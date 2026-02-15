@@ -17,8 +17,17 @@ function App() {
   })
 
   const [characters, setCharacters] = useState({})
+  const [chatMessages, setChatMessages] = useState({})
 
   const canvasRef = useRef(null)
+
+  // 키보드 이벤트 리스너
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [myCharacter.id])
 
   // 소켓 이벤트 리스너
   useEffect(() => {
@@ -45,9 +54,36 @@ function App() {
       }
     })
 
+    // 채팅 브로드캐스트 수신
+    socket.on('chatBroadcast', (chatData) => {
+      const { characterId, message } = chatData
+      setChatMessages(prev => ({
+        ...prev,
+        [characterId]: message
+      }))
+
+      // 3초 후 메시지 제거
+      setTimeout(() => {
+        setChatMessages(prev => {
+          const newMessages = { ...prev }
+          if (newMessages[characterId] === message) {
+            delete newMessages[characterId]
+          }
+          return newMessages
+        })
+      }, 3000)
+    })
+
+    // 채팅 히스토리 수신
+    socket.on('chatHistory', (history) => {
+      console.log('채팅 히스토리 수신:', history.length, '개')
+    })
+
     return () => {
       socket.off('characters')
       socket.off('characterUpdate')
+      socket.off('chatBroadcast')
+      socket.off('chatHistory')
     }
   }, [myCharacter.id])
 
@@ -55,6 +91,26 @@ function App() {
   useEffect(() => {
     socket.emit('join', myCharacter)
   }, [])
+
+  // 채팅 메시지 전송
+  const sendChatMessage = (message) => {
+    if (message.trim()) {
+      socket.emit('chatMessage', {
+        message: message.trim(),
+        characterId: myCharacter.id
+      })
+    }
+  }
+
+  // 키보드 이벤트
+  const handleKeyDown = (e) => {
+    // Enter 키로 채팅 전송 (간단한 테스트용)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const testMessages = ['안녕하세요!', '반가워요~', '어떻게 지내세요?', 'AI와 대화하고 있어요!', '여긴 어디죠?']
+      const randomMessage = testMessages[Math.floor(Math.random() * testMessages.length)]
+      sendChatMessage(randomMessage)
+    }
+  }
 
   // 마우스 클릭으로 이동 (그리드 기반 한칸씩)
   const handleCanvasClick = (e) => {
@@ -216,6 +272,102 @@ function App() {
           ctx.fillStyle = '#FF6B6B'
           ctx.fillText('🤖', x + CHARACTER_SIZE_SCALED / 2, y - CHARACTER_SIZE_SCALED / 2)
         }
+
+        // Speech bubble 렌더링
+        const chatMsg = chatMessages[char.id] || (char.id === myCharacter.id ? chatMessages[myCharacter.id] : null)
+        if (chatMsg) {
+          const showBubble = chatMessages[char.id] || (char.id === myCharacter.id && chatMessages[myCharacter.id])
+
+          if (showBubble) {
+            const messageText = chatMessages[char.id] || chatMessages[myCharacter.id]
+
+            if (messageText) {
+              const bubbleMaxWidth = 150 * scale
+              const bubblePadding = 8 * scale
+              const bubbleFontSize = 12 * scale
+              ctx.font = `${bubbleFontSize}px Arial`
+
+              // 텍스트 측정 및 줄바꿈
+              const words = messageText.split('')
+              const lines = []
+              let currentLine = ''
+
+              for (const char of words) {
+                const testLine = currentLine + char
+                const metrics = ctx.measureText(testLine)
+
+                if (metrics.width > bubbleMaxWidth - (bubblePadding * 2) && currentLine !== '') {
+                  lines.push(currentLine)
+                  currentLine = char
+                } else {
+                  currentLine = testLine
+                }
+              }
+              lines.push(currentLine)
+
+              const lineHeight = bubbleFontSize * 1.4
+              const bubbleHeight = (lines.length * lineHeight) + (bubblePadding * 2)
+              const bubbleWidth = Math.min(
+                bubbleMaxWidth,
+                Math.max(
+                  ctx.measureText(lines[0]).width + (bubblePadding * 2),
+                  ...lines.map(line => ctx.measureText(line).width + (bubblePadding * 2))
+                )
+              )
+
+              const bubbleX = x - (bubbleWidth / 2)
+              const bubbleY = y - CHARACTER_SIZE_SCALED - bubbleHeight - (10 * scale)
+
+              // 말풍선 배경
+              ctx.fillStyle = '#ffffff'
+              ctx.strokeStyle = '#cccccc'
+              ctx.lineWidth = 1
+
+              // 말풍선 본체 (둥근 사각형)
+              const radius = 8 * scale
+              ctx.beginPath()
+              ctx.moveTo(bubbleX + radius, bubbleY)
+              ctx.lineTo(bubbleX + bubbleWidth - radius, bubbleY)
+              ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY, bubbleX + bubbleWidth, bubbleY + radius)
+              ctx.lineTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight - radius)
+              ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight, bubbleX + bubbleWidth - radius, bubbleY + bubbleHeight)
+              ctx.lineTo(bubbleX + radius, bubbleY + bubbleHeight)
+              ctx.quadraticCurveTo(bubbleX, bubbleY + bubbleHeight, bubbleX, bubbleY + bubbleHeight - radius)
+              ctx.lineTo(bubbleX, bubbleY + radius)
+              ctx.quadraticCurveTo(bubbleX, bubbleY, bubbleX + radius, bubbleY)
+              ctx.closePath()
+              ctx.fill()
+              ctx.stroke()
+
+              // 말풍선 꼬리
+              const tailWidth = 10 * scale
+              const tailHeight = 10 * scale
+              const tailX = x - (tailWidth / 2)
+              const tailY = bubbleY + bubbleHeight
+
+              ctx.beginPath()
+              ctx.moveTo(tailX, tailY)
+              ctx.lineTo(x, tailY + tailHeight)
+              ctx.lineTo(tailX + tailWidth, tailY)
+              ctx.closePath()
+              ctx.fill()
+              ctx.stroke()
+
+              // 텍스트 렌더링
+              ctx.fillStyle = '#000000'
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'top'
+
+              lines.forEach((line, index) => {
+                ctx.fillText(
+                  line,
+                  x,
+                  bubbleY + bubblePadding + (index * lineHeight)
+                )
+              })
+            }
+          }
+        }
       }
 
       // 다른 캐릭터들
@@ -230,7 +382,7 @@ function App() {
     }
 
     render()
-  }, [myCharacter, characters])
+  }, [myCharacter, characters, chatMessages])
 
   return (
     <div className="app">
@@ -247,6 +399,7 @@ function App() {
       </div>
       <div className="controls">
         <p>🖱️ 클릭해서 캐릭터 이동하기</p>
+        <p>⌨️ Enter 키로 채팅 메시지 전송하기</p>
       </div>
     </div>
   )

@@ -30,6 +30,58 @@ function analyzeSituation(currentCharacters, myCharacter) {
   }
 }
 
+async function generateChatResponse(message, senderName) {
+  try {
+    const prompt = `너는 ${AI_CHARACTER.name}라는 매트버스 캐릭터다.
+
+페르소나: ${AI_CHARACTER.personality}
+관심사: ${AI_CHARACTER.interests.join(', ')}
+
+${senderName}가 말했다: "${message}"
+
+자연스럽고 친근하게 답변해라. 1~2문장으로 간결하게.`
+    console.log('📞 채팅 응답 생성 중...')
+
+    const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.CEREBRAS_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'zai-glm-4.7',
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ API 에러:', response.status, errorText)
+      return '죄송해요, 지금은 대화하기 어려워요.'
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning || ''
+    
+    // markdown 제거
+    const cleanContent = content.replace(/```json\s*([\s\S]*?)```/g, '$1')
+      .replace(/```\s*([\s\S]*?)```/g, '$1')
+      .replace(/"/g, '')
+      .trim()
+    
+    console.log('📝 응답:', cleanContent.substring(0, 50))
+    return cleanContent || '응, 그렇구나!'
+  } catch (error) {
+    console.error('❌ 채팅 실패:', error.message)
+    return '죄송해요, 오류가 발생했어요.'
+  }
+}
+
 // GLM-4.7로 행동 결정 요청
 async function decideAction(situation, myCharacter, AI_CHARACTER) {
   try {
@@ -192,6 +244,24 @@ async function main() {
   socket.on('characterUpdate', (char) => {
     if (char._removed) delete currentCharacters[char.id]
     else currentCharacters[char.id] = char
+  })
+
+  socket.on('chatBroadcast', async (data) => {
+    if (data.characterId === myCharacter.id) return
+    
+    try {
+      const sender = currentCharacters[data.characterId]
+      const senderName = sender?.name || '익명'
+
+      const response = await generateChatResponse(data.message, senderName)
+      socket.emit('chatBroadcast', {
+        message: response,
+        characterId: myCharacter.id
+      })
+      console.log(`💬 채팅 응답: ${response.substring(0, 50)}...`)
+    } catch (error) {
+      console.error('❌ 채팅 에러:', error.message)
+    }
   })
 
   while (true) {
