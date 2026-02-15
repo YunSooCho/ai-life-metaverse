@@ -18,6 +18,13 @@ function App() {
 
   const [characters, setCharacters] = useState({})
   const [chatMessages, setChatMessages] = useState({})
+  const [chatInput, setChatInput] = useState('')
+  const [interactionMenu, setInteractionMenu] = useState({
+    show: false,
+    targetCharacter: null,
+    x: 0,
+    y: 0
+  })
 
   const canvasRef = useRef(null)
 
@@ -102,6 +109,20 @@ function App() {
     }
   }
 
+  const handleChatSubmit = () => {
+    if (chatInput.trim()) {
+      sendChatMessage(chatInput)
+      setChatInput('')
+    }
+  }
+
+  const handleChatKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleChatSubmit()
+    }
+  }
+
   // 키보드 이벤트
   const handleKeyDown = (e) => {
     // Enter 키로 채팅 전송 (간단한 테스트용)
@@ -110,6 +131,31 @@ function App() {
       const randomMessage = testMessages[Math.floor(Math.random() * testMessages.length)]
       sendChatMessage(randomMessage)
     }
+  }
+
+  const handleInteractionClick = (type) => {
+    if (interactionMenu.targetCharacter) {
+      socket.emit('interaction', {
+        type: type,
+        from: myCharacter.id,
+        to: interactionMenu.targetCharacter.id
+      })
+    }
+    setInteractionMenu({
+      show: false,
+      targetCharacter: null,
+      x: 0,
+      y: 0
+    })
+  }
+
+  const closeInteractionMenu = () => {
+    setInteractionMenu({
+      show: false,
+      targetCharacter: null,
+      x: 0,
+      y: 0
+    })
   }
 
   // 마우스 클릭으로 이동 (그리드 기반 한칸씩)
@@ -125,12 +171,31 @@ function App() {
     const containerHeight = container.clientHeight
     const scale = Math.min(containerWidth / MAP_SIZE.width, containerHeight / MAP_SIZE.height)
 
-    // 그리드 셀 크기
-    const CELL_SIZE = 50
-
-    // 클릭한 위치를 맵 좌표로 스케일링
     const clickMapX = x / scale
     const clickMapY = y / scale
+
+    // 다른 캐릭터 클릭 확인
+    const clickedCharacter = Object.values(characters).find(char => {
+      const distance = Math.sqrt(
+        Math.pow(char.x - clickMapX, 2) + Math.pow(char.y - clickMapY, 2)
+      )
+      return distance <= CHARACTER_SIZE
+    })
+
+    if (clickedCharacter) {
+      setInteractionMenu({
+        show: true,
+        targetCharacter: clickedCharacter,
+        x: e.clientX,
+        y: e.clientY
+      })
+      return
+    }
+
+    closeInteractionMenu()
+
+    // 그리드 셀 크기
+    const CELL_SIZE = 50
 
     // 현재 그리드 위치 계산
     const currentGridX = Math.floor(myCharacter.x / CELL_SIZE)
@@ -397,10 +462,65 @@ function App() {
       <div className="canvas-container">
         <canvas ref={canvasRef} onClick={handleCanvasClick} />
       </div>
+      <div className="chat-input-container">
+        <input
+          type="text"
+          className="chat-input"
+          placeholder="메시지를 입력하세요..."
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          onKeyDown={handleChatKeyDown}
+        />
+        <button className="chat-send-button" onClick={handleChatSubmit}>
+          전송
+        </button>
+      </div>
       <div className="controls">
         <p>🖱️ 클릭해서 캐릭터 이동하기</p>
         <p>⌨️ Enter 키로 채팅 메시지 전송하기</p>
       </div>
+      {interactionMenu.show && (
+        <>
+          <div className="interaction-overlay" onClick={closeInteractionMenu} />
+          <div
+            className="interaction-menu"
+            style={{
+              left: interactionMenu.x,
+              top: interactionMenu.y
+            }}
+          >
+            <div className="interaction-menu-header">
+              {interactionMenu.targetCharacter?.name}
+            </div>
+            <div className="interaction-menu-items">
+              <button
+                className="interaction-menu-button"
+                onClick={() => handleInteractionClick('greeting')}
+              >
+                👋 인사
+              </button>
+              <button
+                className="interaction-menu-button"
+                onClick={() => handleInteractionClick('gift')}
+              >
+                🎁 선물주기
+              </button>
+              <button
+                className="interaction-menu-button"
+                onClick={() => handleInteractionClick('friend')}
+              >
+                🤝 친하기
+              </button>
+              <button
+                className="interaction-menu-button"
+                onClick={() => handleInteractionClick('fight')}
+              >
+                ⚔️ 싸우기
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

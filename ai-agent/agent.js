@@ -133,20 +133,105 @@ direction: up, down, left, right, toward_character
     let action
     if (content) {
       try {
-        // JSON 블록 추출 (multi-line 지원)
-        const jsonMatch = content.match(/```json\s*([\s\S]*?)```/) || 
-                         content.match(/\{[\s\S]*"action"[\s\S]*\}/)
-        if (jsonMatch) {
-          const jsonText = jsonMatch[1] || jsonMatch[0]
-          action = JSON.parse(jsonText)
-        } else {
-          action = JSON.parse(content)
-        }
-      } catch {
-        action = { action: 'wait', reason: 'JSON 실패' }
+        action = parseGLM4Response(content)
+      } catch (error) {
+        console.error('❌ JSON 파싱 실패:', error.message)
+        console.error('📋 원본 응답:', content)
+        action = { action: 'wait', reason: 'JSON 파싱 실패' }
       }
     } else {
       action = { action: 'wait', reason: '응답 없음' }
+    }
+
+    function parseGLM4Response(content) {
+      let jsonText = content
+
+      // reasoning 패턴 무시 (1., 2., **Bold**, *Italic*, markdown headers 등)
+      // 마지막 JSON 객체만 추출 (reasoning은 건너뜀)
+      const contentWithoutReasoning = content.replace(/^[\s\S]*?(?=\{)/, '')
+
+      const jsonBlockMatch = contentWithoutReasoning.match(/```json\s*([\s\S]*?)```/)
+      if (jsonBlockMatch) {
+        jsonText = jsonBlockMatch[1]
+        console.log('✅ JSON 코드블록 추출')
+      } else {
+        const codeBlockMatch = contentWithoutReasoning.match(/```\s*([\s\S]*?)```/)
+        if (codeBlockMatch) {
+          jsonText = codeBlockMatch[1]
+          console.log('✅ 코드블록 추출')
+        } else {
+          const brackets = []
+          let validJson = ''
+          let bracketCount = 0
+          let inString = false
+          let escapeNext = false
+          let startIndex = -1
+
+          for (let i = 0; i < contentWithoutReasoning.length; i++) {
+            const char = contentWithoutReasoning[i]
+
+            if (escapeNext) {
+              escapeNext = false
+              continue
+            }
+
+            if (char === '\\' && inString) {
+              escapeNext = true
+              continue
+            }
+
+            if (char === '"') {
+              inString = !inString
+              if (!inString && bracketCount > 0 && startIndex !== -1) {
+                validJson = contentWithoutReasoning.substring(startIndex, i + 1)
+              }
+              continue
+            }
+
+            if (inString) continue
+
+            if (char === '{') {
+              if (bracketCount === 0) {
+                startIndex = i
+              }
+              bracketCount++
+            } else if (char === '}') {
+              if (bracketCount > 0) {
+                bracketCount--
+                if (bracketCount === 0) {
+                  validJson = contentWithoutReasoning.substring(startIndex, i + 1)
+                  startIndex = i + 1
+                }
+              }
+            }
+          }
+
+          if (validJson) {
+            jsonText = validJson
+            console.log('✅ 마지막 유효한 JSON 추출')
+          } else {
+            jsonText = contentWithoutReasoning
+          }
+        }
+      }
+
+      jsonText = jsonText.trim()
+      
+      const parsed = JSON.parse(jsonText)
+      
+      if (!parsed.hasOwnProperty('action')) {
+        console.warn('⚠️응답에 action 필드 없음:', Object.keys(parsed))
+        parsed.action = 'wait'
+      }
+
+      const validDirections = ['up', 'down', 'left', 'right', 'toward_character']
+      if (!validDirections.includes(parsed.direction)) {
+        console.warn('⚠️ 유효하지 않은 direction:', parsed.direction)
+        parsed.direction = undefined
+      }
+
+      console.log(`🔍 파싱된 action: ${parsed.action}${parsed.direction ? `, ${parsed.direction}` : ''}`)
+      return parsed
     }
 
     return action
