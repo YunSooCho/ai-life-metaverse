@@ -35,6 +35,38 @@
 
 ---
 
+## 대화 상태 관리 (Conversation State) - 2026-02-16 PM 업데이트
+
+### isConversing 플래그 (2026-02-16 PM)
+
+| 속성 | 타입 | 범위 | 설명 |
+|------|------|------|------|
+| `isConversing` | boolean | true / false | 대화 중인지 여부 |
+
+### 대화 상태 관리 API (ai-agent/agent.js)
+
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `getConversingState()` | 현재 대화 상태 반환 | boolean |
+| `setConversingState(state)` | 대화 상태 설정 | void |
+
+### 대화 상태와 이동 제한 (2026-02-16 PM)
+
+```javascript
+// GameCanvas.jsx - 캐릭터 이동 처리
+if (character.isConversing) {
+  return  // 대화 중에는 이동 불가
+}
+```
+
+**작동 방식:**
+1. 대화 시작 시 `setConversingState(true)`
+2. `isConversing = true` 일 때 캐릭터 이동 차단
+3. 대화 종료 시 `setConversingState(false)`
+4. 이동 재개
+
+---
+
 ## 인터랙션 시스템
 
 ### 인터랙션 타입 (8종류)

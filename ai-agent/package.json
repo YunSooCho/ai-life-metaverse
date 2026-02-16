@@ -4,10 +4,15 @@
   "type": "module",
   "main": "agent.js",
   "scripts": {
-    "start": "node agent.js"
+    "start": "node agent.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "socket.io-client": "^4.7.5",
     "openai": "^4.68.1"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
   }
 }

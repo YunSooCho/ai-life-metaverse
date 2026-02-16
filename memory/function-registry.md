@@ -50,22 +50,23 @@
 
 ---
 
-## 진행 중인 기능 (Phase 2)
+## 완료된 기능 (Phase 2)
 
 ### 1. 캐릭터 채팅 시스템
-- **상태:** 🔄 구현 중
-- **시작일:** 2026-02-15
-- **예상 완료일:** 2026-02-17
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-16
 - **기능:**
   - 캐릭터 위의 Speech bubble UI
   - 채팅 메시지 Socket.io 전파
-  - 채팅 히스토리 저장
-- **테스트:** ⏳ 예정
+  - 채팅 히스토리 저장 (최대 30개)
+- **테스트:** ✅ 7/7 passed (Frontend 테스트)
 - **관련 파일:**
-  - frontend/src/App.jsx (Speech bubble UI 추가 예정)
-  - backend/server.js (채팅 Socket 이벤트 추가 예정)
-  - ai-agent/agent.js (채팅 응답 로직 추가 예정)
-- **GitHub Issue:** #2
+  - frontend/src/App.jsx (Speech bubble UI)
+  - backend/server.js (채팅 Socket 이벤트)
+  - ai-agent/agent.js (채팅 응답 로직)
+  - frontend/src/__tests__/chat.test.js (5 tests)
+  - backend/test/chat.test.js (2 tests)
+- **GitHub Issue:** #10
 
 ### 2. GLM-4.7 대화 생성
 - **상태:** ⏳ 대기 중
@@ -91,23 +92,72 @@
 
 ---
 
-## 계획 중인 기능 (Phase 3)
+## 완료된 기능 (Phase 3)
 
-### 1. 캐릭터 상호작용 시스템
+### 1. 인터랙션 시스템
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-16
+- **기능:**
+  - 캐릭터 클릭/터치 인터랙션
+  - 호감도 시스템 연동 (interactionType별 호감도 변화)
+  - 이벤트 시스템 (interact, characterInteractionBroadcast)
+  - 시각 피드백 (하트 클릭 효과)
+  - AI 응답 (인사 메시지)
+- **테스트:** ✅ 9/9 passed (Frontend: 7, Backend: 2)
+- **관련 파일:**
+  - frontend/src/App.jsx (handleCanvasClick, 클릭 효과)
+  - backend/server.js (interact 이벤트 핸들러)
+  - ai-agent/agent.js (interact 응답 로직)
+  - frontend/src/__tests__/interaction.test.js (7 tests)
+  - backend/test/interaction.test.js (2 tests)
+- **GitHub Issue:** #11
+
+---
+
+## 완료된 기능 (Phase 4)
+
+### 1. 다중 캐릭터/방 시스템
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-15
+- **기능:**
+  - 방(Room) 시스템 구현
+  - 캐릭터-방 매핑
+  - Socket.io 방별 이벤트 분리
+  - 프론트 방 선택/이동/생성 UI
+- **테스트:** ✅ 통과
+- **관련 파일:**
+  - backend/server.js (Room 데이터구조, 방별 이벤트)
+  - frontend/src/App.jsx (방 UI, 이벤트 핸들러)
+  - frontend/src/App.css (방 메뉴 스타일)
+- **GitHub Issue:** #8
+
+---
+
+## 계획 중인 기능 (Phase 5)
+
+### 1. 건물/포인트 시스템
 - **상태:** ⏳ 기획 중
 - **예상 시작일:** 미정
 - **기능:**
-  - NPC와 상호작용 이벤트
-  - 대화 옵션/선택지
-  - 호감도 시스템
+  - 맵에 건물/포인트 배치
+  - 건물 접근 이벤트
+  - 건물 내에서의 활동
 
-### 2. 호감도/친밀도 시스템
+### 2. 이벤트/미션 시스템
 - **상태:** ⏳ 기획 중
 - **예상 시작일:** 미정
 - **기능:**
-  - 친밀도 점수 시스템
-  - 대화 빈도/내용에 따른 변화
-  - 특정 친밀도에 따른 이벤트/대사
+  - 일일 미션/퀘스트
+  - 랜덤 이벤트
+  - 보상 시스템
+
+### 3. 아이템/보상 시스템
+- **상태:** ⏳ 기획 중
+- **예상 시작일:** 미정
+- **기능:**
+  - 인벤토리 시스템
+  - 아이템 획득/사용
+  - 보상 지급
 
 ### 3. 이벤트/미션 시스템
 - **상태:** ⏳ 기획 중

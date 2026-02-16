@@ -7,6 +7,11 @@ import AffinityDisplay from './components/AffinityDisplay'
 import ChatInput from './components/ChatInput'
 import RoomMenu from './components/RoomMenu'
 import Toast from './components/Toast'
+import EventLog from './components/EventLog'
+import MiniMap from './components/MiniMap'
+import Inventory from './components/Inventory'
+import Reward from './components/Reward'
+import Quest from './components/Quest'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
 
@@ -26,6 +31,7 @@ function App() {
   })
 
   const [characters, setCharacters] = useState({})
+  const [buildings, setBuildings] = useState([])
   const [chatMessages, setChatMessages] = useState({})
   const [chatInput, setChatInput] = useState('')
   const [affinities, setAffinities] = useState({})
@@ -57,7 +63,22 @@ function App() {
     type: 'info'
   })
 
+  const [activeBuilding, setActiveBuilding] = useState(null)
+
+  const [showEventLog, setShowEventLog] = useState(false)
+  const [eventLogs, setEventLogs] = useState([])
+
+  const [inventory, setInventory] = useState({})
+  const [showInventory, setShowInventory] = useState(false)
+  const [showReward, setShowReward] = useState(false)
+  const [claimedRewards, setClaimedRewards] = useState([])
+  
+  const [quests, setQuests] = useState({})
+  const [availableQuests, setAvailableQuests] = useState({})
+  const [showQuest, setShowQuest] = useState(false)
+
   const canvasRef = useRef(null)
+  const chatHistoryRef = useRef(null)
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -65,6 +86,12 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [myCharacter.id])
+
+  useEffect(() => {
+    if (chatHistoryRef.current) {
+      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight
+    }
+  }, [roomChatHistory, currentRoom.id])
 
   useSocketEvent('characters', (allCharacters) => {
     setCharacters(prev => {
@@ -189,6 +216,153 @@ function App() {
     }
   }, [])
 
+  useSocketEvent('buildings', (buildingsData) => {
+    setBuildings(buildingsData || [])
+    console.log('건물 목록 수신:', buildingsData)
+  }, [])
+
+  useSocketEvent('buildingEvent', (event) => {
+    const messages = {
+      enter: '🏢 입장',
+      exit: '🚪 퇴장'
+    }
+
+    const message = `${event.characterName}님이 ${event.buildingName}에${messages[event.type]}했습니다`
+
+    setToast({
+      show: true,
+      message,
+      type: 'info'
+    })
+
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+
+    console.log('건물 이벤트:', event)
+  }, [])
+
+  useSocketEvent('inventory', (data) => {
+    setInventory(data.inventory || {})
+    console.log('인벤토리 수신:', data.inventory)
+  }, [])
+
+  useSocketEvent('rewardClaimed', (data) => {
+    setInventory(data.inventory || {})
+    setClaimedRewards(prev => [...prev, data.rewardId])
+
+    const message = `🎉 ${data.rewardName} 수령 완료!`
+    setToast({
+      show: true,
+      message,
+      type: 'success'
+    })
+
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+
+    console.log('보상 수령:', data)
+  }, [])
+
+  useSocketEvent('itemUsed', (data) => {
+    setInventory(data.inventory || {})
+
+    const message = `💊 ${data.itemName} 사용 완료!`
+    setToast({
+      show: true,
+      message,
+      type: 'info'
+    })
+
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+
+    console.log('아이템 사용:', data)
+  }, [])
+
+  useSocketEvent('itemUseFailed', (data) => {
+    const message = '⚠️ 아이템 사용 실패 (수량 부족)'
+    setToast({
+      show: true,
+      message,
+      type: 'warning'
+    })
+
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+
+    console.log('아이템 사용 실패:', data)
+  }, [])
+
+  useSocketEvent('quests', (data) => {
+    if (data.active) {
+      setQuests(data.active)
+    } else {
+      setQuests(data)
+    }
+    if (data.available) {
+      setAvailableQuests(data.available)
+    }
+    console.log('퀘스트 데이터 수신:', data)
+  }, [])
+
+  useSocketEvent('questProgress', (data) => {
+    const { quest, progress } = data
+    setQuests(prev => ({
+      ...prev,
+      [quest.id]: quest
+    }))
+    
+    if (progress.percentage === 100) {
+      const message = `🎉 "${quest.title}" 목표 완료! 보상을 받으세요.`
+      setToast({
+        show: true,
+        message,
+        type: 'success'
+      })
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 5000)
+    }
+    
+    console.log('퀘스트 진행 업데이트:', data)
+  }, [])
+
+  useSocketEvent('questAccepted', (data) => {
+    const { quest } = data
+    const message = `📋 "${quest.title}" 퀘스트 수락!`
+    setToast({
+      show: true,
+      message,
+      type: 'info'
+    })
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+    
+    console.log('퀘스트 수락:', data)
+  }, [])
+
+  useSocketEvent('questRewardClaimed', (data) => {
+    const { questId, reward, inventory } = data
+    setInventory(inventory || {})
+    
+    const message = `🎉 퀘스트 완료 보상 수령! 포인트: ${reward?.points || 0}, 경험치: ${reward?.experience || 0}`
+    setToast({
+      show: true,
+      message,
+      type: 'success'
+    })
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 5000)
+    
+    console.log('퀘스트 보상 수령:', data)
+  }, [])
+
   useEffect(() => {
     socket.emit('join', myCharacter)
   }, [])
@@ -303,6 +477,17 @@ function App() {
     const clickMapX = x / scale
     const clickMapY = y / scale
 
+    // 건물 클릭 감지
+    const clickedBuilding = buildings.find(building => {
+      return clickMapX >= building.x && clickMapX <= building.x + building.width &&
+             clickMapY >= building.y && clickMapY <= building.y + building.height
+    })
+
+    if (clickedBuilding) {
+      handleBuildingClick(clickedBuilding)
+      return
+    }
+
     const clickedCharacter = Object.values(characters).find(char => {
       const distance = Math.sqrt(
         Math.pow(char.x - clickMapX, 2) + Math.pow(char.y - clickMapY, 2)
@@ -387,10 +572,151 @@ function App() {
     socket.emit('move', updatedCharacter)
   }
 
+  const handleBuildingClick = (building) => {
+    if (activeBuilding && activeBuilding.id === building.id) {
+      const message = `🚪 ${building.name}에서 퇴장했습니다`
+      setToast({
+        show: true,
+        message,
+        type: 'info'
+      })
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 3000)
+
+      socket.emit('exitBuilding', {
+        buildingId: building.id,
+        characterId: myCharacter.id
+      })
+
+      setActiveBuilding(null)
+    } else {
+      const message = `🏢 ${building.name}에 입장했습니다`
+      setToast({
+        show: true,
+        message,
+        type: 'info'
+      })
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 3000)
+
+socket.emit('enterBuilding', {
+      buildingId: building.id,
+      characterId: myCharacter.id
+    })
+
+    setActiveBuilding(building)
+    
+    fetchEventLogs()
+  }
+
+  const fetchEventLogs = async () => {
+    try {
+      const response = await fetch(`http://localhost:4000/api/events/${myCharacter.id}`)
+      const data = await response.json()
+      setEventLogs(data.logs || [])
+    } catch (error) {
+      console.error('이벤트 로그 가져오기 실패:', error)
+    }
+  }
+
+  useEffect(() => {
+    socket.on('buildingEvent', (event) => {
+      if (event.characterId === myCharacter.id) {
+        fetchEventLogs()
+      }
+    })
+    
+    return () => {
+      socket.off('buildingEvent')
+    }
+  }, [myCharacter.id])
+    }
+
+    console.log('건물 클릭:', building.name)
+  }
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp)
     return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
   }
+
+  const handleMiniMapClick = (mapX, mapY) => {
+    const currentGridX = Math.floor(myCharacter.x / CELL_SIZE)
+    const currentGridY = Math.floor(myCharacter.y / CELL_SIZE)
+
+    const clickGridX = Math.floor(mapX / CELL_SIZE)
+    const clickGridY = Math.floor(mapY / CELL_SIZE)
+
+    let newGridX = currentGridX
+    let newGridY = currentGridY
+
+    if (clickGridX > currentGridX) newGridX++
+    else if (clickGridX < currentGridX) newGridX--
+    else if (clickGridY > currentGridY) newGridY++
+    else if (clickGridY < currentGridY) newGridY--
+
+    const newX = (newGridX * CELL_SIZE) + (CELL_SIZE / 2)
+    const newY = (newGridY * CELL_SIZE) + (CELL_SIZE / 2)
+
+    const clampedX = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.width - CELL_SIZE / 2, newX))
+    const clampedY = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.height - CELL_SIZE / 2, newY))
+
+    const updatedCharacter = {
+      ...myCharacter,
+      x: clampedX,
+      y: clampedY
+    }
+
+    setMyCharacter(updatedCharacter)
+    socket.emit('move', updatedCharacter)
+  }
+
+  const handleGetInventory = () => {
+    socket.emit('getInventory', {
+      characterId: myCharacter.id
+    })
+  }
+
+  const handleUseItem = (characterId, itemId) => {
+    socket.emit('useItem', {
+      characterId,
+      itemId
+    })
+  }
+
+  const handleClaimReward = (characterId, rewardId) => {
+    socket.emit('claimReward', {
+      characterId,
+      rewardId
+    })
+  }
+
+  const handleGetQuests = () => {
+    socket.emit('getQuests', {
+      characterId: myCharacter.id
+    })
+  }
+
+  const handleAcceptQuest = (questId) => {
+    socket.emit('acceptQuest', {
+      characterId: myCharacter.id,
+      questId
+    })
+  }
+
+  const handleClaimQuestReward = (questId) => {
+    socket.emit('claimQuestReward', {
+      characterId: myCharacter.id,
+      questId
+    })
+  }
+
+  useEffect(() => {
+    handleGetInventory()
+    handleGetQuests()
+  }, [])
 
   
 
@@ -411,7 +737,45 @@ function App() {
           >
             🏠 방 ({rooms.length})
           </button>
-        </div>
+          <button
+            className="room-button"
+            onClick={() => {
+              if (showEventLog) {
+                setShowEventLog(false)
+              } else {
+                fetchEventLogs()
+                setShowEventLog(true)
+              }
+            }}
+          >
+            📊 기록
+          </button>
+          <button
+            className="room-button"
+            onClick={() => setShowInventory(prev => !prev)}
+          >
+            🎒 인벤토리
+          </button>
+<button
+             className="room-button"
+             onClick={() => setShowReward(prev => !prev)}
+           >
+             🎁 보상
+           </button>
+           <button
+             className="room-button"
+             onClick={() => {
+               if (showQuest) {
+                 setShowQuest(false)
+               } else {
+                 handleGetQuests()
+                 setShowQuest(true)
+               }
+             }}
+           >
+             📋 퀘스트
+           </button>
+         </div>
       </div>
       <GameCanvas
         myCharacter={myCharacter}
@@ -419,8 +783,16 @@ function App() {
         affinities={affinities}
         chatMessages={chatMessages}
         clickEffects={clickEffects}
+        buildings={buildings}
         canvasRef={canvasRef}
         onClick={handleCanvasClick}
+        onBuildingClick={handleBuildingClick}
+      />
+      <MiniMap
+        myCharacter={myCharacter}
+        characters={characters}
+        buildings={buildings}
+        onClick={handleMiniMapClick}
       />
       <ChatInput
         value={chatInput}
@@ -435,30 +807,30 @@ function App() {
 
       {showChatHistory && (
         <div className="chat-history-sidebar">
-          <div className="chat-history-header">
-            <h3>💬 채팅 히스토리</h3>
-            <button
-              className="chat-history-close"
-              onClick={() => setShowChatHistory(false)}
-            >
-              ✕
-            </button>
-          </div>
-<div className="chat-history-list">
-             {roomChatHistory[currentRoom.id]?.length === 0 ? (
-               <div className="chat-history-empty">채팅 기록이 없습니다</div>
-             ) : (
-               roomChatHistory[currentRoom.id]?.map((chat, index) => (
-                 <div key={index} className="chat-history-item">
-                   <div className="chat-history-meta">
-                     <span className="chat-history-name">{chat.characterName}</span>
-                     <span className="chat-history-time">{formatTime(chat.timestamp)}</span>
-                   </div>
-                   <div className="chat-history-message">{chat.message}</div>
-                 </div>
-               ))
-             )}
+<div className="chat-history-header">
+             <h3>💬 채팅 히스토리</h3>
+             <button
+               className="chat-history-close"
+               onClick={() => setShowChatHistory(false)}
+             >
+               ✕
+             </button>
            </div>
+<div className="chat-history-list" ref={chatHistoryRef}>
+              {roomChatHistory[currentRoom.id]?.length === 0 ? (
+                <div className="chat-history-empty">채팅 기록이 없습니다</div>
+              ) : (
+                roomChatHistory[currentRoom.id]?.map((chat, index) => (
+                  <div key={index} className="chat-history-item">
+                    <div className="chat-history-meta">
+                      <span className="chat-history-name">{chat.characterName}</span>
+                      <span className="chat-history-time">{formatTime(chat.timestamp)}</span>
+                    </div>
+                    <div className="chat-history-message">{chat.message}</div>
+                  </div>
+                ))
+              )}
+            </div>
         </div>
       )}
 
@@ -490,7 +862,51 @@ function App() {
         newRoomName={newRoomName}
         onNewRoomNameChange={setNewRoomName}
       />
-    </div>
+
+      {showEventLog && (
+        <div className="event-log-sidebar">
+          <div className="event-log-header">
+            <h3>📊 건물 방문 기록</h3>
+            <button
+              className="event-log-close"
+              onClick={() => setShowEventLog(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <EventLog
+            logs={eventLogs}
+            characterName={myCharacter.name}
+          />
+        </div>
+      )}
+
+      <Inventory
+        show={showInventory}
+        onClose={() => setShowInventory(false)}
+        inventory={inventory}
+        characterId={myCharacter.id}
+        onUseItem={handleUseItem}
+        onGetInventory={handleGetInventory}
+      />
+
+<Reward
+         show={showReward}
+         onClose={() => setShowReward(false)}
+         characterId={myCharacter.id}
+         onClaimReward={handleClaimReward}
+         claimedRewards={claimedRewards}
+       />
+
+      <Quest
+        show={showQuest}
+        quests={quests}
+        availableQuests={availableQuests}
+        onAcceptQuest={handleAcceptQuest}
+        onClaimReward={handleClaimQuestReward}
+        onClose={() => setShowQuest(false)}
+       />
+     </div>
   )
 }
 

@@ -1,13 +1,22 @@
 {
-  "lastHeartbeat": "2026-02-15T15:30:00Z",
+  "lastHeartbeat": "2026-02-15T21:06:00Z",
   "currentPhase": 2,
   "currentTask": "캐릭터 채팅 시스템 구현",
-  "completedToday": [],
+  "completedToday": [
+    "Backend 복구 (server.js 재시작)",
+    "백엔드 chatMessage Socket.io 이벤트 구현",
+    "프론트 Speech bubble UI 구현 (+3초 자동 숨김)",
+    "AI Agent 채팅 응답 로직 구현 (GLM-4.7)"
+  ],
   "nextTasks": [
-    "채팅 UI (speech bubble) 구현",
-    "채팅 메시지 Socket.io 전파",
-    "AI Agent 채팅 응답 로직"
+    "채팅 시스템 테스트",
+    "Phase 3: 인터랙션 시스템 기획"
   ],
   "issuesBlocked": [],
-  "bugsFound": []
+  "bugsFound": [
+    "Backend 서비스 다운됨 (PID 초기화 필요) - 복구 완료"
+  ],
+  "bugsFixed": [
+    "Backend 서비스 다운 → 재시작 완료 (PID 78321)"
+  ]
 }

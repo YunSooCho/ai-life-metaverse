@@ -1,0 +1,169 @@
+
+> ai-life-frontend@0.1.0 dev
+> vite
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+  VITE v5.4.21  ready in 90 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://10.76.29.91:3000/
+11:07:43 PM [vite] hmr update /src/App.jsx
+11:07:44 PM [vite] hmr update /src/App.jsx
+11:07:44 PM [vite] hmr update /src/App.jsx
+11:07:49 PM [vite] vite.config.js changed, restarting server...
+11:07:49 PM [vite] server restarted.
+11:39:53 PM [vite] hmr update /src/App.jsx
+11:39:54 PM [vite] hmr update /src/App.css
+12:08:11 AM [vite] hmr update /src/App.jsx
+12:08:12 AM [vite] hmr update /src/App.jsx
+12:08:13 AM [vite] hmr update /src/App.jsx
+12:08:15 AM [vite] hmr update /src/App.css
+1:00:45 AM [vite] hmr update /src/App.jsx
+6:04:27 AM [vite] hmr update /src/App.jsx
+6:04:29 AM [vite] hmr update /src/App.jsx
+6:04:30 AM [vite] hmr update /src/App.jsx
+6:04:31 AM [vite] hmr update /src/App.jsx
+6:04:34 AM [vite] hmr update /src/App.jsx
+9:01:40 AM [vite] vite.config.js changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+9:01:40 AM [vite] server restarted.
+9:03:38 AM [vite] vite.config.js changed, restarting server...
+Re-optimizing dependencies because vite config has changed
+9:03:38 AM [vite] server restarted.
+9:04:01 AM [vite] hmr update /src/components/GameCanvas.jsx
+11:01:00 AM [vite] hmr update /src/App.jsx
+11:01:03 AM [vite] hmr update /src/App.jsx
+11:01:03 AM [vite] hmr update /src/App.jsx
+11:01:05 AM [vite] hmr update /src/App.jsx
+11:01:06 AM [vite] hmr update /src/App.jsx
+11:01:07 AM [vite] hmr update /src/App.jsx
+11:01:08 AM [vite] hmr update /src/App.jsx
+12:01:01 PM [vite] hmr update /src/components/ChatInput.jsx
+12:01:02 PM [vite] hmr update /src/components/ChatBubble.jsx
+12:01:04 PM [vite] hmr update /src/components/ChatBubble.jsx
+12:01:10 PM [vite] hmr update /src/App.jsx
+12:01:12 PM [vite] hmr update /src/App.jsx
+1:01:24 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:25 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:26 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:27 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:29 PM [vite] hmr update /src/App.jsx
+1:01:30 PM [vite] hmr update /src/App.jsx
+1:01:31 PM [vite] hmr update /src/App.jsx
+1:01:33 PM [vite] hmr update /src/App.jsx
+2:01:15 PM [vite] hmr update /src/App.jsx
+2:01:16 PM [vite] hmr update /src/App.jsx
+2:01:20 PM [vite] hmr update /src/App.css
+2:01:21 PM [vite] hmr update /src/App.jsx
+2:01:22 PM [vite] hmr update /src/App.jsx
+2:01:23 PM [vite] hmr update /src/App.jsx
+2:01:25 PM [vite] hmr update /src/App.jsx
+2:01:27 PM [vite] hmr update /src/App.jsx
+2:01:28 PM [vite] hmr update /src/App.jsx
+2:01:29 PM [vite] hmr update /src/App.css
+2:01:32 PM [vite] hmr update /src/components/EventLog.jsx
+2:01:38 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (513:2)
+
+  511 |   
+  512 |
+> 513 |   return (
+      |   ^
+  514 |     <div className="app">
+  515 |       <div className="header">
+  516 |         <h1>🧞 AI 라이프 POC</h1>
+3:02:00 PM [vite] hmr update /src/App.jsx
+3:02:04 PM [vite] hmr update /src/App.jsx
+3:02:06 PM [vite] hmr update /src/App.jsx
+3:02:09 PM [vite] hmr update /src/App.css
+3:02:18 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (545:2)
+
+  543 |   
+  544 |
+> 545 |   return (
+      |   ^
+  546 |     <div className="app">
+  547 |       <div className="header">
+  548 |         <h1>🧞 AI 라이프 POC</h1>
+4:01:39 PM [vite] hmr update /src/App.jsx
+4:01:43 PM [vite] hmr update /src/App.jsx
+4:01:46 PM [vite] hmr update /src/App.jsx
+4:01:49 PM [vite] hmr update /src/App.jsx
+4:01:51 PM [vite] hmr update /src/App.jsx
+4:01:56 PM [vite] hmr update /src/App.jsx
+4:02:03 PM [vite] hmr update /src/App.css
+4:02:25 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (631:2)
+
+  629 |   
+  630 |
+> 631 |   return (
+      |   ^
+  632 |     <div className="app">
+  633 |       <div className="header">
+  634 |         <h1>🧞 AI 라이프 POC</h1>
+5:01:46 PM [vite] hmr update /src/App.jsx
+5:01:47 PM [vite] hmr update /src/App.jsx
+5:01:49 PM [vite] hmr update /src/App.jsx
+5:01:50 PM [vite] hmr update /src/App.jsx
+5:01:50 PM [vite] hmr update /src/App.jsx
+5:01:51 PM [vite] hmr update /src/App.jsx
+5:01:53 PM [vite] hmr update /src/App.jsx
+5:02:03 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+6:02:27 PM [vite] hmr update /src/components/Character.jsx
+6:02:29 PM [vite] hmr update /src/components/Character.jsx
+6:02:37 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+7:00:34 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:36 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:37 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:38 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:39 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:41 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:02:24 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:00:21 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:30:07 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:31:05 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:07 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:10 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:11 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:37 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:31:44 PM [vite] hmr update /src/components/GameCanvas.jsx

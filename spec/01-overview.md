@@ -34,8 +34,70 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
 | Phase 2 | 대화 기능 (채팅, Speech bubble, GLM-4.7) | ✅ 100% |
 | Phase 3 | 인터랙션 (클릭, 호감도, 시각 피드백) | ✅ 100% |
 | Phase 4 | 다중 캐릭터/방 시스템 | ✅ 100% |
-| Phase 5 | 건물/포인트, 아이템/보상, 퀘스트, 미니맵 | ✅ 진행 중 |
+| Phase 5 | 건물/포인트, 아이템/보상, 퀘스트, 미니맵 | ✅ 100% |
 | Phase 6 | 이벤트/미션, 감정 표현, 날씨/시간 | ⏳ 기획 중 |
+| **Pixel Art Refactoring** | 픽셀아트 스타일 전체 전환 | ⏳ 진행 중 (4 Phases) |
+
+---
+
+## 🎨 픽셀아트 리팩토링 로드맵 (2026-02-16 추가)
+
+### 리팩토링 목표
+현재 Canvas 도형 기반 렌더링을 **픽셀아트 스프라이트 기반**으로 전환하여 전체 프로젝트를 레트로 게임 스타일로 리팩토링
+
+### 4-Phase 리팩토링 계획
+
+| Phase | 내용 | GitHub Issue | 상태 |
+|-------|------|--------------|------|
+| **Phase 1** | 스프라이트 기반 렌더링 시스템 | #26 | ⏳ 진행 예정 |
+| **Phase 2** | 건물/맵 타일 리팩토링 | #27 | ⏳ 진행 예정 |
+| **Phase 3** | UI 컴포넌트 레트로 스타일링 | #28 | ⏳ 진행 예정 |
+| **Phase 4** | 감정 표현 & FX 강화 | #29 | ⏳ 진행 예정 |
+
+### Phase 1: 스프라이트 기반 렌더링 시스템 (#26)
+- `spriteLoader.js` 유틸리티 (이미지 로딩, 캐싱, 프레임 추출)
+- `assets/sprites/` 폴더 구조 (캐릭터/이모지/건물/타일/프레임)
+- `GameCanvas.jsx` 렌더링 파이프라인 (fillRect → drawImage 전환)
+- `Character.jsx` 스프라이트 애니메이션 시스템
+- 플레이스홀더 픽셀아트 에셋 생성 (32x32 캐릭터, 16x16 이모지)
+
+### Phase 2: 건물/맵 타일 리팩토링 (#27)
+- 타일맵 데이터 구조 (JSON 기반 맵 데이터: ground/building/decoration 레이어)
+- 건물 스프라이트 교체 (5개 건물 각각 픽셀아트)
+- 맵 배경 타일맵 렌더링 (잔디/흙/길/물 등)
+- 건물 입장 가능 영역 시각 피드백
+- `MiniMap.jsx` 픽셀아트 스타일
+
+### Phase 3: UI 컴포넌트 레트로 스타일링 (#28)
+- 픽셀 폰트: 'Press Start 2P' 또는 'DungGeunMo'
+- `ChatBubble.jsx`: 도트 말풍선 스타일
+- `ChatInput.jsx`: 픽셀 입력창
+- `InteractionMenu.jsx`: RPG 메뉴 스타일 (화살표 커서)
+- `Inventory.jsx`: 도트 아이콘 + 레트로 그리드
+- `Quest.jsx`: RPG 퀘스트 로그
+- 글로벌 CSS: `frontend/src/styles/pixel-theme.css`
+  - 색상 팔레트: 제한된 32색
+  - 그림자/보더: 픽셀 스타일
+
+### Phase 4: 감정 표현 & FX 강화 (#29)
+- 감정 스프라이트시트 **16 감정** 확장 (5개 → 16개)
+  - 추가 감정: love, hate, fear, excited, tired, confused, proud, shy, embarrassed, curious, disgusted
+- 16x16 픽셀 이모지 스프라이트 (캐릭터 위 표시)
+- 감정 변화 애니메이션 (pop-in, bounce)
+- FX 스프라이트:
+  - 점프 효과 (dust particle)
+  - 하트/호감도 상승
+  - 데드/감정 하락
+  - 대기/로딩
+- 클릭 시 시각 피드백 (ripple effect)
+- 호감도에 따른 감정 자동 표현 로직 강화
+
+### 스펙 업데이트 (2026-02-16 완료)
+- `spec/06-character-system.md`: 16 감정 시스템 + 스프라이트 시스템
+- `spec/05-web-ui.md`: 픽셀아트 UI 테마 컴포넌트별 스타일
+- `spec/01-overview.md`: 픽셀아트 리팩토링 로드맵
+
+---
 
 ---
 

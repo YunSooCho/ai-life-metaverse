@@ -1,0 +1,357 @@
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 0: 투명 -->
+  <rect x="0" y="0" width="12" height="12" fill="none"/>
+  
+  <!-- 1: 잔디 -->
+  <rect x="12" y="0" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 2: 흙 -->
+  <rect x="24" y="0" width="12" height="12" fill="#8D6E63"/>
+  
+  <!-- 3: 돌바닥 -->
+  <rect x="36" y="0" width="12" height="12" fill="#757575"/>
+  
+  <!-- 4: 물 -->
+  <rect x="48" y="0" width="12" height="12" fill="#64B5F6"/>
+  
+  <!-- 5: 모래 -->
+  <rect x="60" y="0" width="12" height="12" fill="#FFE082"/>
+  
+  <!-- 6: 진한 잔디 -->
+  <rect x="72" y="0" width="12" height="12" fill="#388E3C"/>
+  
+  <!-- 7: 밝은 잔디 -->
+  <rect x="84" y="0" width="12" height="12" fill="#66BB6A"/>
+  
+  <!-- 8: 돌길 -->
+  <rect x="96" y="0" width="12" height="12" fill="#9E9E9E"/>
+  
+  <!-- 9: 나무 바닥 -->
+  <rect x="108" y="0" width="12" height="12" fill="#795548"/>
+  
+  <!-- 10: 진흙 -->
+  <rect x="120" y="0" width="12" height="12" fill="#5D4037"/>
+  
+  <!-- 11: 눈 -->
+  <rect x="132" y="0" width="12" height="12" fill="#ECEFF1"/>
+  
+  <!-- 나무 타일들 (12-23) -->
+  <rect x="0" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="4" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="12" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="0" width="6" height="12" fill="#795548"/>
+  <rect x="0" y="-2" width="10" height="8" fill="#2E7D32"/>
+  
+  <rect x="24" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="8" y="2" width="6" height="12" fill="#795548"/>
+  <rect x="6" y="0" width="10" height="8" fill="#2E7D32"/>
+  
+  <rect x="36" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="6" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="48" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="6" y="4" width="4" height="12" fill="#795548"/>
+  <rect x="4" y="2" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="60" y="12" width="12" height="12" fill="#388E3C"/>
+  <rect x="0" y="0" width="12" height="12" fill="#66BB6A"/>
+  
+  <rect x="72" y="12" width="12" height="12" fill="#388E3C"/>
+  <rect x="2" y="2" width="8" height="8" fill="#66BB6A"/>
+  
+  <rect x="84" y="12" width="12" height="12" fill="#388E3C"/>
+  <rect x="4" y="0" width="8" height="12" fill="#795548"/>
+  <rect x="2" y="-2" width="10" height="8" fill="#2E7D32"/>
+  
+  <rect x="96" y="12" width="12" height="12" fill="#388E3C"/>
+  <rect x="6" y="2" width="4" height="12" fill="#795548"/>
+  <rect x="4" y="0" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="108" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="6" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="120" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="2" width="8" height="8" fill="#2E7D32"/>
+  
+  <rect x="132" y="12" width="12" height="12" fill="#4CAF50"/>
+  <rect x="0" y="0" width="12" height="12" fill="#66BB6A"/>
+  
+  <!-- 장식 타일들 (24-35) -->
+  <!-- 24: 꽃 (빨강) -->
+  <rect x="0" y="24" width="12" height="12" fill="#4CAF50"/>
+  <circle cx="6" cy="6" r="3" fill="#E91E63"/>
+  
+  <!-- 25: 꽃 (노랑) -->
+  <rect x="12" y="24" width="12" height="12" fill="#4CAF50"/>
+  <circle cx="6" cy="6" r="3" fill="#FFEB3B"/>
+  
+  <!-- 26: 꽃 (파랑) -->
+  <rect x="24" y="24" width="12" height="12" fill="#4CAF50"/>
+  <circle cx="6" cy="6" r="3" fill="#2196F3"/>
+  
+  <!-- 27: 돌 -->
+  <rect x="36" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="2" width="8" height="8" fill="#9E9E9E"/>
+  
+  <!-- 28: 작은 돌 -->
+  <rect x="48" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="4" width="4" height="4" fill="#9E9E9E"/>
+  
+  <!-- 29: 풀 -->
+  <rect x="60" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="4" width="2" height="8" fill="#388E3C"/>
+  <rect x="8" y="6" width="2" height="6" fill="#388E3C"/>
+  
+  <!-- 30: 풀 (높음) -->
+  <rect x="72" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="2" width="2" height="10" fill="#388E3C"/>
+  <rect x="8" y="4" width="2" height="8" fill="#388E3C"/>
+  
+  <!-- 31: 잔돌 -->
+  <rect x="84" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="8" width="2" height="2" fill="#BDBDBD"/>
+  <rect x="6" y="6" width="2" height="2" fill="#9E9E9E"/>
+  <rect x="10" y="9" width="2" height="2" fill="#BDBDBD"/>
+  
+  <!-- 32: 나뭇잎 -->
+  <rect x="96" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="4" width="6" height="4" fill="#81C784"/>
+  
+  <!-- 33: 버섯 빨강 -->
+  <rect x="108" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="6" width="4" height="6" fill="#F5F5F5"/>
+  <ellipse cx="6" cy="6" rx="3" ry="2" fill="#E53935"/>
+  
+  <!-- 34: 버섯 갈색 -->
+  <rect x="120" y="24" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="6" width="4" height="6" fill="#F5F5F5"/>
+  <ellipse cx="6" cy="6" rx="3" ry="2" fill="#8D6E63"/>
+  
+  <!-- 35: 물가 풀 -->
+  <rect x="132" y="24" width="12" height="12" fill="#64B5F6"/>
+  <rect x="4" y="4" width="2" height="6" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (36-47) -->
+  <rect x="0" y="36" width="12" height="12" fill="#8D6E63"/>
+  <rect x="2" y="0" width="8" height="4" fill="#795548"/>
+  <rect x="4" y="-4" width="4" height="8" fill="#388E3C"/>
+  
+  <rect x="12" y="36" width="12" height="12" fill="#8D6E63"/>
+  <rect x="4" y="0" width="6" height="4" fill="#795548"/>
+  <rect x="6" y="-4" width="4" height="8" fill="#388E3C"/>
+  
+  <rect x="24" y="36" width="12" height="12" fill="#8D6E63"/>
+  <rect x="6" y="0" width="4" height="4" fill="#795548"/>
+  <rect x="8" y="-4" width="4" height="8" fill="#388E3C"/>
+  
+  <rect x="36" y="36" width="12" height="12" fill="#8D6E63"/>
+  <rect x="8" y="0" width="2" height="4" fill="#795548"/>
+  <rect x="10" y="-4" width="2" height="8" fill="#388E3C"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="48" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="60" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="36" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="36" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (48-59) -->
+  <rect x="0" y="48" width="12" height="12" fill="#388E3C"/>
+  <rect x="2" y="0" width="8" height="4" fill="#2E7D32"/>
+  <rect x="4" y="-4" width="4" height="8" fill="#43A047"/>
+  
+  <rect x="12" y="48" width="12" height="12" fill="#388E3C"/>
+  <rect x="4" y="0" width="6" height="4" fill="#2E7D32"/>
+  <rect x="6" y="-4" width="4" height="8" fill="#43A047"/>
+  
+  <rect x="24" y="48" width="12" height="12" fill="#388E3C"/>
+  <rect x="6" y="0" width="4" height="4" fill="#2E7D32"/>
+  <rect x="8" y="-4" width="4" height="8" fill="#43A047"/>
+  
+  <rect x="36" y="48" width="12" height="12" fill="#388E3C"/>
+  <rect x="8" y="0" width="2" height="4" fill="#2E7D32"/>
+  <rect x="10" y="-4" width="2" height="8" fill="#43A047"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="48" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="60" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="48" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="48" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (60-71) -->
+  <rect x="0" y="60" width="12" height="12" fill="#8D6E63"/>
+  <line x1="2" y1="0" x2="10" y2="0" stroke="#795548" stroke-width="2"/>
+  
+  <rect x="12" y="60" width="12" height="12" fill="#8D6E63"/>
+  <line x1="4" y1="0" x2="8" y2="0" stroke="#795548" stroke-width="2"/>
+  
+  <rect x="24" y="60" width="12" height="12" fill="#8D6E63"/>
+  <line x1="6" y1="0" x2="6" y2="0" stroke="#795548" stroke-width="2"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="36" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="48" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="60" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="60" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="60" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (72-83) -->
+  <rect x="0" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="4" width="8" height="6" fill="#2E7D32"/>
+  
+  <rect x="12" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="2" width="6" height="6" fill="#2E7D32"/>
+  
+  <rect x="24" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="6" y="0" width="4" height="6" fill="#2E7D32"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="36" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="48" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="60" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="72" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="72" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (84-95) -->
+  <rect x="0" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="0" y="0" width="12" height="4" fill="#2E7D32"/>
+  
+  <rect x="12" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="0" width="8" height="4" fill="#2E7D32"/>
+  
+  <rect x="24" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="0" width="6" height="4" fill="#2E7D32"/>
+  
+  <rect x="36" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="6" y="0" width="4" height="4" fill="#2E7D32"/>
+  
+  <rect x="48" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="8" y="0" width="2" height="4" fill="#2E7D32"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="60" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="84" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="84" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (96-107) -->
+  <rect x="0" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="0" y="8" width="12" height="4" fill="#2E7D32"/>
+  
+  <rect x="12" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="2" y="8" width="8" height="4" fill="#2E7D32"/>
+  
+  <rect x="24" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="4" y="8" width="6" height="4" fill="#2E7D32"/>
+  
+  <rect x="36" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="6" y="8" width="4" height="4" fill="#2E7D32"/>
+  
+  <rect x="48" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="8" y="8" width="2" height="4" fill="#2E7D32"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="60" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="96" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="96" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (108-119) -->
+  <rect x="0" y="108" width="12" height="12" fill="#388E3C"/>
+  <rect x="0" y="0" width="12" height="4" fill="#43A047"/>
+  
+  <rect x="12" y="108" width="12" height="12" fill="#388E3C"/>
+  <rect x="2" y="0" width="8" height="4" fill="#43A047"/>
+  
+  <rect x="24" y="108" width="12" height="12" fill="#388E3C"/>
+  <rect x="4" y="0" width="6" height="4" fill="#43A047"/>
+  
+  <rect x="36" y="108" width="12" height="12" fill="#388E3C"/>
+  <rect x="6" y="0" width="4" height="4" fill="#43A047"/>
+  
+  <rect x="48" y="108" width="12" height="12" fill="#388E3C"/>
+  <rect x="8" y="0" width="2" height="4" fill="#43A047"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="60" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="108" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="108" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 나무 타일들 (120-131) -->
+  <rect x="0" y="120" width="12" height="12" fill="#388E3C"/>
+  <rect x="0" y="8" width="12" height="4" fill="#43A047"/>
+  
+  <rect x="12" y="120" width="12" height="12" fill="#388E3C"/>
+  <rect x="2" y="8" width="8" height="4" fill="#43A047"/>
+  
+  <rect x="24" y="120" width="12" height="12" fill="#388E3C"/>
+  <rect x="4" y="8" width="6" height="4" fill="#43A047"/>
+  
+  <rect x="36" y="120" width="12" height="12" fill="#388E3C"/>
+  <rect x="6" y="8" width="4" height="4" fill="#43A047"/>
+  
+  <rect x="48" y="120" width="12" height="12" fill="#388E3C"/>
+  <rect x="8" y="8" width="2" height="4" fill="#43A047"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="60" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="120" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="120" width="12" height="12" fill="#4CAF50"/>
+  
+  <!-- 남은 타일들 (132-143) -->
+  <rect x="0" y="132" width="12" height="12" fill="#8D6E63"/>
+  <rect x="2" y="0" width="8" height="4" fill="#6D4C41"/>
+  <rect x="4" y="-4" width="4" height="8" fill="#A1887F"/>
+  
+  <rect x="12" y="132" width="12" height="12" fill="#8D6E63"/>
+  <rect x="4" y="0" width="6" height="4" fill="#6D4C41"/>
+  <rect x="6" y="-4" width="4" height="8" fill="#A1887F"/>
+  
+  <rect x="24" y="132" width="12" height="12" fill="#8D6E63"/>
+  <rect x="6" y="0" width="4" height="4" fill="#6D4C41"/>
+  <rect x="8" y="-4" width="4" height="8" fill="#A1887F"/>
+  
+  <rect x="36" y="132" width="12" height="12" fill="#8D6E63"/>
+  <rect x="8" y="0" width="2" height="4" fill="#6D4C41"/>
+  <rect x="10" y="-4" width="2" height="8" fill="#A1887F"/>
+  
+  <!-- 빈 타일들 -->
+  <rect x="48" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="60" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="72" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="84" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="96" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="108" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="120" y="132" width="12" height="12" fill="#4CAF50"/>
+  <rect x="132" y="132" width="12" height="12" fill="#4CAF50"/>
+</svg>

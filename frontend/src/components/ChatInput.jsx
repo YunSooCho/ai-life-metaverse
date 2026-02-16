@@ -1,6 +1,10 @@
 import PropTypes from 'prop-types'
+import { useRef, useEffect } from 'react'
 
 export default function ChatInput({ value, onChange, onSubmit, disabled }) {
+  const textareaRef = useRef(null)
+  const MAX_HEIGHT = 120
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -8,16 +12,35 @@ export default function ChatInput({ value, onChange, onSubmit, disabled }) {
     }
   }
 
+  const handleChange = (e) => {
+    onChange(e)
+  }
+
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      const newHeight = Math.min(textarea.scrollHeight, MAX_HEIGHT)
+      textarea.style.height = `${newHeight}px`
+    }
+  }, [value, MAX_HEIGHT])
+
   return (
     <div className="chat-input-container">
-      <input
-        type="text"
-        className="chat-input"
+      <textarea
+        ref={textareaRef}
+        className="chat-input chat-input-textarea"
         placeholder="메시지를 입력하세요..."
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        rows={1}
+        style={{
+          resize: 'none',
+          overflowY: textareaRef.current?.scrollHeight > MAX_HEIGHT ? 'auto' : 'hidden',
+          maxHeight: `${MAX_HEIGHT}px`
+        }}
       />
       <button className="chat-send-button" onClick={onSubmit} disabled={disabled}>
         전송
