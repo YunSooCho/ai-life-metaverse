@@ -731,3 +731,14 @@ JSON 형식으로 응답해주세요:
 ---
 
 *마지막 업데이트: 2026-02-16 (감정 표현 시스템 추가)*
+## 감정 표현 & FX 시스템 (Phase 4, 2026-02-17)
+
+### 감정 이모지 (emojiSprite.js)
+- 16종: happy, sad, angry, surprised, neutral, love, hate, fear, excited, tired, confused, proud, shy, embarrassed, curious, disgusted
+- 호감도 → 감정 자동 매핑 (80+:love, 60+:happy, 40+:excited, 20+:neutral, 0+:confused, -20+:sad, else:angry)
+- Canvas 렌더링 (bounce 애니메이션, pop-in 변화 효과)
+
+### FX 시스템 (effects.js)
+- 6종: dust, heart, anger, ripple, sparkle, loading
+- 파티클 기반 렌더링, 자동 수명 관리
+- 호감도 변화 연동 (positive→heart, negative→anger)
