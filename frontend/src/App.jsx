@@ -23,8 +23,8 @@ function App() {
   const [myCharacter, setMyCharacter] = useState({
     id: 'player',
     name: '플레이어',
-    x: 100,
-    y: 100,
+    x: 125,
+    y: 125,
     color: '#4CAF50',
     emoji: '👤',
     isAi: false
@@ -85,7 +85,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [myCharacter.id])
+  }, [myCharacter])
 
   useEffect(() => {
     if (chatHistoryRef.current) {
@@ -420,9 +420,68 @@ function App() {
     }
   }
 
+  const moveCharacter = (dx, dy) => {
+    const currentGridX = Math.floor(myCharacter.x / CELL_SIZE)
+    const currentGridY = Math.floor(myCharacter.y / CELL_SIZE)
+
+    const newGridX = currentGridX + dx
+    const newGridY = currentGridY + dy
+
+    const newX = (newGridX * CELL_SIZE) + (CELL_SIZE / 2)
+    const newY = (newGridY * CELL_SIZE) + (CELL_SIZE / 2)
+
+    const clampedX = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.width - CELL_SIZE / 2, newX))
+    const clampedY = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.height - CELL_SIZE / 2, newY))
+
+    const updatedCharacter = {
+      ...myCharacter,
+      x: clampedX,
+      y: clampedY
+    }
+
+    setMyCharacter(updatedCharacter)
+    socket.emit('move', updatedCharacter)
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'h' || e.key === 'H') {
       setShowChatHistory(prev => !prev)
+      return
+    }
+
+    // 채팅 입력 중이면 방향키 무시
+    if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+      return
+    }
+
+    // 방향키 이동
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        e.preventDefault()
+        moveCharacter(0, -1)
+        break
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        e.preventDefault()
+        moveCharacter(0, 1)
+        break
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        e.preventDefault()
+        moveCharacter(-1, 0)
+        break
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        e.preventDefault()
+        moveCharacter(1, 0)
+        break
+      default:
+        break
     }
   }
 
@@ -540,36 +599,24 @@ function App() {
     closeInteractionMenu()
     setAffinityDisplay({ show: false, x: 0, y: 0, data: null })
 
-    const CELL_SIZE = 50
-
     const currentGridX = Math.floor(myCharacter.x / CELL_SIZE)
     const currentGridY = Math.floor(myCharacter.y / CELL_SIZE)
 
     const clickGridX = Math.floor(clickMapX / CELL_SIZE)
     const clickGridY = Math.floor(clickMapY / CELL_SIZE)
 
-    let newGridX = currentGridX
-    let newGridY = currentGridY
+    let dx = 0
+    let dy = 0
 
-    if (clickGridX > currentGridX) newGridX++
-    else if (clickGridX < currentGridX) newGridX--
-    else if (clickGridY > currentGridY) newGridY++
-    else if (clickGridY < currentGridY) newGridY--
+    if (clickGridX > currentGridX) dx = 1
+    else if (clickGridX < currentGridX) dx = -1
+    
+    if (clickGridY > currentGridY) dy = 1
+    else if (clickGridY < currentGridY) dy = -1
 
-    const newX = (newGridX * CELL_SIZE) + (CELL_SIZE / 2)
-    const newY = (newGridY * CELL_SIZE) + (CELL_SIZE / 2)
-
-    const clampedX = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.width - CELL_SIZE / 2, newX))
-    const clampedY = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.height - CELL_SIZE / 2, newY))
-
-    const updatedCharacter = {
-      ...myCharacter,
-      x: clampedX,
-      y: clampedY
+    if (dx !== 0 || dy !== 0) {
+      moveCharacter(dx, dy)
     }
-
-    setMyCharacter(updatedCharacter)
-    socket.emit('move', updatedCharacter)
   }
 
   const handleBuildingClick = (building) => {
@@ -601,14 +648,16 @@ function App() {
         setToast(prev => ({ ...prev, show: false }))
       }, 3000)
 
-socket.emit('enterBuilding', {
-      buildingId: building.id,
-      characterId: myCharacter.id
-    })
+      socket.emit('enterBuilding', {
+        buildingId: building.id,
+        characterId: myCharacter.id
+      })
 
-    setActiveBuilding(building)
-    
-    fetchEventLogs()
+      setActiveBuilding(building)
+      fetchEventLogs()
+    }
+
+    console.log('건물 클릭:', building.name)
   }
 
   const fetchEventLogs = async () => {
@@ -632,10 +681,6 @@ socket.emit('enterBuilding', {
       socket.off('buildingEvent')
     }
   }, [myCharacter.id])
-    }
-
-    console.log('건물 클릭:', building.name)
-  }
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp)
@@ -649,28 +694,18 @@ socket.emit('enterBuilding', {
     const clickGridX = Math.floor(mapX / CELL_SIZE)
     const clickGridY = Math.floor(mapY / CELL_SIZE)
 
-    let newGridX = currentGridX
-    let newGridY = currentGridY
+    let dx = 0
+    let dy = 0
 
-    if (clickGridX > currentGridX) newGridX++
-    else if (clickGridX < currentGridX) newGridX--
-    else if (clickGridY > currentGridY) newGridY++
-    else if (clickGridY < currentGridY) newGridY--
+    if (clickGridX > currentGridX) dx = 1
+    else if (clickGridX < currentGridX) dx = -1
+    
+    if (clickGridY > currentGridY) dy = 1
+    else if (clickGridY < currentGridY) dy = -1
 
-    const newX = (newGridX * CELL_SIZE) + (CELL_SIZE / 2)
-    const newY = (newGridY * CELL_SIZE) + (CELL_SIZE / 2)
-
-    const clampedX = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.width - CELL_SIZE / 2, newX))
-    const clampedY = Math.max(CELL_SIZE / 2, Math.min(MAP_SIZE.height - CELL_SIZE / 2, newY))
-
-    const updatedCharacter = {
-      ...myCharacter,
-      x: clampedX,
-      y: clampedY
+    if (dx !== 0 || dy !== 0) {
+      moveCharacter(dx, dy)
     }
-
-    setMyCharacter(updatedCharacter)
-    socket.emit('move', updatedCharacter)
   }
 
   const handleGetInventory = () => {
@@ -800,9 +835,8 @@ socket.emit('enterBuilding', {
         onSubmit={handleChatSubmit}
       />
       <div className="controls">
-        <p>🖱️ 클릭해서 캐릭터 이동하기</p>
-        <p>⌨️ Enter 키로 채팅 메시지 전송하기</p>
-        <p>📋 H 키로 채팅 히스토리 열기/닫기</p>
+        <p>🖱️ 클릭 / ⬆⬇⬅➡ 방향키 / WASD 이동</p>
+        <p>⌨️ Enter 채팅 전송 | H 히스토리</p>
       </div>
 
       {showChatHistory && (

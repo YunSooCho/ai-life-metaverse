@@ -2,12 +2,12 @@
 class SpriteLoader {
   constructor() {
     this.cache = new Map(); // 스프라이트 캐시
-    this.loading = new Map(); // 로딩 중인 스프라이트 추적
+    this.loading = new Map(); // 로딩 중인 스프라이트 추젂
   }
 
   /**
    * 스프라이트 시트 로드
-   * @param {string} path - 에셋 경로 (assets/sprites/... 부분 제외)
+   * @param {string} path - public/images/ 폴더 기준 경로
    * @param {string} name - 스프라이트 이름
    * @returns {Promise<HTMLImageElement>}
    */
@@ -34,8 +34,8 @@ class SpriteLoader {
         this.loading.delete(name);
         reject(new Error(`Failed to load sprite: ${path}`));
       };
-      // assets/sprites/ 폴더 기준 경로
-      img.src = `/assets/sprites/${path}`;
+      // public/images/ 폴더 기준 경로
+      img.src = `/images/${path}`;
     });
 
     this.loading.set(name, loadPromise);

@@ -412,6 +412,12 @@ function GameCanvas({
     const canvasWidth = MAP_SIZE.width * scale
     const canvasHeight = MAP_SIZE.height * scale
 
+    // 캔버스 크기 설정 (핵심!)
+    canvas.width = canvasWidth
+    canvas.height = canvasHeight
+    canvas.style.width = `${canvasWidth}px`
+    canvas.style.height = `${canvasHeight}px`
+
     const CELL_SIZE_SCALED = CELL_SIZE * scale
     const CHARACTER_SIZE_SCALED = CHARACTER_SIZE * scale
 
@@ -565,11 +571,13 @@ function GameCanvas({
   }, [myCharacter, characters, chatMessages, affinities, clickEffects, buildings, animatedCharacters, isSpritesLoaded, spriteSheets])
 
   return (
-    <canvas
-      ref={canvasRef}
-      onClick={onClick}
-      onTouchStart={onClick}
-    />
+    <div className="canvas-container">
+      <canvas
+        ref={canvasRef}
+        onClick={onClick}
+        onTouchStart={onClick}
+      />
+    </div>
   )
 }
 

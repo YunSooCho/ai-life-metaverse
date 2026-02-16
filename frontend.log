@@ -167,3 +167,165 @@ Re-optimizing dependencies because vite config has changed
   725 |       <div className="header">
   726 |         <h1>🧞 AI 라이프 POC</h1>
 10:31:44 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:32:31 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:32:32 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:32:57 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:33:11 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:33:36 PM [vite] hmr update /src/App.jsx
+10:38:10 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:38:10 PM [vite] hmr invalidate /src/components/GameCanvas.jsx Could not Fast Refresh ("MAP_SIZE" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:38:10 PM [vite] hmr update /src/App.jsx
+10:38:30 PM [vite] hmr update /src/App.css
+10:38:39 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:38:40 PM [vite] hmr invalidate /src/components/GameCanvas.jsx Could not Fast Refresh ("MAP_SIZE" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:38:40 PM [vite] hmr update /src/App.jsx
+10:42:44 PM [vite] hmr update /src/App.jsx
+10:42:54 PM [vite] hmr update /src/App.jsx
+10:42:59 PM [vite] hmr update /src/App.jsx
+10:43:18 PM [vite] hmr update /src/App.jsx
+10:43:25 PM [vite] hmr update /src/App.jsx
+10:43:39 PM [vite] hmr update /src/App.jsx
+11:00:36 PM [vite] hmr update /src/components/GameCanvas.jsx
