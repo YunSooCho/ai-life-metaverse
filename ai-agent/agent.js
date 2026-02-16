@@ -1,6 +1,11 @@
 import { io } from 'socket.io-client'
 import { ChatContext } from './chat-context.js'
 import { EmotionManager } from './emotion-manager.js'
+import {
+  getGameHour,
+  getNpcStatus,
+  moveTowardTarget
+} from '../shared/npcSchedule.js'
 
 // AI 캐릭터 설정
 const AI_CHARACTER = {
@@ -152,6 +157,9 @@ ${AI_CHARACTER.dislikes.join(', ')}
 
 ## 현재 상황
 ${contextPrompt}
+
+## 현재 활동
+${(() => { try { const h = getGameHour(Date.now()); const s = getNpcStatus(h); return `${s.locationName}에서 ${s.activity} 중 (게임시간 ${h}시)`; } catch(e) { return '활동 중'; } })()}
 
 ## 응답 지침
 - 항상 ${AI_CHARACTER.name}의 페르소나 유지
@@ -800,11 +808,54 @@ ${fromCharacterName}가 인사를 했어. 친근하게 반갑게 응답해줘. 1
     }
   })
 
+  // 게임 시작 시간 기록
+  const gameStartTime = Date.now()
+  let lastScheduleLog = -1
+
   while (true) {
-    const situation = analyzeSituation(currentCharacters, myCharacter)
-    const action = await decideAction(situation, myCharacter, AI_CHARACTER)
-    myCharacter = executeAction(action, socket, myCharacter, currentCharacters)
-    await new Promise(r => setTimeout(r, 3000))
+    const gameHour = getGameHour(gameStartTime)
+    const npcStatus = getNpcStatus(gameHour)
+
+    // 시간대 변경 로그
+    if (gameHour !== lastScheduleLog) {
+      console.log(`🕐 게임시간 ${gameHour}:00 → ${npcStatus.locationName} (${npcStatus.activity})`)
+      lastScheduleLog = gameHour
+    }
+
+    // 대화 중이 아닐 때만 스케줄 이동
+    if (!getConversingState()) {
+      const { x: newX, y: newY, arrived } = moveTowardTarget(
+        myCharacter.x, myCharacter.y,
+        npcStatus.targetX, npcStatus.targetY,
+        AI_CHARACTER.speed
+      )
+
+      if (myCharacter.x !== newX || myCharacter.y !== newY) {
+        // 건물/캐릭터 충돌 체크
+        if (!checkBuildingCollision(newX, newY, BUILDINGS) &&
+            !checkCollision(newX, newY, myCharacter.id, currentCharacters)) {
+          myCharacter.x = newX
+          myCharacter.y = newY
+          myCharacter.emotion = emotionManager.getEmotion()
+          myCharacter.isConversing = getConversingState()
+          socket.emit('move', myCharacter)
+        }
+      }
+
+      // 도착 후 가끔 활동 대사 출력
+      if (arrived && Math.random() < 0.05) {
+        socket.emit('chatMessage', {
+          message: npcStatus.dialogue,
+          characterId: myCharacter.id
+        })
+      }
+    } else {
+      // 대화 중: AI 행동 결정 (기존 로직 유지)
+      const situation = analyzeSituation(currentCharacters, myCharacter)
+      // 대화 중에는 이동 안 함
+    }
+
+    await new Promise(r => setTimeout(r, 1000))
   }
 }
 
