@@ -1,0 +1,22 @@
+<svg width="120" height="100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 건물 본체 -->
+  <rect x="5" y="30" width="110" height="65" fill="#8B4513" stroke="#5C3317" stroke-width="2"/>
+  <!-- 지붕 -->
+  <polygon points="60,0 0,35 120,35" fill="#A52A2A" stroke="#800000" stroke-width="2"/>
+  <!-- 간판 -->
+  <rect x="25" y="15" width="70" height="20" fill="#FFD700" stroke="#B8860B" stroke-width="2"/>
+  <text x="60" y="29" font-family="Arial" font-size="12" font-weight="bold" fill="#000" text-anchor="middle">SHOP</text>
+  <!-- 문 -->
+  <rect x="50" y="50" width="20" height="45" fill="#654321" stroke="#4A3520" stroke-width="2"/>
+  <circle cx="63" cy="68" r="2" fill="#FFD700"/>
+  <!-- 창문 -->
+  <rect x="10" y="40" width="25" height="30" fill="#87CEEB" stroke="#5F9EA0" stroke-width="2"/>
+  <rect x="85" y="40" width="25" height="30" fill="#87CEEB" stroke="#5F9EA0" stroke-width="2"/>
+  <!-- 십자가 -->
+  <line x1="22.5" y1="40" x2="22.5" y2="70" stroke="#5F9EA0" stroke-width="2"/>
+  <line x1="10" y1="55" x2="35" y2="55" stroke="#5F9EA0" stroke-width="2"/>
+  <line x1="97.5" y1="40" x2="97.5" y2="70" stroke="#5F9EA0" stroke-width="2"/>
+  <line x1="85" y1="55" x2="110" y2="55" stroke="#5F9EA0" stroke-width="2"/>
+  <!-- 입구 하이라이트 (투명) -->
+  <rect x="45" y="75" width="30" height="20" fill="rgba(255,255,255,0.3)" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,2"/>
+</svg>
