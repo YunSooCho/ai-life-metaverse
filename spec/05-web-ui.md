@@ -335,20 +335,45 @@ App.jsx
 
 ## 주요 UI 기능 (픽셀아트 스타일)
 
-### 1. GameCanvas - 스프라이트/타일맵 렌더링
+### 1. GameCanvas - 스프라이트/타일맵 렌더링 (Phase 2 완료 2026-02-16)
 - **Canvas API:** `image-rendering: pixelated` (픽셀 선명 유지)
 - **맵 배경:** 타일맵 스프라이트 (잔디/흙/길/물 등 16x16 프레임)
-- **건물:** 픽셀아트 건물 스프라이트 (64x64)
-  - 상점: 빨강 픽셀 아이콘 + "SHOP" 텍스트 (픽셀 폰트)
-  - 카페: 갈색 컵 아이콘 + "CAFE"
-  - 공원: 초록 나무 아이콘 + "PARK"
-  - 도서관: 파랑 책 아이콘 + "LIBRARY"
-  - 체육관: 주황 덤벨 아이콘 + "GYM"
-- **캐릭터:** 32x32 픽셀아트 스프라이트
-  - idle 애니메이션 (4 프레임, 200ms)
-  - walk 애니메이션 (4 프레임, 150ms)
+  - 잔디 (#4CAF50), 흙길 (#8D6E63), 돌바닥 (#757575)
+  - 물, 모래, 나무바닥, 벽돌 등 총 16개 타일
+- **건물:** 픽셀아트 건물 스프라이트 (SVG)
+  - 상점: 빨간 지붕 + "SHOP" 텍스트 (120x100px)
+  - 카페: 파라솔 지붕 + "CAFÉ" 텍스트 (120x100px)
+  - 공원: 나무 4개 + 벤치 + 화단 + "PARK" 텍스트 (200x150px)
+  - 도서관: 기둥 4개 + 책 선반 + "LIBRARY" 텍스트 (150x120px)
+  - 체육관: 빨간 지붕 + 덤벨 장식 + "GYM" 텍스트 (150x120px)
+- **입구 하이라이트:** 점선 테두리 (entrance_highlight.svg)
+- **캐릭터:** 픽셀아트 캐릭터 스프라이트 (SVG, 4x4 그리드)
+  - 블루 캐릭터 (idle, walk_up/down/left/right)
+  - 레드, 그린, 퍼플 캐릭터 (idle)
 - **감정 이모지:** 16x16 픽셀 이모지 스프라이트 (캐릭터 위 표시)
-- **클릭 이펙트:** 도트 리플 스프라이트 (ripple.png)
+- **클릭 이펙트:** 도트 리플 스플래시 (하트 이모지)
+
+**파일 구조:**
+```
+frontend/public/images/
+├── buildings/
+│   ├── shop.svg
+│   ├── cafe.svg
+│   ├── library.svg
+│   ├── gym.svg
+│   └── park.svg
+├── tiles/
+│   └── tileset.svg (16개 타일)
+├── effects/
+│   └── entrance_highlight.svg
+└── characters/
+    └── RPGCharacterSprites.svg (4x4 그리드)
+```
+
+**spriteLoader.js:**
+- 경로: `/images/{path}` (public/images/ 폴더 기준)
+- 캐싱 시스템: Map-based 캐시
+- preloadAssets(): 여러 스프라이트 미리 로드
 
 ### 2. ChatBubble - 도트 말풍선
 - 스타일: RPG 말풍선 (점선 테두리, 돌출 꼬리)
