@@ -5,6 +5,17 @@ import ChatBubble from './ChatBubble'
 import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
 import tilemapData from '../data/tilemap.json'
+import {
+  getGameHour,
+  getGameMinute,
+  generateRandomWeather,
+  createWeatherParticles,
+  updateWeatherParticles,
+  renderWeatherParticles,
+  renderTimeOverlay,
+  renderWeatherTimeHUD,
+  WEATHER_TYPES
+} from '../utils/weatherTimeSystem'
 
 export const MAP_SIZE = { width: 1000, height: 700 }
 export const CHARACTER_SIZE = 40
@@ -97,9 +108,22 @@ function GameCanvas({
   const [animatedCharacters, setAnimatedCharacters] = useState({})
   const [spriteSheets, setSpriteSheets] = useState({})
   const [isSpritesLoaded, setIsSpritesLoaded] = useState(false)
+  const [weather, setWeather] = useState(WEATHER_TYPES.CLEAR)
   const animationRef = useRef(null)
   const lastTimeRef = useRef(0)
   const characterDirections = useRef({})
+  const gameStartTime = useRef(Date.now())
+  const weatherParticlesRef = useRef([])
+  const lastWeatherChange = useRef(Date.now())
+
+  // 날씨 변경 (5 게임 시간마다 = 5분)
+  useEffect(() => {
+    const weatherInterval = setInterval(() => {
+      setWeather(generateRandomWeather())
+      lastWeatherChange.current = Date.now()
+    }, 5 * 60 * 1000)
+    return () => clearInterval(weatherInterval)
+  }, [])
 
   // 스프라이트 시트 로드
   useEffect(() => {
@@ -538,6 +562,23 @@ function GameCanvas({
 
       drawCharacter(myCharacter)
 
+      // 시간 오버레이 렌더링
+      const gameHour = getGameHour(gameStartTime.current)
+      const gameMinute = getGameMinute(gameStartTime.current)
+      renderTimeOverlay(ctx, gameHour, canvasWidth, canvasHeight)
+
+      // 날씨 파티클 업데이트 & 렌더링
+      if (weatherParticlesRef.current.length === 0 && (weather === WEATHER_TYPES.RAIN || weather === WEATHER_TYPES.SNOW)) {
+        weatherParticlesRef.current = createWeatherParticles(weather, canvasWidth, canvasHeight)
+      } else if (weather !== WEATHER_TYPES.RAIN && weather !== WEATHER_TYPES.SNOW) {
+        weatherParticlesRef.current = []
+      }
+      weatherParticlesRef.current = updateWeatherParticles(weatherParticlesRef.current, weather, canvasWidth, canvasHeight)
+      renderWeatherParticles(ctx, weatherParticlesRef.current, weather)
+
+      // 시간/날씨 HUD
+      renderWeatherTimeHUD(ctx, gameHour, gameMinute, weather, scale)
+
       // 클릭 효과 렌더링
       clickEffects.forEach(effect => {
         const age = Date.now() - effect.timestamp
@@ -564,7 +605,7 @@ function GameCanvas({
     }
     
     render()
-  }, [myCharacter, characters, chatMessages, affinities, clickEffects, buildings, animatedCharacters, isSpritesLoaded, spriteSheets])
+  }, [myCharacter, characters, chatMessages, affinities, clickEffects, buildings, animatedCharacters, isSpritesLoaded, spriteSheets, weather])
 
   return (
     <div className="canvas-container">
