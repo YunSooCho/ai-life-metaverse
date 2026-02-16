@@ -251,4 +251,97 @@ affinity:{char_a}:{char_b} = 72
 
 ---
 
-*마지막 업데이트: 2026-02-16*
+### 10. 일일 퀘스트 템플릿 (Daily Quest Templates)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `quest_id` | STRING (PK) | 일일 퀘스트 고유 ID |
+| `quest_type` | VARCHAR | 퀘스트 타입 (daily) |
+| `title` | VARCHAR | 일일 퀘스트 제목 |
+| `description` | TEXT | 일일 퀘스트 설명 |
+| `objectives` | TEXT | 목표 (JSON 배열) |
+| `reward` | TEXT | 보상 (JSON) |
+
+**기본 일일 퀘스트:**
+1. 코인 수집가 - 코인 100개 수집
+2. 소셜 호랑나비 - 채팅 5회
+3. 탐험가 - 서로 다른 건물 3개 방문
+
+---
+
+### 11. 일일 퀘스트 상태 (Daily Quest State)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `character_id` | STRING (FK) | 캐릭터 ID |
+| `last_reset_date` | DATE | 마지막 리셋 날짜 (YYYY-MM-DD) |
+| `completed_quests` | TEXT | 완료된 일일 퀘스트 (JSON) |
+| `active_quests` | TEXT | 활성 일일 퀘스트 (JSON) |
+
+**자동 리셋:** 매일 0시 (00:00)에 일일 퀘스트 자동 리셋
+
+---
+
+### 일일 퀘스트 목표 타입
+
+**코인 수집 (collect):**
+```json
+{
+  "id": "collect_coins",
+  "description": "100개 코인 수집",
+  "type": "collect",
+  "targetId": "coin",
+  "requiredCount": 100,
+  "currentCount": 0
+}
+```
+
+**채팅 (chat):**
+```json
+{
+  "id": "chat_count",
+  "description": "5번 채팅하기",
+  "type": "chat",
+  "requiredCount": 5,
+  "currentCount": 0
+}
+```
+
+**건물 방문 (visit_building):**
+```json
+{
+  "id": "visit_buildings",
+  "description": "3개 건물 방문",
+  "type": "visit_building",
+  "requiredCount": 3,
+  "currentCount": 0,
+  "visitedBuildings": [1, 2, 3]  // 중복 방문 방지
+}
+```
+
+---
+
+### 일일 퀘스트 함수
+
+**`getDailyQuests(characterId)`:**
+- 플레이어의 오늘 일일 퀘스트 반환
+- 매일 0시 자동 리셋
+
+**`resetDailyQuests(characterId)`:**
+- 일일 퀘스트 리셋 (자정 전달)
+- 모두 목표 초기화
+
+**`completeDailyQuest(characterId, questId)`:**
+- 일일 퀘스트 완료 처리
+- 모든 목표 달성 확인 필요
+
+**`updateDailyQuestProgress(characterId, eventType, data)`:**
+- 일일 퀘스트 진행 업데이트
+- collect/chat/enterBuilding 이벤트 처리
+
+**`getDailyQuestReward(questId)`:**
+- 일일 퀘스트 보상 반환
+
+---
+
+*마지막 업데이트: 2026-02-16 (일일 퀘스트 시스템 추가)*
