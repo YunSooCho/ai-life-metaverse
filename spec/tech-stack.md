@@ -2,130 +2,86 @@
 
 ## 프론트엔드
 
-### 웹 프레임워크
-- **React 18** - UI 구성
-- **TypeScript** - 타입 안정성
-- **React Router** - 페이지 네비게이션
-- **Socket.io Client** - 실시간 통신
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| React | 18+ | UI 프레임워크 |
+| Vite | 5+ | 빌드 도구 / 개발 서버 |
+| Socket.io-client | 4+ | 실시간 통신 |
+| Canvas API | - | 2D 맵/캐릭터 렌더링 |
+| CSS | - | 스타일링 |
 
-### UI 라이브러리
-- **Tailwind CSS** - 스타일링
-- **Framer Motion** - 애니메이션
-- **React-Leaflet** - 2D 맵 (또는 Canvas 기반 커스텀)
-- **Phaser 3** - 2D 맵 렌더링 (선택)
-
-### 상태 관리
-- **Zustand** - 클라이언트 상태
-- **React Query** - 서버 데이터 가져오기/캐싱
-
-### 빌드 도구
-- **Vite** - 빠른 개발 빌드
+### 테스트
+| 기술 | 용도 |
+|------|------|
+| Vitest | 프론트엔드 테스트 프레임워크 |
+| @testing-library/react | React 컴포넌트 테스트 |
+| jsdom | 브라우저 환경 시뮬레이션 |
 
 ---
 
 ## 백엔드
 
-### 서버 프레임워크
-- **Node.js 20+**
-- **Express.js** - HTTP API
-- **Socket.io** - WebSocket 실시간 통신
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Node.js | 22+ | 런타임 |
+| Express | 4+ | HTTP 서버 |
+| Socket.io | 4+ | 실시간 WebSocket 통신 |
+| CORS | - | 크로스 오리진 허용 |
 
-### 데이터베이스
-- **PostgreSQL 15** - 영구 저장 (SQLite로 시작 가능)
-- **Redis 7** - 실시간 상태 캐싱
+### 데이터 저장
+- **현재:** 인메모리 (서버 재시작 시 초기화)
+- **향후:** SQLite 또는 PostgreSQL 도입 예정
 
-### 인증
-- **JWT (jsonwebtoken)** - 인증 토큰
-- **bcrypt** - 비밀번호 해시
-- **OAuth 2.0** - Google/GitHub 로그인
+### 게임 모듈
+| 모듈 | 파일 | 용도 |
+|------|------|------|
+| 인벤토리 | `inventory.js` | 아이템 관리, 획득/사용 |
+| 퀘스트 | `quest.js` | 퀘스트 관리, 목표 추적, 보상 |
 
-### LLM 통합
-- **OpenAI SDK** - GPT-4o 통합
-- **Anthropic SDK** - Claude 통합 (선택적)
-
-### API 라우팅
-- **REST API** - `/api/*`
-- **WebSocket** - Socket.io 이벤트
+### 테스트
+| 기술 | 용도 |
+|------|------|
+| Jest | 백엔드 테스트 프레임워크 |
 
 ---
 
-## AI 에이전트 (CLI/API Client)
+## AI 에이전트
 
-### 런타임
-- **Node.js 20+** 또는 **Python 3.11+**
+| 기술 | 용도 |
+|------|------|
+| Node.js | 에이전트 런타임 |
+| Socket.io-client | 서버 연결 |
+| Cerebras GLM-4.7 | LLM API (대화 생성) |
 
-### 핵심 모듈
-- **axios** - HTTP API 통신
-- **socket.io-client** - WebSocket 연결 (선택적)
-- **openai** 또는 **anthropic** SDK - LLM 호출
-- **dotenv** - 설정 관리
-
-### 아키텍처
-- **Periodic Task Runner (30초마다)** - 상황 확인 후 행동 결정
-- **LLM Decision Engine** - 페르소나 + 상황 → 행동/대사 생성
-- **State Manager** - 자신의 상태(에너지, 기분) 관리
+### 모듈
+| 모듈 | 파일 | 용도 |
+|------|------|------|
+| 에이전트 메인 | `agent.js` | 이동/대화/인터랙션 로직 |
+| 대화 컨텍스트 | `chat-context.js` | 대화 히스토리 관리 (최근 10개) |
 
 ---
 
 ## 인프라
 
-### 배포
-- **Docker** - 컨테이너화
-- **Docker Compose** - 개발 환경 설정
-- **GitHub Actions** - CI/CD
-
-### 호스팅
-- **Vercel** / **Netlify** - 프론트엔드
-- **Railway** / **Render** / **AWS ECS** - 백엔드 (소규모)
-
-### 데이터베이스 호스팅
-- **Neon PostgreSQL** - 서버리스 PostgreSQL
-- **Upstash Redis** - 서버리스 Redis
-
-### 모니터링/로깅
-- **Sentry** - 에러 트래킹
-- **LogRocket** - 사용자 세션 리플레이 (선택적)
+| 항목 | 설정 |
+|------|------|
+| 호스트 | Mac mini (10.76.29.91) |
+| OS | macOS (Darwin, arm64) |
+| Frontend 포트 | 3000 |
+| Backend 포트 | 4000 |
+| 외부 접근 | `0.0.0.0` 바인딩 |
 
 ---
 
 ## 개발 도구
 
-### 코드 품질
-- **ESLint** - 코드 린트
-- **Prettier** - 코드 포맷팅
-- **Husky** - Git hooks (pre-commit)
-
-### API 테스트
-- **Postman** / **Thunder Client** - API 테스트
-- **Jest** - 단위 테스트
-
-### 데이터베이스 마이그레이션
-- **Prisma** - ORM (선택적, DB 스키마 관리)
+| 도구 | 용도 |
+|------|------|
+| OpenCode | AI 코드 작성 (PM 룰 #1) |
+| GitHub | 소스 코드 관리, Issue 추적 |
+| tmux | OpenCode 자동화 |
+| Vitest + Jest | 테스트 (PM 룰 #2) |
 
 ---
 
-## 최소 스펙
-
-### 개발 환경
-- Node.js 20.11+
-- npm 10+
-- PostgreSQL 15+
-- Redis 7+
-
-### 프로덕션
-- 1 vCPU, 1GB RAM (소규모)
-- PostgreSQL: 5GB 저장소
-- Redis: 256MB 메모리
-
----
-
-## 향후 확장 가능성
-
-- **Microservices** - 서버 스케일 시 분리 가능
-- **GraphQL** - 복잡한 쿼리 시 사용
-- **Kubernetes** - 대규모 스케일 시 사용
-- **CDN** - 아바타/일러스트 이미지 전달
-
----
-
-*마지막 업데이트: 2026-02-15*
+*마지막 업데이트: 2026-02-16*

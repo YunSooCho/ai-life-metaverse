@@ -172,4 +172,83 @@ affinity:{char_a}:{char_b} = 72
 
 ---
 
-*마지막 업데이트: 2026-02-15*
+### 8. 퀘스트 템플릿 (Quest Templates)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `quest_id` | STRING (PK) | 퀘스트 고유 ID |
+| `quest_type` | VARCHAR | 퀘스트 타입 (main/side) |
+| `title` | VARCHAR | 퀘스트 제목 |
+| `description` | TEXT | 퀘스트 설명 |
+| `objectives` | TEXT | 목표 (JSON 배열) |
+| `prerequisites` | TEXT | 선결 조건 (JSON 배열) |
+| `reward` | TEXT | 보상 (JSON) |
+
+---
+
+### 9. 플레이어 퀘스트 (Player Quests)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `player_id` | STRING (FK) | 플레이어 ID |
+| `quest_id` | STRING (FK) | 퀘스트 ID |
+| `status` | VARCHAR | 상태 (progress/completed/available) |
+| `progress` | TEXT | 목표 진행 상황 (JSON) |
+| `started_at` | TIMESTAMP | 시작 시간 |
+| `completed_at` | TIMESTAMP | 완료 시时间 |
+
+**PK:** (player_id, quest_id)
+
+---
+
+### 퀘스트 목표 (Objectives) 구조
+
+```json
+{
+  "objectives": [
+    {
+      "id": "greet_ai",
+      "description": "AI 유리에게 인사하기",
+      "type": "interact",
+      "targetId": "ai-agent-1",
+      "requiredCount": 1,
+      "currentCount": 0,
+      "unit": "count"
+    },
+    {
+      "id": "stay_park",
+      "description": "공원에서 30초 이상 체류하기",
+      "type": "stay_building",
+      "targetId": "park",
+      "requiredCount": 30000,
+      "currentCount": 0,
+      "unit": "ms"
+    }
+  ]
+}
+```
+
+---
+
+### 퀘스트 보상 (Reward) 구조
+
+```json
+{
+  "reward": {
+    "points": 100,
+    "experience": 50,
+    "items": [
+      { "id": "healthPotion", "quantity": 2 }
+    ]
+  }
+}
+```
+
+**보상 타입:**
+- `points`: 포인트
+- `experience`: 경험치
+- `items`: 아이템 (배열)
+
+---
+
+*마지막 업데이트: 2026-02-16*

@@ -5,37 +5,27 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     사용자 (People)                          │
-│                     (Web Frontend)                          │
+│                   Web Frontend (React + Vite)               │
+│                   http://10.76.29.91:3000                   │
 └─────────────────────┬───────────────────────────────────────┘
-                      │ HTTPS/WebSocket
+                      │ WebSocket (Socket.io)
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    메인 서버 (Node.js)                        │
+│                 메인 서버 (Node.js + Express)                │
+│                 http://10.76.29.91:4000                     │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐           │
-│  │   API      │  │  Socket.io │  │   상태     │           │
-│  │  Gateway   │  │   실시간   │  │  관리      │           │
+│  │  Socket.io │  │  상태 관리  │  │  게임 로직  │           │
+│  │  실시간    │  │ (인메모리)  │  │ (건물,퀘스트)│           │
 │  └────────────┘  └────────────┘  └────────────┘           │
-└─────────────┬───────────────────────┬───────────────────────┘
-              │                       │
-              ▼                       ▼
-┌─────────────────────┐   ┌─────────────────────────────────┐
-│    Redis           │   │   SQLite/PostgreSQL             │
-│   (실시간 상태)     │   │   (영구 저장: 계정, 캐릭터...)   │
-└─────────────────────┘   └─────────────────────────────────┘
-              ▲
-              │ API Calls (REST)
-              │
-┌─────────────┴───────────────────────────────────────────────┐
-│                  AI 에이전트 (CLI/API Client)                 │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐           │
-│  │   Agent 1  │  │   Agent 2  │  │   Agent N  │           │
-│  └────────────┘  └────────────┘  └────────────┘           │
-│                                                             │
-│  각 에이전트는:                                             │
-│  - 페르소나 JSON 가짐                                        │
-│  - LLM API 키 보유 (OpenAI/Anthropic 등)                     │
-│  - 주기적으로 현재 상황 확인 → 행동 결정                     │
-│  - 다른 에이전트와 독립적으로 동작                           │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ Socket.io Client
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  AI 에이전트 (Node.js)                       │
+│  ┌─────────────────┐  ┌──────────────────┐                 │
+│  │  GLM-4.7 API    │  │  Chat Context    │                 │
+│  │  (Cerebras)     │  │  Manager         │                 │
+│  └─────────────────┘  └──────────────────┘                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -43,73 +33,92 @@
 
 ## 구성 요소
 
-### 1. 메인 서버 (Node.js)
-- **API Gateway**: 모든 HTTP 요청 처리
-- **Socket.io Server**: 실시간 위치/상태 업데이트 전파
-- **상태 관리**: 캐릭터 위치, 기분, 호감도 관리
+### 1. Frontend (React + Vite)
+- **위치:** `frontend/`
+- **포트:** 3000
+- **주요 컴포넌트:**
+  - `App.jsx` - 메인 앱 (상태 관리, Socket 연결)
+  - `GameCanvas.jsx` - 2D Canvas 렌더링 (캐릭터, 건물, 맵)
+  - `Character.jsx` - 캐릭터 렌더링
+  - `ChatBubble.jsx` - Speech bubble UI
+  - `ChatInput.jsx` - 채팅 입력창 (textarea, Enter 전송)
+  - `MiniMap.jsx` - 미니맵 (건물/캐릭터 위치)
+  - `Inventory.jsx` - 인벤토리 UI
+  - `Reward.jsx` - 보상 UI
+  - `Quest.jsx` - 퀘스트 UI
+  - `EventLog.jsx` - 이벤트 로그
+  - `RoomMenu.jsx` - 방 선택 메뉴
+  - `InteractionMenu.jsx` - 인터랙션 메뉴
+  - `AffinityDisplay.jsx` - 호감도 표시
+  - `CharacterList.jsx` - 캐릭터 목록
+  - `Toast.jsx` - 토스트 알림
+- **Custom Hooks:**
+  - `useSocketEvent.js` - Socket 이벤트 관리
+  - `useCharacter.js` - 캐릭터 상태 관리
+- **Utilities:**
+  - `characterUtils.js` - 캐릭터 유틸리티 함수
+  - `socket.js` - Socket.io 클라이언트 설정
 
-### 2. 실시간 상태 저장소 (Redis)
-- 캐릭터 현재 위치 (x, y)
-- 기분/피로도
-- 실시간 대화 상태
-- 근처 캐릭터 목록
+### 2. Backend (Node.js + Express + Socket.io)
+- **위치:** `backend/`
+- **포트:** 4000
+- **주요 파일:**
+  - `server.js` - 메인 서버 (Socket.io 이벤트 핸들러, 게임 로직)
+  - `inventory.js` - 인벤토리/아이템 시스템
+  - `quest.js` - 퀘스트 시스템
+- **데이터 저장:** 인메모리 (Redis/DB 미사용, 서버 재시작 시 초기화)
 
-### 3. 영구 저장소 (SQLite/PostgreSQL)
-- 사용자 계정
-- 캐릭터 페르소나
-- 관계 히스토리
-- 대화 로그
-
-### 4. AI 에이전트 (CLI/API)
-- 자신의 페르소나와 API 키로 주기적으로 상황 체크
-- LLM으로 행동 결정 (이동/대화/대기)
-- 현재 상황에 맞는 대사 생성
-
----
-
-## 데이터 흐름
-
-### AI 에이전트 행동 사이클 (30초마다)
-
-```
-1. GET /api/snapshot
-   → 내 위치, 근처 캐릭터, 시간/날씨 반환
-
-2. [로컬 LLM 처리]
-   페르소나 + 스냅샷 → "말 걸 캐릭터 있나? 이동할지?"
-
-3. POST /api/action
-   → { type: "move" | "talk" | "wait", target: "..." }
-
-4. [서버 처리]
-   → 상태 업데이트 → Socket.io로 다른 클라이언트에 전파
-```
-
-### 대화 흐름
-
-```
-1. [A가 B에게 대화 신청]
-   POST /api/conversation/start → { from: "A", to: "B" }
-
-2. [서버]
-   → 대화 방 생성 → Socket.io로 양측에 알림
-
-3. [한 쪽이 메시지 전송]
-   POST /api/conversation/message → { talk_id, from: "A", text: "..." }
-   → 받는 쪽은 LLM으로 응답 생성 → 메시지 전송
-
-4. [WebSocket]
-   → 실시간으로 메시지 전파 → 웹 UI 갱신
-```
+### 3. AI Agent (Node.js)
+- **위치:** `ai-agent/`
+- **주요 파일:**
+  - `agent.js` - AI 에이전트 메인 (GLM-4.7 연동, 이동/대화 로직)
+  - `chat-context.js` - 대화 컨텍스트 관리 (최근 10개 대화 저장)
+- **LLM:** Cerebras GLM-4.7 (zai-glm-4.7)
+- **기능:**
+  - 주기적 자동 이동
+  - 채팅 응답 생성 (Persona 기반)
+  - 인터랙션 응답 (호감도 기반)
+  - 8가지 인터랙션 타입 (greet, talk, gift, poke, wave, compliment, tease, ignore)
 
 ---
 
-## 비동기 통신
+## Socket.io 이벤트 목록
 
-- Socket.io: 캐릭터 이동, 상태 변화, 감정 표현 등 즉시 반영
-- REST API: 대화 시작, 행동 결정, 상태 확인 등
-- AI 에이전트: 폴링 방식 (30초마다 상태 체크) + 이벤트 기반 응답
+### Client → Server
+| 이벤트 | 파라미터 | 설명 |
+|--------|----------|------|
+| `move` | `{x, y}` | 플레이어 이동 |
+| `chatMessage` | `{characterId, message}` | 채팅 메시지 전송 |
+| `interact` | `{characterId, interactionType}` | 캐릭터 인터랙션 |
+| `enterBuilding` | `{buildingId}` | 건물 입장 |
+| `exitBuilding` | `{buildingId}` | 건물 퇴장 |
+| `joinRoom` | `{roomId}` | 방 입장 |
+| `leaveRoom` | `{roomId}` | 방 퇴장 |
+| `useItem` | `{itemId}` | 아이템 사용 |
+| `acceptQuest` | `{questId}` | 퀘스트 수락 |
+| `completeQuest` | `{questId}` | 퀘스트 완료 |
+
+### Server → Client
+| 이벤트 | 파라미터 | 설명 |
+|--------|----------|------|
+| `playerMoved` | `{id, x, y}` | 플레이어 이동 브로드캐스트 |
+| `chatBroadcast` | `{characterId, message, roomId}` | 채팅 브로드캐스트 |
+| `characterInteractionBroadcast` | `{characterId, interactionType, response}` | 인터랙션 결과 |
+| `buildingEntered` | `{buildingId, timestamp}` | 건물 입장 확인 |
+| `buildingExited` | `{buildingId, duration}` | 건물 퇴장 확인 |
+| `inventoryUpdate` | `{inventory}` | 인벤토리 업데이트 |
+| `questUpdate` | `{quests}` | 퀘스트 상태 업데이트 |
+| `rewardReceived` | `{reward}` | 보상 수령 |
 
 ---
 
-*마지막 업데이트: 2026-02-15*
+## 외부 접속
+
+- **Mac mini IP:** `10.76.29.91`
+- **Frontend:** `http://10.76.29.91:3000`
+- **Backend:** `http://10.76.29.91:4000`
+- **호스트 바인딩:** `0.0.0.0` (외부 접근 허용)
+
+---
+
+*마지막 업데이트: 2026-02-16*
