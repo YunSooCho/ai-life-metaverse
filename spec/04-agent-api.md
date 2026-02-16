@@ -255,3 +255,11 @@ GET /conversation/messages?talk_id=talk_xyz789&since=2026-02-15T09:31:00Z
 ---
 
 *마지막 업데이트: 2026-02-15*
+## NPC 스케줄 시스템 Agent 통합 (2026-02-17 추가)
+
+### 변경 사항
+- `ai-agent/agent.js`에서 `shared/npcSchedule.js` import
+- while 루프: `decideAction()` → 스케줄 기반 `moveTowardTarget()` 이동
+- 게임 시간(`getGameHour()`) 연동
+- 채팅 시스템 프롬프트에 현재 활동 컨텍스트 추가
+- 대화 중에는 스케줄 이동 중단
