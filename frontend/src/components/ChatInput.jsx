@@ -26,10 +26,10 @@ export default function ChatInput({ value, onChange, onSubmit, disabled }) {
   }, [value, MAX_HEIGHT])
 
   return (
-    <div className="chat-input-container">
+    <div className="chat-input-container pixel-panel">
       <textarea
         ref={textareaRef}
-        className="chat-input chat-input-textarea"
+        className="chat-input chat-input-textarea pixel-input"
         placeholder="메시지를 입력하세요..."
         value={value}
         onChange={handleChange}
@@ -42,8 +42,12 @@ export default function ChatInput({ value, onChange, onSubmit, disabled }) {
           maxHeight: `${MAX_HEIGHT}px`
         }}
       />
-      <button className="chat-send-button" onClick={onSubmit} disabled={disabled}>
-        전송
+      <button
+        className="chat-send-button pixel-button pixel-button-green"
+        onClick={onSubmit}
+        disabled={disabled}
+      >
+        SEND
       </button>
     </div>
   )

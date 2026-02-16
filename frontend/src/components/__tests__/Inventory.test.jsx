@@ -30,25 +30,25 @@ describe('Inventory Component', () => {
   describe('Rendering', () => {
     it('should render inventory when show is true', () => {
       render(<Inventory {...defaultProps} />)
-      expect(screen.getByText('🎒 인벤토리')).toBeInTheDocument()
+      expect(screen.getByText('🎒 INVENTORY')).toBeInTheDocument()
     })
 
     it('should not render when show is false', () => {
       render(<Inventory {...defaultProps} show={false} />)
-      expect(screen.queryByText('🎒 인벤토리')).not.toBeInTheDocument()
+      expect(screen.queryByText('🎒 INVENTORY')).not.toBeInTheDocument()
     })
 
     it('should display total item count', () => {
       render(<Inventory {...defaultProps} />)
-      expect(screen.getByText('📦 총 아이템 수: 110')).toBeInTheDocument()
+      expect(screen.getByText(/📦 TOTAL:/i)).toBeInTheDocument()
     })
 
     it('should display all inventory items', () => {
       render(<Inventory {...defaultProps} />)
-      expect(screen.getByText('체력 포션')).toBeInTheDocument()
-      expect(screen.getByText('코인')).toBeInTheDocument()
-      expect(screen.getByText('선물 상자')).toBeInTheDocument()
-      expect(screen.getByText('경험치 포션')).toBeInTheDocument()
+      expect(screen.getByText('HP POTION')).toBeInTheDocument()
+      expect(screen.getByText('COIN')).toBeInTheDocument()
+      expect(screen.getByText('GIFT BOX')).toBeInTheDocument()
+      expect(screen.getByText('EXP POTION')).toBeInTheDocument()
     })
 
     it('should display correct item quantities', () => {
@@ -69,15 +69,15 @@ describe('Inventory Component', () => {
 
     it('should show empty state when inventory has no items', () => {
       render(<Inventory {...defaultProps} inventory={{}} />)
-      expect(screen.getByText('인벤토리가 비어있습니다')).toBeInTheDocument()
+      expect(screen.getByText('INVENTORY EMPTY')).toBeInTheDocument()
     })
 
     it('should display item descriptions', () => {
       render(<Inventory {...defaultProps} />)
-      expect(screen.getByText('HP를 50 회복합니다')).toBeInTheDocument()
-      expect(screen.getByText('화폐로 사용됩니다')).toBeInTheDocument()
-      expect(screen.getByText('호감도가 10 증가합니다')).toBeInTheDocument()
-      expect(screen.getByText('경험치가 100 증가합니다')).toBeInTheDocument()
+      expect(screen.getByText('HP +50 RESTORE')).toBeInTheDocument()
+      expect(screen.getByText('CURRENCY ITEM')).toBeInTheDocument()
+      expect(screen.getByText('AFFINITY +10')).toBeInTheDocument()
+      expect(screen.getByText('EXP +100')).toBeInTheDocument()
     })
   })
 
@@ -91,7 +91,7 @@ describe('Inventory Component', () => {
 
     it('should select item when clicked', () => {
       const { container } = render(<Inventory {...defaultProps} />)
-      const firstItem = container.querySelector('.inventory-item')
+      const firstItem = container.querySelector('.pixel-grid-item')
       expect(firstItem).not.toHaveClass('selected')
       fireEvent.click(firstItem)
       expect(firstItem).toHaveClass('selected')
@@ -99,34 +99,34 @@ describe('Inventory Component', () => {
 
     it('should call onGetInventory when refresh button is clicked', () => {
       render(<Inventory {...defaultProps} />)
-      const refreshButton = screen.getByText('🔄 새로고침')
+      const refreshButton = screen.getByText('REFRESH')
       fireEvent.click(refreshButton)
       expect(mockOnGetInventory).toHaveBeenCalledWith('test-character')
     })
 
     it('should call onUseItem when use button is clicked', () => {
       render(<Inventory {...defaultProps} />)
-      const useButtons = screen.getAllByText('사용')
+      const useButtons = screen.getAllByText('USE')
       fireEvent.click(useButtons[0])
       expect(mockOnUseItem).toHaveBeenCalledWith('test-character', 'healthPotion')
     })
 
     it('should not call onUseItem for non-consumable items', () => {
       render(<Inventory {...defaultProps} />)
-      const coinItem = screen.getByText('코인').closest('.inventory-item')
-      const useButton = within(coinItem).queryByText('사용')
+      const coinItem = screen.getByText('COIN').closest('.pixel-grid-item')
+      const useButton = within(coinItem).queryByText('USE')
       expect(useButton).not.toBeInTheDocument()
     })
 
     it('should have use button only for consumable items', () => {
       render(<Inventory {...defaultProps} />)
-      const useButtons = screen.getAllByText('사용')
+      const useButtons = screen.getAllByText('USE')
       expect(useButtons.length).toBe(3)
     })
 
     it('should deselect item when clicking same item again', () => {
       const { container } = render(<Inventory {...defaultProps} />)
-      const firstItem = container.querySelector('.inventory-item')
+      const firstItem = container.querySelector('.pixel-grid-item')
       fireEvent.click(firstItem)
       expect(firstItem).toHaveClass('selected')
       fireEvent.click(firstItem)
@@ -135,7 +135,7 @@ describe('Inventory Component', () => {
 
     it('should select only one item at a time', () => {
       const { container } = render(<Inventory {...defaultProps} />)
-      const items = container.querySelectorAll('.inventory-item')
+      const items = container.querySelectorAll('.pixel-grid-item')
       fireEvent.click(items[0])
       fireEvent.click(items[1])
       expect(items[0]).not.toHaveClass('selected')
@@ -146,28 +146,28 @@ describe('Inventory Component', () => {
   describe('Edge Cases', () => {
     it('should handle empty inventory gracefully', () => {
       render(<Inventory {...defaultProps} inventory={{}} />)
-      expect(screen.getByText('📦 총 아이템 수: 0')).toBeInTheDocument()
-      expect(screen.getByText('인벤토리가 비어있습니다')).toBeInTheDocument()
+      expect(screen.getByText(/📦 TOTAL: 0/i)).toBeInTheDocument()
+      expect(screen.getByText('INVENTORY EMPTY')).toBeInTheDocument()
     })
 
     it('should handle inventory with single item', () => {
       const singleItemInventory = { healthPotion: 1 }
       render(<Inventory {...defaultProps} inventory={singleItemInventory} />)
-      expect(screen.getByText('📦 총 아이템 수: 1')).toBeInTheDocument()
-      expect(screen.getByText('체력 포션')).toBeInTheDocument()
+      expect(screen.getByText(/📦 TOTAL: 1/i)).toBeInTheDocument()
+      expect(screen.getByText('HP POTION')).toBeInTheDocument()
       expect(screen.getByText('x1')).toBeInTheDocument()
     })
 
     it('should handle large quantities correctly', () => {
       const largeQuantityInventory = { coin: 99999 }
       render(<Inventory {...defaultProps} inventory={largeQuantityInventory} />)
-      expect(screen.getByText('📦 총 아이템 수: 99999')).toBeInTheDocument()
+      expect(screen.getByText(/📦 TOTAL: 99999/i)).toBeInTheDocument()
       expect(screen.getByText('x99999')).toBeInTheDocument()
     })
 
     it('should handle multiple clicks on use button', () => {
       render(<Inventory {...defaultProps} />)
-      const useButtons = screen.getAllByText('사용')
+      const useButtons = screen.getAllByText('USE')
       fireEvent.click(useButtons[0])
       fireEvent.click(useButtons[0])
       expect(mockOnUseItem).toHaveBeenCalledTimes(2)
@@ -175,8 +175,8 @@ describe('Inventory Component', () => {
 
     it('should prevent event propagation on use button', () => {
       const { container } = render(<Inventory {...defaultProps} />)
-      const useButton = screen.getAllByText('사용')[0]
-      const itemContainer = useButton.closest('.inventory-item')
+      const useButton = screen.getAllByText('USE')[0]
+      const itemContainer = useButton.closest('.pixel-grid-item')
       fireEvent.click(useButton)
       expect(itemContainer).not.toHaveClass('selected')
     })

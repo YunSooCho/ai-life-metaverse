@@ -344,4 +344,165 @@ affinity:{char_a}:{char_b} = 72
 
 ---
 
-*마지막 업데이트: 2026-02-16 (일일 퀘스트 시스템 추가)*
+## 12. 타일맵 데이터 구조 (Tilemap Data Structure)
+
+### 타일맵 JSON
+
+```json
+{
+  "version": "1.0",
+  "mapSize": {
+    "width": 1000,
+    "height": 700,
+    "tileWidth": 32,
+    "tileHeight": 32
+  },
+  "layers": {
+    "ground": {
+      "type": "tilemap",
+      "tiles": [
+        {
+          "id": 1,
+          "name": "잔디",
+          "color": "#4CAF50",
+          "walkable": true,
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        {
+          "id": 2,
+          "name": "흙길",
+          "color": "#8D6E63",
+          "walkable": true,
+          "path": [
+            { "x": 150, "y": 200, "width": 120, "height": 20 },
+            { "x": 200, "y": 200, "width": 20, "height": 300 }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "돌바닥",
+          "color": "#757575",
+          "walkable": true,
+          "rects": [
+            { "x": 130, "y": 130, "width": 160, "height": 140 }
+          ]
+        }
+      ]
+    },
+    "buildings": {
+      "type": "buildings",
+      "buildings": [
+        {
+          "id": 1,
+          "name": "상점",
+          "type": "shop",
+          "sprite": "shop",
+          "x": 150,
+          "y": 150,
+          "width": 120,
+          "height": 100,
+          "entrance": {
+            "x": 190,
+            "y": 230,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 400,
+            "height": 300,
+            "npcs": ["shopkeeper"]
+          }
+        }
+      ]
+    },
+    "decoration": {
+      "type": "objects",
+      "objects": [
+        {
+          "id": "d1",
+          "name": "나무",
+          "sprite": "tree",
+          "x": 300,
+          "y": 300,
+          "width": 32,
+          "height": 48,
+          "obstacle": true
+        }
+      ]
+    }
+  },
+  "weather": {
+    "current": "sunny",
+    "types": ["sunny", "cloudy", "rainy", "snowy"]
+  },
+  "lighting": {
+    "ambient": {
+      "brightness": 1.0,
+      "color": "#FFFFFF"
+    },
+    "timeOfDay": "day"
+  }
+}
+```
+
+---
+
+### 건물 타입
+
+| 타입 | 설명 | 색상 (MiniMap) |
+|------|------|----------------|
+| `shop` | 상점 | `#4CAF50` (초록) |
+| `cafe` | 카페 | `#FF9800` (주황) |
+| `park` | 공원 | `#8BC34A` (연두) |
+| `library` | 도서관 | `#2196F3` (파랑) |
+| `gym` | 체육관 | `#F44336` (빨강) |
+
+---
+
+### 입구 좌표 검증 규칙
+
+**필수 조건:**
+- `entrance.x >= building.x`
+- `entrance.y >= building.y`
+- `entrance.x + entrance.width <= building.x + building.width`
+- `entrance.y + entrance.height <= building.y + building.height`
+
+입구는 항상 건물 내부에 있어야 합니다.
+
+---
+
+### 타일 레이어 타입
+
+| 타입 | 속성 | 설명 |
+|------|------|------|
+| 단일 rectangle | `x`, `y`, `width`, `height`, `color` | 잔디 등 |
+| Path | `path` (rect 배열) | 흙길 |
+| Rects | `rects` (rect 배열) | 돌바닥 |
+
+---
+
+### 날씨 시스템
+
+| 타입 | 설명 |
+|------|------|
+| `sunny` | 맑음 |
+| `cloudy` | 흐림 |
+| `rainy` | 비 |
+| `snowy` | 눈 |
+
+---
+
+### 조명/시간 시스템
+
+| 속성 | 타입 | 설명 |
+|------|------|------|
+| `ambient.brightness` | FLOAT | 주변 밝기 (0.0 ~ 1.0) |
+| `ambient.color` | HEX | 주변 조명 색상 |
+| `timeOfDay` | STRING | 시간대 (day/night/dusk/dawn) |
+
+---
+
+*마지막 업데이트: 2026-02-17 (타일맵 데이터 구조 추가)*

@@ -341,11 +341,11 @@ App.jsx
   - 잔디 (#4CAF50), 흙길 (#8D6E63), 돌바닥 (#757575)
   - 물, 모래, 나무바닥, 벽돌 등 총 16개 타일
 - **건물:** 픽셀아트 건물 스프라이트 (SVG)
-  - 상점: 빨간 지붕 + "SHOP" 텍스트 (120x100px)
-  - 카페: 파라솔 지붕 + "CAFÉ" 텍스트 (120x100px)
-  - 공원: 나무 4개 + 벤치 + 화단 + "PARK" 텍스트 (200x150px)
-  - 도서관: 기둥 4개 + 책 선반 + "LIBRARY" 텍스트 (150x120px)
-  - 체육관: 빨간 지붕 + 덤벨 장식 + "GYM" 텍스트 (150x120px)
+  - 상점: 빨간 지붕 + "상점" 텍스트 (128x128px)
+  - 카페: 파라솔 지붕 + "카페" 텍스트 (128x128px)
+  - 공원: 나무 2개 + 화단 + "공원" 텍스트 (200x160px)
+  - 도서관: 기둥 3개 + 책 선반 + "도서관" 텍스트 (150x140px)
+  - 체육관: 빨간 지붕 + "체육관" 텍스트 (160x140px)
 - **입구 하이라이트:** 점선 테두리 (entrance_highlight.svg)
 - **캐릭터:** 픽셀아트 캐릭터 스프라이트 (SVG, 4x4 그리드)
   - 블루 캐릭터 (idle, walk_up/down/left/right)
@@ -353,27 +353,37 @@ App.jsx
 - **감정 이모지:** 16x16 픽셀 이모지 스프라이트 (캐릭터 위 표시)
 - **클릭 이펙트:** 도트 리플 스플래시 (하트 이모지)
 
-**파일 구조:**
+**파일 구조 (2026-02-17 업데이트):**
 ```
-frontend/public/images/
+frontend/public/images/sprites/
 ├── buildings/
-│   ├── shop.svg
-│   ├── cafe.svg
-│   ├── library.svg
-│   ├── gym.svg
-│   └── park.svg
+│   └── buildings.svg (모든 건물 통합, viewBox 0 0 800 200)
+├── character/
+│   └── RPGCharacterSprites32x32.svg (32x32 캐릭터 스프라이트)
 ├── tiles/
-│   └── tileset.svg (16개 타일)
+│   └── tilemap.svg (타일맵)
 ├── effects/
-│   └── entrance_highlight.svg
-└── characters/
-    └── RPGCharacterSprites.svg (4x4 그리드)
+│   └── entrance_highlight.svg (입구 하이라이트)
+└── emojis/
+    └── 16emotions.svg (16개 감정 이모지)
+```
+
+**건물 소스 좌표 (buildings.svg):**
+```javascript
+const buildingSources = {
+  shop: { x: 0, y: 0, width: 128, height: 128 },
+  cafe: { x: 128, y: 0, width: 128, height: 128 },
+  park: { x: 256, y: 0, width: 200, height: 160 },
+  library: { x: 464, y: 0, width: 150, height: 140 },
+  gym: { x: 620, y: 0, width: 160, height: 140 }
+}
 ```
 
 **spriteLoader.js:**
-- 경로: `/images/{path}` (public/images/ 폴더 기준)
+- 경로: `/images/{path}` (public/images/sprites/ 폴더 기준)
 - 캐싱 시스템: Map-based 캐시
 - preloadAssets(): 여러 스프라이트 미리 로드
+- **중요 (2026-02-17):** 모든 스프라이트 파일은 `.svg` 포맷
 
 ### 2. ChatBubble - 도트 말풍선
 - 스타일: RPG 말풍선 (점선 테두리, 돌출 꼬리)
@@ -517,4 +527,127 @@ frontend/public/images/
 
 ---
 
-*마지막 업데이트: 2026-02-16*
+## 🎨 Phase 3: UI 컴포넌트 레트로 스타일링 완료 (2026-02-16 23:30)
+
+### 구현 완료 내용
+
+**1. pixel-theme.css 생성**
+- **위치:** `frontend/src/styles/pixel-theme.css` (10,842 bytes)
+- **픽셀 폰트:** 'Press Start 2P' (Google Fonts)
+- **색상 팔레트:** 32色限定 (CSS Variables)
+- **주요 클래스:**
+  - `.pixel-font`: 픽셀 폰트 적용
+  - `.pixel-border-sm/md/lg`: 도트 보더
+  - `.pixel-button`: 레트로 버튼 (돌출/눌림 효과)
+  - `.pixel-input`: 픽셀 입력창
+  - `.pixel-panel`: 레트로 패널
+  - `.pixel-chat-bubble`: 도트 말풍선
+  - `.pixel-menu`: RPG 메뉴 스타일
+  - `.pixel-toast`: 레트로 토스트 알림
+  - `.pixel-grid`: 픽셀 그리드 (인벤토리/퀘스트)
+  - `.pixel-badge`: 픽셀 뱃지
+  - `.pixel-pop/pop-bounce/shake`: 픽셀 애니메이션
+
+**2. 컴포넌트 스타일링 완료**
+
+| 컴포넌트 | 수정 파일 | 적용 스타일 | 상태 |
+|---------|----------|----------|------|
+| ChatBubble | `ChatBubble.jsx` | 도트 말풍선 (Press Start 2P, rect, path) | ✅ 완료 |
+| ChatInput | `ChatInput.jsx` | 픽셀 입력창 + "SEND" 버튼 | ✅ 완료 |
+| InteractionMenu | `InteractionMenu.jsx` | RPG 메뉴 (화살표 커서, pixel-badges) | ✅ 완료 |
+| Inventory | `Inventory.jsx` | 도트 그리드 (pixel-grid, pixel-icons) | ✅ 완료 |
+| Quest | `Quest.jsx` + `Quest.css` | RPG 퀘스트 로그 (pixel-badges, pixel-buttons) | ✅ 완료 |
+| RoomMenu | `RoomMenu.jsx` | 레트로 방 메뉴 (pixel-input, pixel-buttons) | ✅ 완료 |
+| Toast | `Toast.jsx` | 레트로 토스트 알림 (pixel-toast) | ✅ 완료 |
+| Reward | `Reward.jsx` | 레트로 보상 센터 (pixel-grid, pixel-badges) | ✅ 완료 |
+
+**3. App.jsx import 추가**
+```javascript
+import './styles/pixel-theme.css'  // Phase 3: 픽셀아트 테마 전역 적용
+```
+
+**4. 픽셀 폰트 적용 상태**
+- Google Fonts: 'Press Start 2P' → ✅ 로드 완료
+- 기본 폰트: Arial/Sans-serif → Press Start 2P로 전환
+- 문자 크기: pixel-text-sm (9px) / pixel-text-md (11px) / pixel-text-lg (13px) / pixel-text-xl (16px)
+
+**5. 색상 팔레트 실제 적용**
+```css
+:root {
+  --pixel-bg-primary: #1a1a2e;
+  --pixel-bg-secondary: #16213e;
+  --pixel-accent-green: #4ade80;
+  --pixel-accent-orange: #fb923c;
+  --pixel-accent-red: #f87171;
+  --pixel-accent-blue: #60a5fa;
+  --pixel-accent-cyan: #22d3ee;
+  --pixel-accent-purple: #c084fc;
+  --pixel-accent-yellow: #fbbf24;
+  --pixel-text-primary: #ffffff;
+  --pixel-text-secondary: #a3a3a3;
+  --pixel-text-muted: #737373;
+}
+```
+
+**6. 레트로 보더 스타일 적용**
+```css
+.pixel-border-sm {
+  border: 1px solid #ffffff;
+  box-shadow: 2px 2px 0 0 #000;
+}
+
+.pixel-border-md {
+  border: 2px solid #ffffff;
+  box-shadow: 4px 4px 0 0 #000;
+}
+```
+
+**7. 픽셀 버튼 스타일 적용**
+```css
+.pixel-button {
+  font-family: 'Press Start 2P', monospace;
+  padding: 12px 20px;
+  border: 2px solid #ffffff;
+  background: var(--pixel-bg-primary);
+  box-shadow: 4px 4px 0 0 #000;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 #000;
+}
+```
+
+---
+
+## 테스트 요구사항 (Phase 3)
+
+**테스트 파일:** `frontend/src/components/__tests__/Phase3.spec.js`
+
+**테스트 항목:**
+1. pixel-theme.css import 확인
+2. ChatBubble 도트 말풍선 렌더링
+3. ChatInput 픽셀 입력창 렌더링
+4. InteractionMenu RPG 메뉴 렌더링
+5. Inventory 도트 그리드 렌더링
+6. Quest 퀘스트 로그 렌더링
+7. RoomMenu 방 메뉴 렌더링
+8. Toast 레트로 알림 렌더링
+9. Reward 보상 센터 렌더링
+10. 픽셀 폰트 적용 확인 (Press Start 2P)
+
+---
+
+## 📋 Phase 4 다음 단계 (감정 표현 & FX 강화)
+
+**GitHub Issue:** #29
+
+**기능:**
+- 16 감정 스프라이트 구현 (happy, sad, angry, surprised, neutral, love, hate, fear, excited, tired, confused, proud, shy, embarrassed, curious, disgusted)
+- 감정 변화 애니메이션 (pop-in, bounce)
+- FX 스프라이트 (점프 효과 dust particle, 하트/호감도 상승, 데드/감정 하락, 대기/로딩)
+- 클릭 시 시각 피드백 (ripple effect)
+
+---
+
+*마지막 업데이트: 2026-02-16 23:30 (Phase 3 완료)*

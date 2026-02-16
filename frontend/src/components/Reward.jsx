@@ -3,7 +3,7 @@ import { useState } from 'react'
 const REWARDS = {
   firstLogin: {
     id: 'firstLogin',
-    name: '첫 로그인 보상',
+    name: 'FIRST LOGIN',
     points: 100,
     experience: 50,
     items: [
@@ -13,7 +13,7 @@ const REWARDS = {
   },
   dailyBonus: {
     id: 'dailyBonus',
-    name: '일일 보너스',
+    name: 'DAILY BONUS',
     points: 50,
     experience: 20,
     items: [
@@ -23,7 +23,7 @@ const REWARDS = {
   },
   achievement: {
     id: 'achievement',
-    name: '업적 달성 보상',
+    name: 'ACHIEVEMENT',
     points: 200,
     experience: 150,
     items: [
@@ -36,22 +36,22 @@ const REWARDS = {
 const ITEMS = {
   healthPotion: {
     id: 'healthPotion',
-    name: '체력 포션',
+    name: 'HP POTION',
     icon: '❤️'
   },
   coin: {
     id: 'coin',
-    name: '코인',
+    name: 'COIN',
     icon: '🪙'
   },
   giftBox: {
     id: 'giftBox',
-    name: '선물 상자',
+    name: 'GIFT BOX',
     icon: '🎁'
   },
   experiencePotion: {
     id: 'experiencePotion',
-    name: '경험치 포션',
+    name: 'EXP POTION',
     icon: '⚡'
   }
 }
@@ -80,62 +80,64 @@ export default function Reward({ show, onClose, characterId, onClaimReward, clai
   const isClaimed = (rewardId) => claimedRewards.includes(rewardId)
 
   return (
-    <div className="modal-overlay">
-      <div className="reward-modal">
-        <div className="reward-header">
-          <h2>🎁 보상 센터</h2>
-          <button className="close-button" onClick={onClose}>
+    <div className="modal-overlay pixel-overlay">
+      <div className="reward-modal pixel-panel pixel-pop">
+        <div className="reward-header pixel-panel-header pixel-font pixel-text-lg">
+          <h2>🎁 REWARD CENTER</h2>
+          <button className="close-button pixel-button pixel-button-red" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="reward-content">
-          <div className="reward-list">
-            {Object.values(REWARDS).map(reward => {
-              const claimed = isClaimed(reward.id)
+          <div className="reward-list pixel-scroll">
+            <div className="pixel-grid">
+              {Object.values(REWARDS).map(reward => {
+                const claimed = isClaimed(reward.id)
 
-              return (
-                <div
-                  key={reward.id}
-                  className={`reward-item ${selectedReward === reward.id ? 'selected' : ''} ${claimed ? 'claimed' : ''}`}
-                  onClick={() => handleRewardClick(reward.id)}
-                >
-                  <div className="reward-icon">🎁</div>
-                  <div className="reward-info">
-                    <div className="reward-name">{reward.name}</div>
-                    <div className="reward-details">
-                      <span className="reward-points">💎 {reward.points}점</span>
-                      <span className="reward-experience">⭐ {reward.experience}경험치</span>
+                return (
+                  <div
+                    key={reward.id}
+                    className={`reward-item pixel-grid-item ${selectedReward === reward.id ? 'selected' : ''} ${claimed ? 'claimed' : ''}`}
+                    onClick={() => handleRewardClick(reward.id)}
+                  >
+                    <div className="reward-icon pixel-icon-lg">🎁</div>
+                    <div className="reward-info pixel-font">
+                      <div className="reward-name pixel-text-md">{reward.name}</div>
+                      <div className="reward-details pixel-text-sm">
+                        <span className="reward-points pixel-badge pixel-badge-orange">💎 {reward.points} PTS</span>
+                        <span className="reward-experience pixel-badge pixel-badge-blue">⭐ {reward.experience} EXP</span>
+                      </div>
+                      <div className="reward-items pixel-text-sm">
+                        {reward.items.map(item => {
+                          const itemInfo = ITEMS[item.id]
+                          return (
+                            <span key={item.id} className="reward-item-badge pixel-badge pixel-badge-green">
+                              {itemInfo?.icon || '📦'} {itemInfo?.name || item.id} x{item.quantity}
+                            </span>
+                          )
+                        })}
+                      </div>
                     </div>
-                    <div className="reward-items">
-                      {reward.items.map(item => {
-                        const itemInfo = ITEMS[item.id]
-                        return (
-                          <span key={item.id} className="reward-item-badge">
-                            {itemInfo?.icon || '📦'} {itemInfo?.name || item.id} x{item.quantity}
-                          </span>
-                        )
-                      })}
+                    <div className="reward-status">
+                      {claimed ? (
+                        <span className="reward-claimed-badge pixel-badge pixel-badge-green">CLAIMED</span>
+                      ) : (
+                        <button
+                          className="claim-button pixel-button pixel-button-green pixel-text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleClaimReward(reward.id)
+                          }}
+                        >
+                          CLAIM
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="reward-status">
-                    {claimed ? (
-                      <span className="reward-claimed-badge">수령 완료</span>
-                    ) : (
-                      <button
-                        className="claim-button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleClaimReward(reward.id)
-                        }}
-                      >
-                        수령
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

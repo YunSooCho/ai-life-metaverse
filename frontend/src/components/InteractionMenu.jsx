@@ -7,39 +7,39 @@ export default function InteractionMenu({ show, targetCharacter, x, y, onInterac
     <>
       <div className="interaction-overlay" onClick={onClose} />
       <div
-        className="interaction-menu"
+        className="interaction-menu pixel-menu pixel-pop"
         style={{
           left: x,
           top: y
         }}
       >
-        <div className="interaction-menu-header">
+        <div className="interaction-menu-header pixel-menu-header">
           {targetCharacter.name}
         </div>
         <div className="interaction-menu-items">
           <button
-            className="interaction-menu-button"
+            className="interaction-menu-button pixel-menu-item"
             onClick={() => onInteraction('greeting')}
           >
-            👋 인사
+            INSA
           </button>
           <button
-            className="interaction-menu-button"
+            className="interaction-menu-button pixel-menu-item"
             onClick={() => onInteraction('gift')}
           >
-            🎁 선물주기
+            GIFT
           </button>
           <button
-            className="interaction-menu-button"
+            className="interaction-menu-button pixel-menu-item pixel-button-green"
             onClick={() => onInteraction('friend')}
           >
-            🤝 친하기
+            FRIEND
           </button>
           <button
-            className="interaction-menu-button"
+            className="interaction-menu-button pixel-menu-item pixel-button-red"
             onClick={() => onInteraction('fight')}
           >
-            ⚔️ 싸우기
+            FIGHT
           </button>
         </div>
       </div>

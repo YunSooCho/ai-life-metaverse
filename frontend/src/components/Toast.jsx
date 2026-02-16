@@ -1,23 +1,36 @@
 import PropTypes from 'prop-types'
 
-export default function Toast({ show, message, type }) {
-  if (!show) return null
+export default function Toast({ message, type, show, onClose }) {
+  if (!show || !message) return null
 
-  const toastTypes = {
-    info: 'toast-info',
-    success: 'toast-success',
-    warning: 'toast-warning'
+  const getToastClass = () => {
+    switch (type) {
+      case 'success':
+        return 'pixel-toast pixel-toast-success'
+      case 'warning':
+        return 'pixel-toast pixel-toast-warning'
+      case 'info':
+      default:
+        return 'pixel-toast pixel-toast-info'
+    }
   }
 
   return (
-    <div className={`toast ${toastTypes[type] || toastTypes.info}`}>
-      {message}
+    <div className={`toast ${getToastClass()}`}>
+      <span className="pixel-font pixel-text-sm">{message}</span>
     </div>
   )
 }
 
 Toast.propTypes = {
+  message: PropTypes.string,
+  type: PropTypes.oneOf(['success', 'warning', 'info']),
   show: PropTypes.bool.isRequired,
-  message: PropTypes.string.isRequired,
-  type: PropTypes.oneOf(['info', 'success', 'warning']).isRequired
+  onClose: PropTypes.func
+}
+
+Toast.defaultProps = {
+  message: '',
+  type: 'info',
+  onClose: null
 }

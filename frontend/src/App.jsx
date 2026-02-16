@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { socket } from './socket'
 import './App.css'
+import './styles/pixel-theme.css'
 import GameCanvas from './components/GameCanvas'
 import InteractionMenu from './components/InteractionMenu'
 import AffinityDisplay from './components/AffinityDisplay'

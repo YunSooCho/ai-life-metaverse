@@ -106,33 +106,16 @@ function GameCanvas({
     const loadSprites = async () => {
       try {
         const characterSprite = await spriteLoader.loadSpriteSheet(
-          'character/RPGCharacterSprites32x32.png',
+          'character/RPGCharacterSprites32x32.svg',
           'character'
         )
         
-        // 건물 스프라이트 로드
-        const loadBuildingSprite = async (name) => {
-          try {
-            return await spriteLoader.loadSpriteSheet(`buildings/${name}.svg`, `building_${name}`)
-          } catch (e) {
-            return null
-          }
-        }
-        
-        const buildingSprites = await Promise.all([
-          loadBuildingSprite('shop'),
-          loadBuildingSprite('cafe'),
-          loadBuildingSprite('park'),
-          loadBuildingSprite('library'),
-          loadBuildingSprite('gym')
-        ])
-        
-        const buildingSpriteMap = {
-          shop: buildingSprites[0],
-          cafe: buildingSprites[1],
-          park: buildingSprites[2],
-          library: buildingSprites[3],
-          gym: buildingSprites[4]
+        // 건물 스프라이트 로드 (하나의 파일로 로드)
+        let buildingSprite = null
+        try {
+          buildingSprite = await spriteLoader.loadSpriteSheet('buildings/buildings.svg', 'buildings')
+        } catch (e) {
+          console.warn('Failed to load building sprite:', e)
         }
         
         // 타일맵 스프라이트 로드
@@ -151,9 +134,9 @@ function GameCanvas({
           console.warn('Failed to load entrance sprite:', e)
         }
         
-        setSpriteSheets({ 
+        setSpriteSheets({
           character: characterSprite,
-          buildings: buildingSpriteMap,
+          buildings: buildingSprite,
           tiles: tileSprite,
           entrance: entranceSprite
         })
@@ -357,14 +340,27 @@ function GameCanvas({
     const by = building.y * scale
     const bw = building.width * scale
     const bh = building.height * scale
-    
+
+    // 건물 소스 좌표 (buildings.svg SVG viewBox 0 0 800 200)
+    const buildingSources = {
+      shop: { x: 0, y: 0, width: 128, height: 128 },
+      cafe: { x: 128, y: 0, width: 128, height: 128 },
+      park: { x: 256, y: 0, width: 200, height: 160 },
+      library: { x: 464, y: 0, width: 150, height: 140 },
+      gym: { x: 620, y: 0, width: 160, height: 140 }
+    }
+
     // 스프라이트 있는지 확인
-    const buildingSprite = spriteSheets.buildings?.[building.sprite]
-    
-    if (buildingSprite && buildingSprite instanceof Image) {
-      // 스프라이트 렌더링
+    const buildingSprite = spriteSheets.buildings
+    if (buildingSprite && buildingSprite instanceof Image && buildingSources[building.sprite]) {
+      // 스프라이트 렌더링 (소스 좌표 사용)
+      const source = buildingSources[building.sprite]
       ctx.imageSmoothingEnabled = false
-      ctx.drawImage(buildingSprite, bx, by, bw, bh)
+      ctx.drawImage(
+        buildingSprite,
+        source.x, source.y, source.width, source.height, // 소스 좌표
+        bx, by, bw, bh // 목표 좌표
+      )
     } else {
       // Fallback: 기본 색상 건물 렌더링
       ctx.imageSmoothingEnabled = false

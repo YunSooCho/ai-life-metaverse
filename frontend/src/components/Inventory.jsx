@@ -3,35 +3,35 @@ import { useState } from 'react'
 const ITEMS = {
   healthPotion: {
     id: 'healthPotion',
-    name: '체력 포션',
+    name: 'HP POTION',
     type: 'consumable',
     effect: { hp: 50 },
     icon: '❤️',
-    description: 'HP를 50 회복합니다'
+    description: 'HP +50 RESTORE'
   },
   coin: {
     id: 'coin',
-    name: '코인',
+    name: 'COIN',
     type: 'currency',
     effect: { currency: 10 },
     icon: '🪙',
-    description: '화폐로 사용됩니다'
+    description: 'CURRENCY ITEM'
   },
   giftBox: {
     id: 'giftBox',
-    name: '선물 상자',
+    name: 'GIFT BOX',
     type: 'consumable',
     effect: { affinity: 10 },
     icon: '🎁',
-    description: '호감도가 10 증가합니다'
+    description: 'AFFINITY +10'
   },
   experiencePotion: {
     id: 'experiencePotion',
-    name: '경험치 포션',
+    name: 'EXP POTION',
     type: 'consumable',
     effect: { experience: 100 },
     icon: '⚡',
-    description: '경험치가 100 증가합니다'
+    description: 'EXP +100'
   }
 }
 
@@ -63,61 +63,63 @@ export default function Inventory({ show, onClose, inventory, characterId, onUse
   const totalItems = Object.values(inventory).reduce((sum, quantity) => sum + quantity, 0)
 
   return (
-    <div className="modal-overlay">
-      <div className="inventory-modal">
-        <div className="inventory-header">
-          <h2>🎒 인벤토리</h2>
-          <button className="close-button" onClick={onClose}>
+    <div className="modal-overlay pixel-overlay">
+      <div className="inventory-modal pixel-panel pixel-pop">
+        <div className="inventory-header pixel-panel-header pixel-text-lg pixel-font">
+          <h2>🎒 INVENTORY</h2>
+          <button className="close-button pixel-button pixel-button-red" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="inventory-content">
-          <div className="inventory-stats">
-            <p>📦 총 아이템 수: {totalItems}</p>
-            <button className="refresh-button" onClick={handleGetInventory}>
-              🔄 새로고침
+          <div className="inventory-stats pixel-panel-body">
+            <p className="pixel-text-md pixel-font">📦 TOTAL: {totalItems}</p>
+            <button className="refresh-button pixel-button" onClick={handleGetInventory}>
+              REFRESH
             </button>
           </div>
 
-          <div className="inventory-items">
+          <div className="inventory-items pixel-scroll">
             {totalItems === 0 ? (
-              <div className="empty-inventory">
-                <p>인벤토리가 비어있습니다</p>
+              <div className="empty-inventory pixel-font pixel-text-md">
+                <p>INVENTORY EMPTY</p>
               </div>
             ) : (
-              Object.entries(inventory).map(([itemId, quantity]) => {
-                const item = ITEMS[itemId]
-                if (!item) return null
+              <div className="pixel-grid">
+                {Object.entries(inventory).map(([itemId, quantity]) => {
+                  const item = ITEMS[itemId]
+                  if (!item) return null
 
-                const isConsumable = item.type === 'consumable'
+                  const isConsumable = item.type === 'consumable'
 
-                return (
-                  <div
-                    key={itemId}
-                    className={`inventory-item ${selectedItem === itemId ? 'selected' : ''}`}
-                    onClick={() => handleItemClick(itemId)}
-                  >
-                    <div className="item-icon">{item.icon}</div>
-                    <div className="item-info">
-                      <div className="item-name">{item.name}</div>
-                      <div className="item-quantity">x{quantity}</div>
-                      <div className="item-description">{item.description}</div>
+                  return (
+                    <div
+                      key={itemId}
+                      className={`pixel-grid-item ${selectedItem === itemId ? 'selected' : ''}`}
+                      onClick={() => handleItemClick(itemId)}
+                    >
+                      <div className="item-icon pixel-icon-lg">{item.icon}</div>
+                      <div className="item-info pixel-font pixel-text-sm">
+                        <div className="item-name pixel-text-md">{item.name}</div>
+                        <div className="item-quantity pixel-badge-orange">x{quantity}</div>
+                        <div className="item-description pixel-text-sm">{item.description}</div>
+                      </div>
+                      {isConsumable && (
+                        <button
+                          className="use-item-button pixel-button pixel-button-green pixel-text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleUseItem(itemId)
+                          }}
+                        >
+                          USE
+                        </button>
+                      )}
                     </div>
-                    {isConsumable && (
-                      <button
-                        className="use-item-button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleUseItem(itemId)
-                        }}
-                      >
-                        사용
-                      </button>
-                    )}
-                  </div>
-                )
-              })
+                  )
+                })}
+              </div>
             )}
           </div>
         </div>

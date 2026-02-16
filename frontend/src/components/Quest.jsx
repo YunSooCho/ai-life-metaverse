@@ -1,12 +1,12 @@
 import './Quest.css'
 
-export default function Quest({ 
-  show, 
-  quests, 
-  availableQuests, 
-  onAcceptQuest, 
+export default function Quest({
+  show,
+  quests,
+  availableQuests,
+  onAcceptQuest,
   onClaimReward,
-  onClose 
+  onClose
 }) {
   if (!show) return null
   const activeQuests = Object.values(quests).filter(q => q.status !== 'completed')
@@ -14,16 +14,16 @@ export default function Quest({
 
   const getQuestTypeLabel = (questType) => {
     const labels = {
-      main: '메인 퀘스트',
-      side: '사이드 퀘스트'
+      main: 'MAIN QUEST',
+      side: 'SIDE QUEST'
     }
-    return labels[questType] || questType
+    return labels[questType] || questType.toUpperCase()
   }
 
   const getQuestTypeClass = (questType) => {
     const classes = {
-      main: 'quest-main',
-      side: 'quest-side'
+      main: 'quest-main pixel-badge',
+      side: 'quest-side pixel-badge pixel-badge-blue'
     }
     return classes[questType] || ''
   }
@@ -46,63 +46,63 @@ export default function Quest({
     if (objective.unit === 'ms') {
       const seconds = Math.floor(objective.currentCount / 1000)
       const totalSeconds = Math.floor(objective.requiredCount / 1000)
-      return `${seconds}/${totalSeconds}초`
+      return `${seconds}/${totalSeconds}s`
     }
     return `${objective.currentCount}/${objective.requiredCount}`
   }
 
   return (
-    <div className="quest-overlay">
-      <div className="quest-container">
-        <div className="quest-header">
-          <h2>📋 퀘스트</h2>
-          <button className="quest-close" onClick={onClose}>✕</button>
+    <div className="quest-overlay pixel-overlay">
+      <div className="quest-container pixel-panel pixel-pop">
+        <div className="quest-header pixel-panel-header pixel-font pixel-text-lg">
+          <h2>📋 QUEST LOG</h2>
+          <button className="quest-close pixel-button pixel-button-red" onClick={onClose}>✕</button>
         </div>
 
         <div className="quest-tabs">
-          <button className="quest-tab quest-tab-active">진행 중</button>
-          <span className="quest-tab-count">{activeQuests.length}</span>
+          <button className="quest-tab quest-tab-active pixel-button pixel-text-sm">ACTIVE</button>
+          <span className="quest-tab-count pixel-badge pixel-badge-orange">{activeQuests.length}</span>
         </div>
 
-        <div className="quest-content">
+        <div className="quest-content pixel-scroll">
           {activeQuests.length === 0 ? (
-            <div className="quest-empty">
-              <p>진행 중인 퀘스트가 없습니다</p>
+            <div className="quest-empty pixel-font pixel-text-md">
+              <p>NO ACTIVE QUESTS</p>
             </div>
           ) : (
-            <div className="quest-list">
+            <div className="quest-list pixel-grid">
               {activeQuests.map(quest => {
                 const progress = calculateProgress(quest)
                 const canClaim = progress.percentage === 100
 
                 return (
-                  <div 
-                    key={quest.id} 
-                    className={`quest-item ${getQuestTypeClass(quest.questType)} ${canClaim ? 'quest-completable' : ''}`}
+                  <div
+                    key={quest.id}
+                    className={`quest-item pixel-grid-item ${getQuestTypeClass(quest.questType)} ${canClaim ? 'quest-completable' : ''}`}
                   >
                     <div className="quest-item-header">
                       <div className="quest-item-title">
-                        <span className="quest-type-badge">{getQuestTypeLabel(quest.questType)}</span>
-                        <h3>{quest.title}</h3>
+                        <span className="quest-type-badge pixel-text-sm">{getQuestTypeLabel(quest.questType)}</span>
+                        <h3 className="pixel-font pixel-text-md">{quest.title}</h3>
                       </div>
                       <div className="quest-progress-bar">
-                        <div 
-                          className="quest-progress-fill" 
+                        <div
+                          className="quest-progress-fill"
                           style={{ width: `${progress.percentage}%` }}
                         />
                       </div>
-                      <span className="quest-progress-text">{progress.percentage}%</span>
+                      <span className="quest-progress-text pixel-font pixel-text-sm">{progress.percentage}%</span>
                     </div>
 
-                    <p className="quest-description">{quest.description}</p>
+                    <p className="quest-description pixel-text-sm pixel-font">{quest.description}</p>
 
                     <div className="quest-objectives">
-                      <h4>목표</h4>
+                      <h4 className="pixel-font pixel-text-md">OBJECTIVES</h4>
                       <ul>
                         {quest.objectives.map((objective, index) => (
-                          <li 
-                            key={objective.id} 
-                            className={isObjectiveComplete(objective) ? 'objective-complete' : ''}
+                          <li
+                            key={objective.id}
+                            className={isObjectiveComplete(objective) ? 'objective-complete pixel-text-sm' : 'pixel-text-sm'}
                           >
                             <span className="objective-checkbox">
                               {isObjectiveComplete(objective) ? '✓' : '○'}
@@ -120,16 +120,16 @@ export default function Quest({
 
                     {quest.reward && (
                       <div className="quest-reward">
-                        <h4>보상</h4>
+                        <h4 className="pixel-font pixel-text-md">REWARD</h4>
                         <div className="reward-items">
                           {quest.reward.points && (
-                            <span className="reward-item">🏆 {quest.reward.points} 포인트</span>
+                            <span className="reward-item pixel-badge pixel-badge-orange">🏆 {quest.reward.points} PTS</span>
                           )}
                           {quest.reward.experience && (
-                            <span className="reward-item">⭐ {quest.reward.experience} 경험치</span>
+                            <span className="reward-item pixel-badge pixel-badge-blue">⭐ {quest.reward.experience} EXP</span>
                           )}
                           {quest.reward.items?.map((item, index) => (
-                            <span key={index} className="reward-item">
+                            <span key={index} className="reward-item pixel-badge pixel-badge-green">
                               📦 {item.id} x{item.quantity}
                             </span>
                           ))}
@@ -138,11 +138,11 @@ export default function Quest({
                     )}
 
                     {canClaim && (
-                      <button 
-                        className="quest-claim-button"
+                      <button
+                        className="quest-claim-button pixel-button pixel-button-green pixel-text-sm"
                         onClick={() => onClaimReward(quest.id)}
                       >
-                        보상 받기
+                        CLAIM REWARD
                       </button>
                     )}
                   </div>
@@ -154,30 +154,30 @@ export default function Quest({
           {availableQuests && Object.keys(availableQuests).length > 0 && (
             <>
               <div className="quest-tabs">
-                <button className="quest-tab">수락 가능</button>
-                <span className="quest-tab-count">{Object.keys(availableQuests).length}</span>
+                <button className="quest-tab pixel-button pixel-text-sm">AVAILABLE</button>
+                <span className="quest-tab-count pixel-badge pixel-badge-cyan">{Object.keys(availableQuests).length}</span>
               </div>
 
-              <div className="quest-list">
+              <div className="quest-list pixel-grid">
                 {Object.values(availableQuests).map(quest => (
-                  <div 
-                    key={quest.id} 
-                    className={`quest-item ${getQuestTypeClass(quest.questType)} quest-available`}
+                  <div
+                    key={quest.id}
+                    className={`quest-item pixel-grid-item ${getQuestTypeClass(quest.questType)} quest-available`}
                   >
                     <div className="quest-item-header">
                       <div className="quest-item-title">
-                        <span className="quest-type-badge">{getQuestTypeLabel(quest.questType)}</span>
-                        <h3>{quest.title}</h3>
+                        <span className="quest-type-badge pixel-text-sm">{getQuestTypeLabel(quest.questType)}</span>
+                        <h3 className="pixel-font pixel-text-md">{quest.title}</h3>
                       </div>
                     </div>
 
-                    <p className="quest-description">{quest.description}</p>
+                    <p className="quest-description pixel-text-sm pixel-font">{quest.description}</p>
 
                     <div className="quest-objectives">
-                      <h4>목표</h4>
+                      <h4 className="pixel-font pixel-text-md">OBJECTIVES</h4>
                       <ul>
                         {quest.objectives.map((objective, index) => (
-                          <li key={objective.id}>
+                          <li key={objective.id} className="pixel-text-sm">
                             <span className="objective-checkbox">○</span>
                             <span className="objective-text">
                               {objective.description}
@@ -189,16 +189,16 @@ export default function Quest({
 
                     {quest.reward && (
                       <div className="quest-reward">
-                        <h4>보상</h4>
+                        <h4 className="pixel-font pixel-text-md">REWARD</h4>
                         <div className="reward-items">
                           {quest.reward.points && (
-                            <span className="reward-item">🏆 {quest.reward.points} 포인트</span>
+                            <span className="reward-item pixel-badge pixel-badge-orange">🏆 {quest.reward.points} PTS</span>
                           )}
                           {quest.reward.experience && (
-                            <span className="reward-item">⭐ {quest.reward.experience} 경험치</span>
+                            <span className="reward-item pixel-badge pixel-badge-blue">⭐ {quest.reward.experience} EXP</span>
                           )}
                           {quest.reward.items?.map((item, index) => (
-                            <span key={index} className="reward-item">
+                            <span key={index} className="reward-item pixel-badge pixel-badge-green">
                               📦 {item.id} x{item.quantity}
                             </span>
                           ))}
@@ -206,11 +206,11 @@ export default function Quest({
                       </div>
                     )}
 
-                    <button 
-                      className="quest-accept-button"
+                    <button
+                      className="quest-accept-button pixel-button pixel-button-green pixel-text-sm"
                       onClick={() => onAcceptQuest(quest.id)}
                     >
-                      수락하기
+                      ACCEPT
                     </button>
                   </div>
                 ))}
@@ -221,38 +221,38 @@ export default function Quest({
           {completedQuests.length > 0 && (
             <>
               <div className="quest-tabs">
-                <button className="quest-tab">완료</button>
-                <span className="quest-tab-count">{completedQuests.length}</span>
+                <button className="quest-tab pixel-button pixel-text-sm">COMPLETED</button>
+                <span className="quest-tab-count pixel-badge pixel-badge-green">{completedQuests.length}</span>
               </div>
 
-              <div className="quest-list">
+              <div className="quest-list pixel-grid">
                 {completedQuests.map(quest => (
-                  <div 
-                    key={quest.id} 
-                    className={`quest-item ${getQuestTypeClass(quest.questType)} quest-finished`}
+                  <div
+                    key={quest.id}
+                    className={`quest-item pixel-grid-item ${getQuestTypeClass(quest.questType)} quest-finished`}
                   >
                     <div className="quest-item-header">
                       <div className="quest-item-title">
-                        <span className="quest-type-badge">{getQuestTypeLabel(quest.questType)}</span>
-                        <h3>{quest.title}</h3>
+                        <span className="quest-type-badge pixel-text-sm">{getQuestTypeLabel(quest.questType)}</span>
+                        <h3 className="pixel-font pixel-text-md">{quest.title}</h3>
                       </div>
-                      <span className="quest-status-complete">✓ 완료</span>
+                      <span className="quest-status-complete pixel-badge pixel-badge-green">✓ DONE</span>
                     </div>
 
-                    <p className="quest-description">{quest.description}</p>
+                    <p className="quest-description pixel-text-sm pixel-font">{quest.description}</p>
 
                     {quest.reward && (
                       <div className="quest-reward">
-                        <h4>보상</h4>
+                        <h4 className="pixel-font pixel-text-md">REWARD</h4>
                         <div className="reward-items">
                           {quest.reward.points && (
-                            <span className="reward-item">🏆 {quest.reward.points} 포인트</span>
+                            <span className="reward-item pixel-badge pixel-badge-orange">🏆 {quest.reward.points} PTS</span>
                           )}
                           {quest.reward.experience && (
-                            <span className="reward-item">⭐ {quest.reward.experience} 경험치</span>
+                            <span className="reward-item pixel-badge pixel-badge-blue">⭐ {quest.reward.experience} EXP</span>
                           )}
                           {quest.reward.items?.map((item, index) => (
-                            <span key={index} className="reward-item">
+                            <span key={index} className="reward-item pixel-badge pixel-badge-green">
                               📦 {item.id} x{item.quantity}
                             </span>
                           ))}

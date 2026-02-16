@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+/* Global Pixel Font */
+body, button, input, textarea, select {
+  font-family: 'Press Start 2P', monospace;
+}
+
 .app {
   width: 100vw;
   height: 100vh;

@@ -1,75 +1,123 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest'
-import spriteLoader from '../spriteLoader'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import spriteLoader from '../spriteLoader.js'
 
-// vitest에서 이미지 로드 mock
-vi.stubGlobal('Image', class {
+// Image 객체 모킹
+global.Image = class {
   constructor() {
+    this.onload = vi.fn()
+    this.onerror = vi.fn()
     this.src = ''
-    this.onload = null
-    this.onerror = null
-    this.complete = false
-    
-    // 비동기 로드 시뮬레이션
-    setTimeout(() => {
-      if (this.src) {
-        this.complete = true
-        if (this.onload) this.onload()
-      }
-    }, 100)
+    this.height = 0
+    this.width = 0
   }
-})
+}
 
-describe('SpriteLoader 기능', () => {
+describe('spriteLoader', () => {
   beforeEach(() => {
+    // 캐시를 비워서 각 테스트가 독립적으로 실행되도록 함
     spriteLoader.cleanup()
-    vi.clearAllMocks()
   })
 
-  test('스프라이트 로드 성공', async () => {
-    const img = await spriteLoader.loadSpriteSheet('buildings/shop.svg', 'shop')
-    expect(img).toBeInstanceOf(Image)
-    expect(img.src).toBe('/images/buildings/shop.svg')
-  }, 10000)
-
-  test('스프라이트 캐싱', async () => {
-    const img1 = await spriteLoader.loadSpriteSheet('buildings/cafe.svg', 'cafe')
-    const img2 = await spriteLoader.loadSpriteSheet('buildings/cafe.svg', 'cafe')
-    
-    expect(img1).toBe(img2)
-    expect(spriteLoader.getCacheSize()).toBe(1)
-  }, 10000)
-
-  test('여러 스프라이트 미리 로드', async () => {
-    const spriteList = [
-      { path: 'buildings/shop.svg', name: 'shop' },
-      { path: 'buildings/cafe.svg', name: 'cafe' },
-      { path: 'buildings/library.svg', name: 'library' }
-    ]
-    
-    await spriteLoader.preloadAssets(spriteList)
-    expect(spriteLoader.getCacheSize()).toBe(3)
-  }, 10000)
-
-  test('캐시 정리', async () => {
-    await spriteLoader.loadSpriteSheet('buildings/gym.svg', 'gym')
-    expect(spriteLoader.getCacheSize()).toBe(1)
-    
+  afterEach(() => {
+    // 테스트 후 캐시 정리
     spriteLoader.cleanup()
-    expect(spriteLoader.getCacheSize()).toBe(0)
-  }, 10000)
+  })
 
-  test('캐싱된 스프라이트 반환', async () => {
-    await spriteLoader.loadSpriteSheet('buildings/park.svg', 'park')
-    const cached = spriteLoader.getSprite('park')
-    
-    expect(cached).toBeInstanceOf(Image)
-    expect(cached.src).toBe('/images/buildings/park.svg')
-  }, 10000)
+  describe('loadSpriteSheet', () => {
+    it('이미지를 성공적으로 로드해야 함', async () => {
+      const testSprite = await spriteLoader.loadSpriteSheet('test.png', 'test')
 
-  test('로드 상태 확인', async () => {
-    expect(spriteLoader.isLoaded('test')).toBe(false)
-    
-    await spriteLoader.loadSpriteSheet('buildings/shop.svg', 'shop')
-    expect(spriteLoader.isLoaded('shop')).toBe(true)
-  }, 10000)
+      expect(testSprite).toBeInstanceOf(Image)
+      expect(spriteLoader.isLoaded('test')).toBe(true)
+    })
+
+    it('같은 이미지를 두 번 로드하면 캐시된 이미지를 반환해야 함', async () => {
+      const sprite1 = await spriteLoader.loadSpriteSheet('test.png', 'test')
+      const sprite2 = await spriteLoader.loadSpriteSheet('test.png', 'test')
+
+      expect(sprite1).toBe(sprite2)
+    })
+
+    it('로딩 중에 호출되면 같은 Promise를 반환해야 함', async () => {
+      const promise1 = spriteLoader.loadSpriteSheet('test.png', 'test')
+      const promise2 = spriteLoader.loadSpriteSheet('test.png', 'test')
+
+      expect(promise1).toBe(promise2)
+    })
+
+    it('잘못된 경로에서는 에러를 발생시켜야 함', async () => {
+      await expect(spriteLoader.loadSpriteSheet('', 'invalid'))
+        .rejects.toThrow('Failed to load sprite')
+    })
+  })
+
+  describe('getSprite', () => {
+    it('캐싱된 스프라이트를 반환해야 함', async () => {
+      await spriteLoader.loadSpriteSheet('test.png', 'test')
+      const sprite = spriteLoader.getSprite('test')
+
+      expect(sprite).toBeInstanceOf(Image)
+    })
+
+    it('캐싱되지 않은 스프라이트는 null을 반환해야 함', () => {
+      const sprite = spriteLoader.getSprite('nonexistent')
+
+      expect(sprite).toBeNull()
+    })
+  })
+
+  describe('isLoaded', () => {
+    it('로드된 스프라이트에 대해 true를 반환해야 함', async () => {
+      await spriteLoader.loadSpriteSheet('test.png', 'test')
+
+      expect(spriteLoader.isLoaded('test')).toBe(true)
+    })
+
+    it('로드되지 않은 스프라이트에 대해 false를 반환해야 함', () => {
+      expect(spriteLoader.isLoaded('nonexistent')).toBe(false)
+    })
+  })
+
+  describe('preloadAssets', () => {
+    it('여러 스프라이트를 동시에 미리 로드해야 함', async () => {
+      const spriteList = [
+        { path: 'test1.png', name: 'test1' },
+        { path: 'test2.png', name: 'test2' },
+        { path: 'test3.png', name: 'test3' }
+      ]
+
+      await expect(spriteLoader.preloadAssets(spriteList))
+        .resolves.not.toThrow()
+
+      expect(spriteLoader.isLoaded('test1')).toBe(true)
+      expect(spriteLoader.isLoaded('test2')).toBe(true)
+      expect(spriteLoader.isLoaded('test3')).toBe(true)
+    })
+  })
+
+  describe('getCacheSize', () => {
+    it('캐시 크기를 올바르게 반환해야 함', async () => {
+      expect(spriteLoader.getCacheSize()).toBe(0)
+
+      await spriteLoader.loadSpriteSheet('test1.png', 'test1')
+      expect(spriteLoader.getCacheSize()).toBe(1)
+
+      await spriteLoader.loadSpriteSheet('test2.png', 'test2')
+      await spriteLoader.loadSpriteSheet('test3.png', 'test3')
+      expect(spriteLoader.getCacheSize()).toBe(3)
+    })
+  })
+
+  describe('cleanup', () => {
+    it('캐시를 완전히 비워야 함', async () => {
+      await spriteLoader.loadSpriteSheet('test1.png', 'test1')
+      await spriteLoader.loadSpriteSheet('test2.png', 'test2')
+
+      spriteLoader.cleanup()
+
+      expect(spriteLoader.getCacheSize()).toBe(0)
+      expect(spriteLoader.isLoaded('test1')).toBe(false)
+      expect(spriteLoader.isLoaded('test2')).toBe(false)
+    })
+  })
 })
