@@ -46,7 +46,7 @@ import {
 } from '../utils/weatherTimeSystem'
 
 export const MAP_SIZE = { width: 1000, height: 700 }
-export const CHARACTER_SIZE = 40
+export const CHARACTER_SIZE = 64
 export const CELL_SIZE = 50
 const DEFAULT_SPEED = 3
 const SPRITE_SIZE = 32
@@ -477,33 +477,79 @@ function GameCanvas({
           ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.HAIR_STYLES, customization.hairStyle) || emoji
           : emoji
 
-        // 스프라이트 렌더링 (사용 가능한 경우)
-        if (isSpritesLoaded && spriteSheets.character) {
-          spriteRenderer.renderCharacterSprite(
-            ctx,
-            spriteSheets.character,
-            char.id,
-            x,
-            y,
-            CHARACTER_SIZE_SCALED * 1.5,
-            direction,
-            timestamp,
-            150
-          )
-        } else {
-          // fallback: 원형 캐릭터 렌더링
-          ctx.beginPath()
-          ctx.arc(x, y, CHARACTER_SIZE_SCALED / 2, 0, Math.PI * 2)
-          ctx.fillStyle = finalCharColor
-          ctx.fill()
-          ctx.strokeStyle = isConversing ? '#FFD700' : (isAi ? '#FF6B6B' : '#4CAF50')
-          ctx.lineWidth = isConversing ? 4 : 3
-          ctx.stroke()
+        // 픽셀 아트 캐릭터 렌더링 (프로그래매틱)
+        {
+          const s = CHARACTER_SIZE_SCALED
+          const px = s / 16  // 픽셀 단위
+          const cx = x - s / 2  // 좌상단 기준
+          const cy = y - s / 2
 
-          ctx.font = `${CHARACTER_SIZE_SCALED / 2}px Arial`
+          // 걷기 애니메이션 프레임
+          const isWalking = direction && direction !== 'idle'
+          const walkFrame = isWalking ? Math.floor(timestamp / 200) % 4 : 0
+          const bounce = isWalking ? Math.sin(walkFrame * Math.PI / 2) * px * 2 : 0
+
+          // 그림자
+          ctx.fillStyle = 'rgba(0,0,0,0.2)'
+          ctx.beginPath()
+          ctx.ellipse(x, y + s / 2 + px, s / 3, px * 2, 0, 0, Math.PI * 2)
+          ctx.fill()
+
+          // 몸통 (옷 색상)
+          ctx.fillStyle = finalCharColor
+          ctx.fillRect(cx + px * 4, cy + px * 7 - bounce, px * 8, px * 7)
+
+          // 머리 (피부색)
+          ctx.fillStyle = '#FFD5B8'
+          ctx.fillRect(cx + px * 3, cy + px * 1 - bounce, px * 10, px * 7)
+
+          // 머리카락
+          ctx.fillStyle = isAi ? '#FF6B6B' : '#5C3317'
+          ctx.fillRect(cx + px * 3, cy + px * 0 - bounce, px * 10, px * 3)
+          // 옆머리
+          ctx.fillRect(cx + px * 2, cy + px * 1 - bounce, px * 2, px * 5)
+          ctx.fillRect(cx + px * 12, cy + px * 1 - bounce, px * 2, px * 5)
+
+          // 눈
+          ctx.fillStyle = '#000000'
+          if (direction === 'walk_left') {
+            ctx.fillRect(cx + px * 4, cy + px * 4 - bounce, px * 2, px * 2)
+            ctx.fillRect(cx + px * 8, cy + px * 4 - bounce, px * 2, px * 2)
+          } else if (direction === 'walk_right') {
+            ctx.fillRect(cx + px * 6, cy + px * 4 - bounce, px * 2, px * 2)
+            ctx.fillRect(cx + px * 10, cy + px * 4 - bounce, px * 2, px * 2)
+          } else {
+            ctx.fillRect(cx + px * 5, cy + px * 4 - bounce, px * 2, px * 2)
+            ctx.fillRect(cx + px * 9, cy + px * 4 - bounce, px * 2, px * 2)
+          }
+
+          // 다리
+          const legOffset = isWalking ? Math.sin(walkFrame * Math.PI / 2) * px * 2 : 0
+          ctx.fillStyle = '#4A3728'
+          ctx.fillRect(cx + px * 4, cy + px * 14 - bounce, px * 3, px * 2)
+          ctx.fillRect(cx + px * 9, cy + px * 14 - bounce, px * 3, px * 2)
+          if (isWalking) {
+            // 걷는 애니메이션 - 다리 위치 변경
+            ctx.fillRect(cx + px * 4 - legOffset, cy + px * 14 - bounce, px * 3, px * 2)
+            ctx.fillRect(cx + px * 9 + legOffset, cy + px * 14 - bounce, px * 3, px * 2)
+          }
+
+          // AI/대화 중 표시 (테두리)
+          if (isConversing) {
+            ctx.strokeStyle = '#FFD700'
+            ctx.lineWidth = 3
+            ctx.strokeRect(cx + px * 2, cy - bounce - px, px * 12, px * 17)
+          } else if (isAi) {
+            ctx.strokeStyle = '#FF6B6B'
+            ctx.lineWidth = 2
+            ctx.strokeRect(cx + px * 2, cy - bounce - px, px * 12, px * 17)
+          }
+
+          // 이모지 (머리 위)
+          ctx.font = `${s / 2.5}px Arial`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          ctx.fillText(finalEmoji, x, y)
+          ctx.fillText(finalEmoji, x, cy - px * 2 - bounce)
         }
 
         // accessory 별도 표시 (myCharacter만)
