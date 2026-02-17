@@ -737,62 +737,111 @@ import './styles/pixel-theme.css'  // Phase 3: 픽셀아트 테마 전역 적용
 
 ---
 
-## 국제화 (i18n)
+## 국제화 (i18n) - 완료 (2026-02-17)
 
 ### 지원 언어
 - **한국어 (ko)** - 기본 언어
 - **일본어 (ja)**
 - **영어 (en)**
 
-### 구현 방식
-- **Backend:** API 응답에서 `clientLang` 파라미터 기반으로 언어별 텍스트 반환
-- **Frontend:** `i18n/` 폴더에 JSON 텍스트 리소스 파일
-- **State:** App.jsx에서 `userLang` 상태 관리, `localStorage`에 저장
-- **언어 전환:** Settings UI에서 선택 또는 브라우저 자동 감지
+### 구현 방식 (완료)
+- **Frontend:** `i18n/` 폴더 (React Context API)
+- **Context:** I18nProvider (전역 상태 관리)
+- **Hook:** useI18n (번역 함수 제공)
+- **Storage:** localStorage에 언어 설정 저장
+- **언어 전환:** LanguageSelector 컴포넌트로 드롭다운 선택
 
-### 데이터 구조
+### 데이터 구조 (완료)
 ```json
-// i18n/ko.json
+// frontend/src/i18n/ko.json
 {
+  "app": { "title": "AI 라이프", "loading": "로딩 중..." },
   "ui": {
-    "title": "AI 라이프",
-    "rooms": "방",
-    "inventory": "인벤토리",
-    "rewards": "보상"
-  },
-  "character": {
-    "player": "플레이어",
-    "aiYuri": "AI 유리"
-  },
-  "quests": {
-    "active": "활성 중",
-    "available": "수락 가능"
+    "chat": { "placeholder": "메시지를 입력하세요..." },
+    "buttons": { "ok": "확인", "cancel": "취소" },
+    "tabs": { "profile": "프로필", "inventory": "인벤토리" },
+    "interaction": { "greet": "인사", "talk": "대화" },
+    "quest": { "accept": "수락", "complete": "완료" },
+    "inventory": { "item": "아이템", "use": "사용" },
+    "settings": { "language": "언어", "sound": "사운드" }
   }
 }
 
-// i18n/ja.json
+// frontend/src/i18n/ja.json
 {
-  "ui": { "title": "AIライフ" },
-  ...
+  "app": { "title": "AIライフ", "loading": "読み込み中..." },
+  "ui": {
+    "chat": { "placeholder": "メッセージを入力してください..." },
+    "buttons": { "ok": "OK", "cancel": "キャンセル" },
+    "tabs": { "profile": "プロフィール", "inventory": "インベントリ" }
+  }
 }
 
-// i18n/en.json
+// frontend/src/i18n/en.json
 {
-  "ui": { "title": "AI Life" },
-  ...
+  "app": { "title": "AI Life", "loading": "Loading..." },
+  "ui": {
+    "chat": { "placeholder": "Enter message..." },
+    "buttons": { "ok": "OK", "cancel": "Cancel" },
+    "tabs": { "profile": "Profile", "inventory": "Inventory" }
+  }
+}
+```
+
+### 구현된 컴포넌트 (완료)
+
+| 파일 | 기능 | 상태 |
+|------|------|------|
+| `frontend/src/i18n/I18nContext.jsx` | React Context API, useI18n Hook | ✅ 완료 |
+| `frontend/src/i18n/translations.js` | 번역 파일 관리 (정적 import) | ✅ 완료 |
+| `frontend/src/components/LanguageSelector.jsx` | 드롭다운 언어 선택 | ✅ 완료 |
+| `frontend/src/components/LanguageSelector.css` | 픽셀 스타일 언어 선택 UI | ✅ 완료 |
+| `frontend/src/App.jsx` | I18nProvider 감싸기, language 상태 | ✅ 완료 |
+
+### 사용 예시
+
+```jsx
+import { useI18n } from './i18n/I18nContext'
+
+function MyComponent() {
+  const { t, language, changeLanguage } = useI18n()
+
+  return (
+    <div>
+      <h1>{t('app.title')}</h1>
+      <p>{t('ui.chat.placeholder')}</p>
+      <select onChange={(e) => changeLanguage(e.target.value)}>
+        <option value="ko">한국어</option>
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  )
 }
 ```
 
 ### 적용 범위
 - ✅ UI 텍스트 (버튼, 헤더, 라벨)
-- ✅ 캐릭터 이름
-- ✅ 퀘스트 텍스트
-- ✅ 시스템 메시지
+- ✅ LanguageSelector 컴포넌트
+- ✅ localStorage 영속성
+- ⏳ 나머지 UI 컴포넌트에 적용 (진행 예정)
 - ❌ AI 대화 (개별 대화 텍스트는 실시간 번역 사용 고려)
 
-### API 확장
-`GET /api/characters?lang=ja` → 일본어 이름 반환
-`GET /api/quests?lang=en` → 영어 퀘스트 텍스트 반환
+### 테스트 (완료)
+- **테스트 파일:** `frontend/src/i18n/__tests__/I18nContext.test.jsx`
+- **테스트 결과:** 12 passed (12)
+- **테스트 항목:**
+  - ✅ useI18n hook 기능
+  - ✅ 기본 언어 한국어
+  - ✅ 초기 언어 설정
+  - ✅ 언어 변경
+  - ✅ localStorage 저장/복원
+  - ✅ 한국어/일본어/영어 번역
+  - ✅ 잘못된 키 처리
+  - ✅ 언어 객체
+
+### GitHub Issue
+- **#42:** [feat] i18n 초기 구현 - UI 텍스트 다국어 지원 ✅ 완료 (2026-02-17)
 
 ---
 
@@ -843,3 +892,27 @@ soundSystem.toggleMute()  // returns: boolean
 
 ### 파일 위치
 - `frontend/src/utils/soundSystem.js` - 핵심 로직
+
+---
+
+## 설정 패널 (Settings Panel)
+
+### 기능
+- **BGM 볼륨 슬라이더:** 0~100% 조절
+- **SFX 볼륨 슬라이더:** 0~100% 조절
+- **음소거 토글:** ON/OFF 버튼
+
+### UI 구조
+```jsx
+<SettingsPanel onClose={handleClose} />
+```
+
+### CSS 스타일
+- pixel-theme.css 기반 픽셀 아트
+- 색상: #2d2d2d (배경), #4a4a4a (테두리)
+- 버튼: 누르는 효과 (box-shadow)
+- 슬라이더: 픽셀 스타일 thumb
+
+### 파일 위치
+- `frontend/src/components/SettingsPanel.jsx`
+- `frontend/src/components/SettingsPanel.css`

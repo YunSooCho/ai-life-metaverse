@@ -14,6 +14,8 @@ import Inventory from './components/Inventory'
 import Reward from './components/Reward'
 import Quest from './components/Quest'
 import LanguageSelector from './components/LanguageSelector'
+import SettingsPanel from './components/SettingsPanel'
+import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
 import { I18nProvider, useI18n } from './i18n/I18nContext'
@@ -80,6 +82,7 @@ function AppContent() {
   const [quests, setQuests] = useState({})
   const [availableQuests, setAvailableQuests] = useState({})
   const [showQuest, setShowQuest] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const canvasRef = useRef(null)
   const chatHistoryRef = useRef(null)
@@ -814,6 +817,12 @@ function AppContent() {
            >
              📋 퀘스트
            </button>
+          <button
+            className="room-button"
+            onClick={() => setShowSettings(prev => !prev)}
+          >
+            ⚙️ 설정
+          </button>
          </div>
       </div>
       <GameCanvas
@@ -943,7 +952,20 @@ function AppContent() {
         onClaimReward={handleClaimQuestReward}
         onClose={() => setShowQuest(false)}
        />
+
+      {showSettings && (
+        <SettingsPanel onClose={() => setShowSettings(false)} />
+      )}
      </div>
+  )
+}
+
+// 메인 App 컴포넌트에 I18nProvider 감싸기
+function App() {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   )
 }
 

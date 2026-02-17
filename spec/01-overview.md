@@ -40,7 +40,7 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
 
 ---
 
-## 🎨 픽셀아트 리팩토링 로드맵 (2026-02-16 추가)
+## 🎨 픽셀아트 리팩토링 로드맵 (2026-02-17 업데이트)
 
 ### 리팩토링 목표
 현재 Canvas 도형 기반 렌더링을 **픽셀아트 스프라이트 기반**으로 전환하여 전체 프로젝트를 레트로 게임 스타일로 리팩토링
@@ -49,35 +49,64 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
 
 | Phase | 내용 | GitHub Issue | 상태 |
 |-------|------|--------------|------|
-| **Phase 1** | 스프라이트 기반 렌더링 시스템 | #26 | ⏳ 진행 예정 |
-| **Phase 2** | 건물/맵 타일 리팩토링 | #27 | ⏳ 진행 예정 |
-| **Phase 3** | UI 컴포넌트 레트로 스타일링 | #28 | ⏳ 진행 예정 |
-| **Phase 4** | 감정 표현 & FX 강화 | #29 | ⏳ 진행 예정 |
+| **Phase 1** | 스프라이트 기반 렌더링 시스템 | #44 ✅ | ✅ 완료 |
+| **Phase 2** | 건물/맵 타일 렌더링 최적화 | #45 ✅ | ✅ 완료 |
+| **Phase 3** | UI 컴포넌트 레트로 스타일링 | #46 ✅ | ✅ 완료 |
+| **Phase 4** | 감정 표현 & FX 강화 | - | ⏳ 기획 중 |
 
-### Phase 1: 스프라이트 기반 렌더링 시스템 (#26)
-- `spriteLoader.js` 유틸리티 (이미지 로딩, 캐싱, 프레임 추출)
-- `assets/sprites/` 폴더 구조 (캐릭터/이모지/건물/타일/프레임)
-- `GameCanvas.jsx` 렌더링 파이프라인 (fillRect → drawImage 전환)
-- `Character.jsx` 스프라이트 애니메이션 시스템
-- 플레이스홀더 픽셀아트 에셋 생성 (32x32 캐릭터, 16x16 이모지)
+### Phase 1: 스프라이트 기반 렌더링 시스템 (#44) ✅ 완료 (2026-02-17 10:30)
+- `spriteLoader.js` 유틸리티: 이미지 로딩, 캐싱, 로딩 추적, 에러 처리
+- `spriteRenderer.js` 유틸리티: 애니메이션 관리, 방향별 렌더링, 픽셀 아트 스무딩
+- `assets/sprites/` 폴더 구조: 캐릭터/건물/타일/effect 폴더 완성
+- `GameCanvas.jsx` 렌더링 파이프라인: 스프라이트 시스템 완전 통합
+- **테스트 코드 작성 완료:**
+  - spriteLoader.test.js: 9개 테스트 통과
+  - spriteRenderer.test.js: 10개 테스트 통과
+  - 총 19개 테스트 전부 통과 ✅
+- **구현 상태:** 이미 완벽하게 구현되어 있었음 (테스트 코드만 추가)
 
-### Phase 2: 건물/맵 타일 리팩토링 (#27)
-- 타일맵 데이터 구조 (JSON 기반 맵 데이터: ground/building/decoration 레이어)
-- 건물 스프라이트 교체 (5개 건물 각각 픽셀아트)
-- 맵 배경 타일맵 렌더링 (잔디/흙/길/물 등)
-- 건물 입장 가능 영역 시각 피드백
-- `MiniMap.jsx` 픽셀아트 스타일
+### Phase 2: 맵 타일 시스템 리팩토링 (#47) ✅ 부분 완료 (2026-02-17 11:35)
+- **TileRenderer.js 구현 완료:**
+  - Ground 레이어 렌더링 (잔디/흙길/돌바닥)
+  - 장식 레이어 렌더링 (나무/벤치/꽃/바위 등 5가지 스프라이트)
+  - 건물 입장 영역 하이라이트 점선 효과
+  - 타일 디테일 효과 (픽셀 노이즈)
+  - 좌표 변환 (타일 ↔ 월드)
+  - 색상 처리 (darkenColor)
+- **GameCanvas.jsx 통합:**
+  - TileRenderer import 및 사용
+  - renderTilemap 함수 리팩토링
+  - renderEntranceHighlight 통합
+- **테스트 코드 완료:**
+  - tests/TileRenderer.test.js
+  - 24개 테스트 전부 통과 ✅
+- **남은 작업:**
+  - 건물 스프라이트 이미지 준비 (public/images/buildings/)
+  - MiniMap.jsx 픽셀아트 스타일 적용
 
-### Phase 3: UI 컴포넌트 레트로 스타일링 (#28)
-- 픽셀 폰트: 'Press Start 2P' 또는 'DungGeunMo'
-- `ChatBubble.jsx`: 도트 말풍선 스타일
-- `ChatInput.jsx`: 픽셀 입력창
-- `InteractionMenu.jsx`: RPG 메뉴 스타일 (화살표 커서)
-- `Inventory.jsx`: 도트 아이콘 + 레트로 그리드
-- `Quest.jsx`: RPG 퀘스트 로그
-- 글로벌 CSS: `frontend/src/styles/pixel-theme.css`
-  - 색상 팔레트: 제한된 32색
-  - 그림자/보더: 픽셀 스타일
+### Phase 3: UI 컴포넌트 레트로 스타일링 (#46) ✅ 완료 (2026-02-17 11:00)
+- **픽셀 폰트:** Press Start 2P (Google Fonts)
+- **pixel-theme.css 완전 구현:**
+  - 32색 색상 팔레트 (:root 변수)
+  - 픽셀 폰트 (font-family, letter-spacing)
+  - 픽셀 보더 (sm/md/lg)
+  - 픽셀 버튼 (RPG 스타일 + hover/active 효과)
+  - 픽셀 입력창, 패널/카드
+  - 픽셀 말풍선, 메뉴 (RPG 스타일)
+  - 픽셀 토스트, 아이콘
+  - 픽셀 그리드, 스크롤바
+  - 픽셀 애니메이션 (pop/bounce/shake)
+  - 픽셀 뱃지, 오버레이
+  - 모바일 최적화
+- **컴포넌트 스타일링:**
+  - `ChatBubble.jsx`: 도트 말풍선 스타일 (Press Start 2P, SVG rect/path)
+  - `ChatInput.jsx`: 픽셀 입력창 (pixel-panel, pixel-input, pixel-button-green)
+  - `InteractionMenu.jsx`: RPG 메뉴 스타일 (화살표 커서)
+  - `Inventory.jsx`: 도트 아이콘 + 레트로 그리드 (pixel-grid, pixel-grid-item)
+  - `Quest.jsx`: RPG 퀘스트 로그 (Quest.css 별도 스타일)
+- **테스트 코드 완료:**
+  - tests/pixel-ui-styling.test.js
+  - 59개 테스트 전부 통과 ✅
 
 ### Phase 4: 감정 표현 & FX 강화 (#29)
 - 감정 스프라이트시트 **16 감정** 확장 (5개 → 16개)
@@ -134,4 +163,10 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
 
 ---
 
-*마지막 업데이트: 2026-02-16*
+### 스펙 업데이트 (2026-02-17 완료)
+- `spec/01-overview.md`: Phase 1 완료 상태 업데이트
+- `spec/05-web-ui.md`: 스프라이트 시스템 테스트 내용 추가
+
+---
+
+*마지막 업데이트: 2026-02-17*

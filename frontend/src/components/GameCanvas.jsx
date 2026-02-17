@@ -5,6 +5,7 @@ import ChatBubble from './ChatBubble'
 import CharacterProfile from './CharacterProfile'
 import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
+import tileRenderer from '../utils/TileRenderer'
 import tilemapData from '../data/tilemap.json'
 import {
   renderEmotionEmoji,
@@ -304,70 +305,19 @@ function GameCanvas({
   }, [updateCharacterAnimation])
 
   /**
-   * 타일맵 렌더링 함수
+   * 타일맵 렌더링 함수 - TileRenderer 사용
    */
   const renderTilemap = useCallback((ctx, scale, canvasWidth, canvasHeight) => {
     const { mapSize, layers } = tilemapData
-    const tileWidth = mapSize.tileWidth * scale
-    const tileHeight = mapSize.tileHeight * scale
-    
-    // Ground 레이어 렌더링
-    if (layers.ground && layers.ground.tiles) {
-      layers.ground.tiles.forEach((tile, idx) => {
-        if (tile.color) {
-          ctx.fillStyle = tile.color
-          ctx.fillRect(
-            tile.x * scale,
-            tile.y * scale,
-            tile.width * scale,
-            tile.height * scale
-          )
-        }
-        
-        // 흙길 렌더링
-        if (tile.path) {
-          ctx.fillStyle = tile.color
-          tile.path.forEach(path => {
-            ctx.fillRect(
-              path.x * scale,
-              path.y * scale,
-              path.width * scale,
-              path.height * scale
-            )
-          })
-        }
-        
-        // 돌바닥 렌더링
-        if (tile.rects) {
-          ctx.fillStyle = tile.color
-          tile.rects.forEach(rect => {
-            ctx.fillRect(
-              rect.x * scale,
-              rect.y * scale,
-              rect.width * scale,
-              rect.height * scale
-            )
-          })
-        }
-      })
+
+    // 타일맵 렌더러를 사용한 Ground 레이어 렌더링
+    if (layers.ground) {
+      tileRenderer.renderGroundLayer(ctx, layers.ground, scale)
     }
-    
-    // Decoration 레이어 렌더링
-    if (layers.decoration && layers.decoration.objects) {
-      layers.decoration.objects.forEach(obj => {
-        if (!obj.obstacle) return
-        const ox = obj.x * scale
-        const oy = obj.y * scale
-        const ow = obj.width * scale
-        const oh = obj.height * scale
-        
-        // 장식 요소 픽셀 아트 스타일 렌더링
-        ctx.fillStyle = obj.sprite === 'tree' ? '#2E7D32' : '#8D6E63'
-        ctx.fillRect(ox, oy, ow, oh)
-        ctx.strokeStyle = '#1B5E20'
-        ctx.lineWidth = 2
-        ctx.strokeRect(ox, oy, ow, oh)
-      })
+
+    // 장식 레이어 렌더링
+    if (layers.decoration) {
+      tileRenderer.renderDecorationLayer(ctx, layers.decoration, scale)
     }
   }, [])
 
@@ -407,17 +357,9 @@ function GameCanvas({
       ctx.fillRect(bx, by, bw, bh)
     }
     
-    // 입장 하이라이트
-    if (isHighlighted && spriteSheets.entrance) {
-      const entrance = building.entrance
-      const ex = entrance.x * scale
-      const ey = entrance.y * scale
-      const ew = entrance.width * scale
-      const eh = entrance.height * scale
-      
-      ctx.globalAlpha = 0.3
-      ctx.drawImage(spriteSheets.entrance, ex, ey, ew, eh)
-      ctx.globalAlpha = 1.0
+    // 입장 하이라이트 - TileRenderer 사용
+    if (isHighlighted) {
+      tileRenderer.renderEntranceHighlight(ctx, building.entrance, scale)
     }
     
     // 건물 이름 (레트로 폰트 스타일)

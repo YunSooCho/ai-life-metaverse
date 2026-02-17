@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import * as translations from './translations.js'
+import { translations as allTranslations } from './translations.js'
 
 // 지원하는 언어 목록
 export const LANGUAGES = {
@@ -29,8 +29,8 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
     return savedLang && LANGUAGES[savedLang] ? savedLang : initialLanguage
   })
 
-  // 번역 캐시
-  const [translationsCache, setTranslationsCache] = useState({})
+  // 번역 캐시 (초기 로드)
+  const [translationsCache, setTranslationsCache] = useState(allTranslations)
 
   // 언어 변경 시 localStorage에 저장
   useEffect(() => {
@@ -46,21 +46,16 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
    * @returns {string} 번역된 텍스트
    */
   const t = (key, params = {}) => {
-    // 캐시 확인
+    // 캐시 확인 (이미 로드됨)
     if (translationsCache[language]) {
       return getNestedValue(translationsCache[language], key, params)
     }
 
-    // 번역 로드
-    loadTranslations(language)
-      .then(translations => {
-        setTranslationsCache(prev => ({
-          ...prev,
-          [language]: translations
-        }))
-      })
+    // 로드 중이면 기본 번역 반환
+    if (translationsCache.ko) {
+      return getNestedValue(translationsCache.ko, key, params)
+    }
 
-    // 로딩 중이면 키 반환
     return key
   }
 
@@ -139,22 +134,6 @@ function replaceParams(text, params = {}) {
   return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
     return params[key] !== undefined ? params[key] : match
   })
-}
-
-/**
- * 번역 파일 동적 로드
- *
- * @param {string} language - 언어 코드
- * @returns {Promise<Object>} 번역 객체
- */
-async function loadTranslations(language) {
-  try {
-    const translationsModule = await import(`./${language}.json`)
-    return translationsModule.default || translationsModule
-  } catch (error) {
-    console.error(`Failed to load translations for ${language}:`, error)
-    return {} // 로드 실패 시 빈 객체 반환
-  }
 }
 
 export default I18nContext
