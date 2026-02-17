@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "AI 라이프",
+    "loading": "로딩 중...",
+    "error": "오류 발생"
+  },
+  "ui": {
+    "chat": {
+      "placeholder": "메시지를 입력하세요...",
+      "send": "전송",
+      "typing": "입력 중..."
+    },
+    "buttons": {
+      "ok": "확인",
+      "cancel": "취소",
+      "close": "닫기",
+      "save": "저장",
+      "delete": "삭제"
+    },
+    "tabs": {
+      "profile": "프로필",
+      "inventory": "인벤토리",
+      "quests": "퀘스트",
+      "settings": "설정"
+    },
+    "interaction": {
+      "greet": "인사",
+      "talk": "대화",
+      "gift": "선물 주기",
+      "poke": "콕 찌르기",
+      "wave": "손 흔들기",
+      "compliment": "칭찬하기",
+      "tease": "놀리기",
+      "ignore": "무시하기"
+    },
+    "building": {
+      "enter": "건물 입장",
+      "exit": "건물 퇴장"
+    },
+    "quest": {
+      "accept": "수락",
+      "complete": "완료",
+      "pending": "대기 중",
+      "inProgress": "진행 중",
+      "completed": "완료됨",
+      "failed": "실패",
+      "mainQuest": "메인 퀘스트",
+      "sideQuest": "사이드 퀘스트"
+    },
+    "inventory": {
+      "item": "아이템",
+      "use": "사용",
+      "drop": "버리기",
+      "empty": "인벤토리가 비어있습니다"
+    },
+    "settings": {
+      "language": "언어",
+      "sound": "사운드",
+      "bgm": "배경음악",
+      "volume": "볼륨",
+      "on": "켜기",
+      "off": "끄기"
+    },
+    "time": {
+      "dawn": "새벽",
+      "morning": "아침",
+      "afternoon": "오후",
+      "evening": "저녁",
+      "night": "밤"
+    },
+    "weather": {
+      "clear": "맑음",
+      "cloudy": "흐림",
+      "rain": "비",
+      "snow": "눈"
+    },
+    "affinity": {
+      "label": "호감도",
+      "increased": "호감도가 올랐습니다!",
+      "decreased": "호감도가 떨어졌습니다..."
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "AI Life",
+    "loading": "Loading...",
+    "error": "Error occurred"
+  },
+  "ui": {
+    "chat": {
+      "placeholder": "Enter message...",
+      "send": "Send",
+      "typing": "Typing..."
+    },
+    "buttons": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "close": "Close",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "tabs": {
+      "profile": "Profile",
+      "inventory": "Inventory",
+      "quests": "Quests",
+      "settings": "Settings"
+    },
+    "interaction": {
+      "greet": "Greet",
+      "talk": "Talk",
+      "gift": "Give Gift",
+      "poke": "Poke",
+      "wave": "Wave",
+      "compliment": "Compliment",
+      "tease": "Tease",
+      "ignore": "Ignore"
+    },
+    "building": {
+      "enter": "Enter Building",
+      "exit": "Exit Building"
+    },
+    "quest": {
+      "accept": "Accept",
+      "complete": "Complete",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "failed": "Failed",
+      "mainQuest": "Main Quest",
+      "sideQuest": "Side Quest"
+    },
+    "inventory": {
+      "item": "Item",
+      "use": "Use",
+      "drop": "Drop",
+      "empty": "Inventory is empty"
+    },
+    "settings": {
+      "language": "Language",
+      "sound": "Sound",
+      "bgm": "BGM",
+      "volume": "Volume",
+      "on": "On",
+      "off": "Off"
+    },
+    "time": {
+      "dawn": "Dawn",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "weather": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "rain": "Rain",
+      "snow": "Snow"
+    },
+    "affinity": {
+      "label": "Affinity",
+      "increased": "Affinity increased!",
+      "decreased": "Affinity decreased..."
+    }
+  }
+}

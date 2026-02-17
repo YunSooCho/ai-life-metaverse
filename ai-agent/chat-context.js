@@ -69,4 +69,4 @@ class ChatContext {
   }
 }
 
-module.exports = { ChatContext }
+export { ChatContext }

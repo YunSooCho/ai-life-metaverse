@@ -793,3 +793,53 @@ import './styles/pixel-theme.css'  // Phase 3: 픽셀아트 테마 전역 적용
 ### API 확장
 `GET /api/characters?lang=ja` → 일본어 이름 반환
 `GET /api/quests?lang=en` → 영어 퀘스트 텍스트 반환
+
+---
+
+## 사운드 시스템
+
+### 구현 방식
+- **Web Audio API:** 사운드 파일 없이 프로그래밍 방식으로 사운드 생성
+- **오디오 컨텍스트:** 사용자 제스처 후 초기화 필수
+- **싱글톤 패턴:** `soundSystem` 모듈로 전역 접근
+
+### BGM 시스템
+```javascript
+soundSystem.init()  // 제스처 후 초기화
+soundSystem.playBgm('day')    // 아침/낮/저녁/밤
+soundSystem.setBgmVolume(0.5)
+soundSystem.stopBgm('day')
+soundSystem.stopAllBgm()
+```
+
+### 효과음 (SFX)
+```javascript
+soundSystem.playClick()         // 클릭
+soundSystem.playInteract()      // 인터랙션
+soundSystem.playItemUse()       // 아이템 사용
+soundSystem.playQuestComplete() // 퀘스트 완료
+```
+
+### 날씨 환경음
+```javascript
+soundSystem.startWeatherSound('RAIN')  // 비/눈 소리
+soundSystem.stopWeatherSound()
+```
+
+### 볼륨 제어 & 음소거
+```javascript
+soundSystem.setBgmVolume(0.3)
+soundSystem.setSfxVolume(0.5)
+soundSystem.toggleMute()  // returns: boolean
+```
+
+### 시간대별 BGM
+| 시간대 | 주파수 | 파형 | 특징 |
+|--------|--------|------|------|
+| 아침 (morning) | 440Hz | sine | 밝은 톤 |
+| 낮 (day) | 523.25Hz | triangle | 활기 |
+| 저녁 (evening) | 392Hz | sine | 차분 |
+| 밤 (night) | 330Hz | sine | 어두운 톤 |
+
+### 파일 위치
+- `frontend/src/utils/soundSystem.js` - 핵심 로직

@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "AIライフ",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました"
+  },
+  "ui": {
+    "chat": {
+      "placeholder": "メッセージを入力してください...",
+      "send": "送信",
+      "typing": "入力中..."
+    },
+    "buttons": {
+      "ok": "OK",
+      "cancel": "キャンセル",
+      "close": "閉じる",
+      "save": "保存",
+      "delete": "削除"
+    },
+    "tabs": {
+      "profile": "プロフィール",
+      "inventory": "インベントリ",
+      "quests": "クエスト",
+      "settings": "設定"
+    },
+    "interaction": {
+      "greet": "挨拶",
+      "talk": "会話",
+      "gift": "プレゼント",
+      "poke": "つつく",
+      "wave": "手を振る",
+      "compliment": "褒める",
+      "tease": "からかう",
+      "ignore": "無視"
+    },
+    "building": {
+      "enter": "建物に入る",
+      "exit": "建物を出る"
+    },
+    "quest": {
+      "accept": "受諾",
+      "complete": "完了",
+      "pending": "保留中",
+      "inProgress": "進行中",
+      "completed": "完了",
+      "failed": "失敗",
+      "mainQuest": "メインクエスト",
+      "sideQuest": "サイドクエスト"
+    },
+    "inventory": {
+      "item": "アイテム",
+      "use": "使用",
+      "drop": "捨てる",
+      "empty": "インベントリは空です"
+    },
+    "settings": {
+      "language": "言語",
+      "sound": "サウンド",
+      "bgm": "背景音楽",
+      "volume": "音量",
+      "on": "オン",
+      "off": "オフ"
+    },
+    "time": {
+      "dawn": "未明",
+      "morning": "朝",
+      "afternoon": "午後",
+      "evening": "夕方",
+      "night": "夜"
+    },
+    "weather": {
+      "clear": "晴れ",
+      "cloudy": "曇り",
+      "rain": "雨",
+      "snow": "雪"
+    },
+    "affinity": {
+      "label": "好感度",
+      "increased": "好感度が上がりました！",
+      "decreased": "好感度が下がりました..."
+    }
+  }
+}

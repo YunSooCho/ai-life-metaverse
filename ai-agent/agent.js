@@ -1,8 +1,8 @@
 import { io } from 'socket.io-client'
 import { ChatContext } from './chat-context.js'
 import { EmotionManager } from './emotion-manager.js'
+import { getGameHour } from '../shared/weatherTimeSystem.js'
 import {
-  getGameHour,
   getNpcStatus,
   moveTowardTarget
 } from '../shared/npcSchedule.js'
