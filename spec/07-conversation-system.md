@@ -131,6 +131,90 @@ if (character.isConversing) {
 | `interact` | Client→Server | `{characterId, interactionType}` | 인터랙션 |
 | `characterInteractionBroadcast` | Server→Client | `{characterId, type, response, affinity}` | 결과 |
 
+### 방 알림 관련 (2026-02-17 추가)
+| 이벤트 | 방향 | 파라미터 | 설명 |
+|--------|------|----------|------|
+| `roomNotification` | Server→Client | `{type, character, roomId, roomName, fromRoomId?, toRoomId?, timestamp}` | 입장/퇴장 알림 |
+
+**roomNotification 이벤트 타입:**
+- `join`: 방 입장 알림
+- `leave`: 방 퇴장 알림
+
+**roomNotification 데이터 구조:**
+```javascript
+// 입장 알림 (join)
+{
+  type: 'join',
+  character: {
+    id: 'player1',
+    name: '플레이어1',
+    emoji: '😀',
+    color: '#4CAF50'
+  },
+  roomId: 'main',
+  roomName: '메인 광장',
+  timestamp: 1700000000000
+}
+
+// 퇴장 알림 (leave)
+{
+  type: 'leave',
+  character: {
+    id: 'player1',
+    name: '플레이어1',
+    emoji: '😀',
+    color: '#4CAF50'
+  },
+  roomId: 'main',
+  roomName: '메인 광장',
+  timestamp: 1700000000000
+}
+
+// 방 이동 시 퇴장 알림 (leave + 방 이동 정보)
+{
+  type: 'leave',
+  character: {
+    id: 'player1',
+    name: '플레이어1',
+    emoji: '😀',
+    color: '#4CAF50'
+  },
+  fromRoomId: 'main',
+  fromRoomName: '메인 광장',
+  toRoomId: 'room2',
+  toRoomName: '방 2',
+  timestamp: 1700000000000
+}
+
+// 방 이동 시 입장 알림 (join + 방 이동 정보)
+{
+  type: 'join',
+  character: {
+    id: 'player1',
+    name: '플레이어1',
+    emoji: '😀',
+    color: '#4CAF50'
+  },
+  fromRoomId: 'main',
+  fromRoomName: '메인 광장',
+  roomId: 'room2',
+  roomName: '방 2',
+  timestamp: 1700000000000
+}
+```
+
+**Frontend 처리 (App.jsx):**
+1. `useSocketEvent('roomNotification')`로 이벤트 수신
+2. 알림 타입에 따른 메시지 생성:
+   - `join`: `{character.emoji} {character.name}님이 {roomName}(으)로 입장했습니다`
+   - `leave`: `{character.emoji} {character.name}님이 {roomName}(으)로 떠났습니다`
+3. **Toast 표시:** `type='info'` (입장) / `type='warning'` (퇴장)
+4. **채팅 히스토리 추가:** `roomChatHistory[roomId]`에 시스템 메시지 추가
+   - `characterName: '시스템'`
+   - `isSystem: true`
+   - 해당 시스템 메시지는 시스템 스타일로 표시 (초록색 배경)
+
 ---
 
-*마지막 업데이트: 2026-02-16*
+*마지막 업데이트: 2026-02-17*
+*GitHub Issue #56 완료: 멀티플레이어 방 입장/퇴장 알림 시스템*

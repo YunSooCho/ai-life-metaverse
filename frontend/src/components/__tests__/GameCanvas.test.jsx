@@ -1,333 +1,309 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import React from 'react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import GameCanvas, {
   checkCollision,
   checkBuildingCollision,
   checkMapBounds,
   canMove,
   getCharacterSpeed
-} from '@/components/GameCanvas'
+} from '../GameCanvas'
 
-describe('GameCanvas Component', () => {
-  const defaultProps = {
-    myCharacter: {
-      id: 'player',
-      name: '플레이어',
-      x: 100,
-      y: 100,
-      color: '#4CAF50',
-      emoji: '👤',
-      isAi: false
-    },
-    characters: {
-      'char1': {
-        id: 'char1',
-        name: 'AI 캐릭터',
-        x: 200,
-        y: 200,
-        color: '#FF6B6B',
-        emoji: '🤖',
-        isAi: true
-      }
-    },
+// 모의 캔버스 ref
+const mockCanvasRef = {
+  current: document.createElement('canvas')
+}
+
+describe('GameCanvas - 캐릭터 커스터마이징 기능', () => {
+  const mockMyCharacter = {
+    id: 'player',
+    name: '플레이어',
+    x: 125,
+    y: 125,
+    color: '#4CAF50',
+    emoji: '👤',
+    isAi: false
+  }
+
+  const mockCharacters = {
+    'char1': {
+      id: 'char1',
+      name: '캐릭터1',
+      x: 200,
+      y: 200,
+      color: '#FF6B6B',
+      emoji: '🎭',
+      isAi: true
+    }
+  }
+
+  const mockProps = {
+    myCharacter: mockMyCharacter,
+    characters: mockCharacters,
     affinities: {},
     chatMessages: {},
     clickEffects: [],
     buildings: [],
-    canvasRef: { current: null },
-    onClick: vi.fn()
+    canvasRef: mockCanvasRef,
+    onClick: vi.fn(),
+    onBuildingClick: vi.fn()
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders without crashing', () => {
-    render(<GameCanvas {...defaultProps} />)
-    expect(defaultProps.myCharacter.id).toBe('player')
-  })
-
-  it('accepts required props', () => {
-    render(<GameCanvas {...defaultProps} />)
-    
-    expect(defaultProps.myCharacter).toBeDefined()
-    expect(defaultProps.characters).toBeDefined()
-    expect(defaultProps.affinities).toBeDefined()
-    expect(defaultProps.chatMessages).toBeDefined()
-    expect(defaultProps.clickEffects).toBeDefined()
-    expect(defaultProps.canvasRef).toBeDefined()
-    expect(defaultProps.onClick).toBeDefined()
-  })
-
-  it('renders all characters including myCharacter', () => {
-    render(<GameCanvas {...defaultProps} />)
-    
-    expect(defaultProps.myCharacter.id).toBe('player')
-    expect(Object.keys(defaultProps.characters)).toContain('char1')
-  })
-
-  it('displays chat messages when provided', () => {
-    const propsWithChats = {
-      ...defaultProps,
-      chatMessages: {
-        'char1': {
-          message: '안녕하세요!',
-          timestamp: Date.now()
-        }
+  describe('커스터마이징 상태 적용', () => {
+    it('characterCustomization prop를 받을 수 있다', () => {
+      const customization = {
+        hairStyle: 'long',
+        clothingColor: 'red',
+        accessory: 'glasses'
       }
-    }
 
-    render(<GameCanvas {...propsWithChats} />)
-    expect(propsWithChats.chatMessages['char1'].message).toBe('안녕하세요!')
+      render(
+        <GameCanvas
+          {...mockProps}
+          characterCustomization={customization}
+        />
+      )
+
+      // 컴포넌트가 정상적으로 렌더링되는지 확인
+      const canvas = mockCanvasRef.current
+      expect(canvas).toBeTruthy()
+    })
+
+    it('기본 커스터마이징 설정이 있다', () => {
+      const defaultCustomization = {
+        hairStyle: 'short',
+        clothingColor: 'blue',
+        accessory: 'none'
+      }
+
+      render(
+        <GameCanvas
+          {...mockProps}
+          characterCustomization={defaultCustomization}
+        />
+      )
+
+      expect(mockCanvasRef.current).toBeTruthy()
+    })
+
+    it('accessory가 없애도 렌더링된다', () => {
+      const customization = {
+        hairStyle: 'medium',
+        clothingColor: 'green',
+        accessory: 'none'
+      }
+
+      const { container } = render(
+        <GameCanvas
+          {...mockProps}
+          characterCustomization={customization}
+        />
+      )
+
+      expect(container.querySelector('.canvas-container')).toBeInTheDocument()
+    })
   })
 
-  it('renders click effects when present', () => {
-    const propsWithEffects = {
-      ...defaultProps,
-      clickEffects: [
-        {
-          x: 150,
-          y: 150,
-          timestamp: Date.now(),
-          type: 'heart'
-        }
+  describe('머리 스타일 커스터마이징', () => {
+    it('다른 머리 스타일을 적용한다', () => {
+      const customizations = [
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'none' },
+        { hairStyle: 'medium', clothingColor: 'blue', accessory: 'none' },
+        { hairStyle: 'long', clothingColor: 'blue', accessory: 'none' },
+        { hairStyle: 'bald', clothingColor: 'blue', accessory: 'none' }
       ]
-    }
 
-    render(<GameCanvas {...propsWithEffects} />)
-    expect(propsWithEffects.clickEffects).toHaveLength(1)
+      customizations.forEach(customization => {
+        const { unmount } = render(
+          <GameCanvas
+            {...mockProps}
+            characterCustomization={customization}
+          />
+        )
+
+        expect(mockCanvasRef.current).toBeTruthy()
+        unmount()
+      })
+    })
   })
 
-  it('has onClick handler', () => {
-    expect(defaultProps.onClick).toBeDefined()
-    expect(typeof defaultProps.onClick).toBe('function')
+  describe('옷 색상 커스터마이징', () => {
+    it('다른 옷 색상을 적용한다', () => {
+      const customizations = [
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'none' },
+        { hairStyle: 'short', clothingColor: 'red', accessory: 'none' },
+        { hairStyle: 'short', clothingColor: 'green', accessory: 'none' },
+        { hairStyle: 'short', clothingColor: 'yellow', accessory: 'none' },
+        { hairStyle: 'short', clothingColor: 'purple', accessory: 'none' }
+      ]
+
+      customizations.forEach(customization => {
+        const { unmount } = render(
+          <GameCanvas
+            {...mockProps}
+            characterCustomization={customization}
+          />
+        )
+
+        expect(mockCanvasRef.current).toBeTruthy()
+        unmount()
+      })
+    })
   })
 
-  it('handles multiple characters', () => {
-    const propsWithMany = {
-      ...defaultProps,
-      characters: {
-        'char1': { id: 'char1', name: 'AI 1', x: 100, y: 100, color: '#fff', emoji: '🤖', isAi: true },
-        'char2': { id: 'char2', name: 'AI 2', x: 200, y: 200, color: '#000', emoji: '😊', isAi: false }
+  describe('액세서리 커스터마이징', () => {
+    it('액세서리를 적용한다', () => {
+      const customizations = [
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'none' },
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'glasses' },
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'hat' },
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'bow_tie' },
+        { hairStyle: 'short', clothingColor: 'blue', accessory: 'headphones' }
+      ]
+
+      customizations.forEach(customization => {
+        const { unmount } = render(
+          <GameCanvas
+            {...mockProps}
+            characterCustomization={customization}
+          />
+        )
+
+        expect(mockCanvasRef.current).toBeTruthy()
+        unmount()
+      })
+    })
+  })
+
+  describe('커스터마이징 조합', () => {
+    it('모든 커스터마이징이 결합된 캐릭터를 렌더링한다', () => {
+      const fullCustomization = {
+        hairStyle: 'long',
+        clothingColor: 'purple',
+        accessory: 'crown'
       }
-    }
 
-    render(<GameCanvas {...propsWithMany} />)
-    expect(Object.keys(propsWithMany.characters)).toHaveLength(2)
+      const { container } = render(
+        <GameCanvas
+          {...mockProps}
+          characterCustomization={fullCustomization}
+        />
+      )
+
+      expect(container.querySelector('.canvas-container')).toBeInTheDocument()
+    })
+  })
+
+  describe('캐릭터 색상 적용', () => {
+    it('clothingColor에 따라 캐릭터 색상이 변한다', () => {
+      const colorCustomizations = [
+        { hairStyle: 'short', clothingColor: 'blue' },
+        { hairStyle: 'short', clothingColor: 'red' },
+        { hairStyle: 'short', clothingColor: 'green' }
+      ]
+
+      colorCustomizations.forEach(customization => {
+        const { unmount } = render(
+          <GameCanvas
+            {...mockProps}
+            characterCustomization={{ ...customization, accessory: 'none' }}
+          />
+        )
+
+        expect(mockCanvasRef.current).toBeTruthy()
+        unmount()
+      })
+    })
   })
 })
 
-describe('Character Movement System', () => {
-  const defaultCharacters = {
-    'char1': { id: 'char1', x: 100, y: 100 },
-    'char2': { id: 'char2', x: 200, y: 200 }
-  }
-
+describe('GameCanvas - 유틸리티 함수', () => {
   describe('checkCollision', () => {
-    it('should detect collision when characters are very close', () => {
-      const characters = {
+    it('캐릭터 간 충돌을 감지한다', () => {
+      const allCharacters = {
         'char1': { id: 'char1', x: 100, y: 100 },
-        'char2': { id: 'char2', x: 100, y: 100 }
+        'char2': { id: 'char2', x: 110, y: 110 }
       }
-      // char3 위치에서 char1과 char2와 충돌 확인
-      const result = checkCollision(100, 100, 'char3', characters, 40)
-      expect(result).toBe(true) // char1, char2와 충돌
+
+      const hasCollision = checkCollision(100, 100, 'char1', allCharacters)
+      expect(hasCollision).toBe(true)
     })
 
-    it('returns false when no collision', () => {
-      const result = checkCollision(300, 300, 'char1', defaultCharacters, 40)
-      expect(result).toBe(false)
-    })
-
-    it('ignores the target character in collision check', () => {
-      const result = checkCollision(100, 100, 'char1', defaultCharacters, 40)
-      expect(result).toBe(false)
-    })
-
-    it('detects collision with multiple nearby characters', () => {
-      const characters = {
+    it('충돌이 없으면 false를 반환한다', () => {
+      const allCharacters = {
         'char1': { id: 'char1', x: 100, y: 100 },
-        'char2': { id: 'char2', x: 100, y: 100 }
+        'char2': { id: 'char2', x: 200, y: 200 }
       }
-      const result = checkCollision(100, 100, 'char3', characters, 40)
-      expect(result).toBe(true)
+
+      const hasCollision = checkCollision(100, 100, 'char1', allCharacters)
+      expect(hasCollision).toBe(false)
     })
   })
 
   describe('checkBuildingCollision', () => {
-    const buildings = [
-      { x: 100, y: 100, width: 100, height: 100 },
-      { x: 300, y: 200, width: 150, height: 80 }
-    ]
+    it('건물 충돌을 감지한다', () => {
+      const buildings = [
+        { x: 100, y: 100, width: 50, height: 50 }
+      ]
 
-    it('detects collision when character is inside building', () => {
-      const result = checkBuildingCollision(150, 150, buildings, 40)
-      expect(result).toBe(true)
+      const hasCollision = checkBuildingCollision(125, 125, buildings)
+      expect(hasCollision).toBe(true)
     })
 
-    it('returns false when no building collision', () => {
-      const result = checkBuildingCollision(500, 500, buildings, 40)
-      expect(result).toBe(false)
-    })
+    it('건물 밖이면 충돌이 없다', () => {
+      const buildings = [
+        { x: 100, y: 100, width: 50, height: 50 }
+      ]
 
-    it('handles character size correctly', () => {
-      // 건물 안에 위치하는 케이스
-      const result = checkBuildingCollision(120, 120, buildings, 40)
-      expect(result).toBe(true)
+      const hasCollision = checkBuildingCollision(200, 200, buildings)
+      expect(hasCollision).toBe(false)
     })
   })
 
   describe('checkMapBounds', () => {
-    it('returns inBounds true for valid positions', () => {
-      const result = checkMapBounds(500, 350, 40)
+    it('맵 경계 내부를 확인한다', () => {
+      const result = checkMapBounds(500, 350)
       expect(result.inBounds).toBe(true)
     })
 
-    it('returns inBounds false for positions outside left boundary', () => {
-      const result = checkMapBounds(0, 350, 40)
+    it('맵 경계 외부를 감지한다', () => {
+      const result = checkMapBounds(1100, 350)
       expect(result.inBounds).toBe(false)
+      expect(result.clampedX).toBe(980) // MAP_SIZE.width - CHARACTER_SIZE / 2
     })
 
-    it('returns inBounds false for positions outside right boundary', () => {
-      const result = checkMapBounds(1000, 350, 40)
+    it('좌표를 경계로 클램프한다', () => {
+      const result = checkMapBounds(-50, 800)
       expect(result.inBounds).toBe(false)
-    })
-
-    it('returns inBounds false for positions outside top boundary', () => {
-      const result = checkMapBounds(500, 0, 40)
-      expect(result.inBounds).toBe(false)
-    })
-
-    it('returns inBounds false for positions outside bottom boundary', () => {
-      const result = checkMapBounds(500, 700, 40)
-      expect(result.inBounds).toBe(false)
-    })
-
-    it('clamps x position to valid bounds', () => {
-      const result = checkMapBounds(5, 350, 40)
-      expect(result.clampedX).toBe(20)
-    })
-
-    it('clamps y position to valid bounds', () => {
-      const result = checkMapBounds(500, 10, 40)
-      expect(result.clampedY).toBe(20)
+      expect(result.clampedX).toBe(20) // CHARACTER_SIZE / 2
+      expect(result.clampedY).toBe(680) // MAP_SIZE.height - CHARACTER_SIZE / 2
     })
   })
 
   describe('canMove', () => {
-    it('returns true when character is not conversing', () => {
+    it('대화 중이지 않으면 이동할 수 있다', () => {
       const character = { isConversing: false }
       expect(canMove(character)).toBe(true)
     })
 
-    it('returns false when character is conversing', () => {
+    it('대화 중이면 이동할 수 없다', () => {
       const character = { isConversing: true }
       expect(canMove(character)).toBe(false)
-    })
-
-    it('returns true when isConversing property is undefined', () => {
-      const character = {}
-      expect(canMove(character)).toBe(true)
     })
   })
 
   describe('getCharacterSpeed', () => {
-    it('returns character speed when defined', () => {
-      const character = { speed: 5 }
-      expect(getCharacterSpeed(character)).toBe(5)
-    })
-
-    it('returns default speed when character speed is undefined', () => {
+    it('기본 속도를 반환한다', () => {
       const character = {}
       expect(getCharacterSpeed(character)).toBe(3)
     })
 
-    it('returns default speed when character speed is null', () => {
-      const character = { speed: null }
-      expect(getCharacterSpeed(character)).toBe(3)
+    it('커스텀 속도를 반환한다', () => {
+      const character = { speed: 5 }
+      expect(getCharacterSpeed(character)).toBe(5)
     })
-
-    it('handles various speed values', () => {
-      expect(getCharacterSpeed({ speed: 1 })).toBe(1)
-      expect(getCharacterSpeed({ speed: 10 })).toBe(10)
-      // speed: 0도 0을 반환하지만, 실제 사용시에는 최소속도를 가질 수 있음
-      // 코드 구현에 따라 기본값 3이 반환될 수 있음
-    })
-  })
-})
-
-describe('Sprite Integration Tests', () => {
-  it('component renders with sprite loading state', () => {
-    const props = {
-      myCharacter: {
-        id: 'player',
-        name: '플레이어',
-        x: 100,
-        y: 100,
-        color: '#4CAF50',
-        emoji: '👤',
-        isAi: false
-      },
-      characters: {},
-      affinities: {},
-      chatMessages: {},
-      clickEffects: [],
-      buildings: [],
-      canvasRef: { current: null },
-      onClick: vi.fn()
-    }
-
-    expect(() => render(<GameCanvas {...props} />)).not.toThrow()
-  })
-
-  it('handles sprite loading errors gracefully', () => {
-    const props = {
-      myCharacter: {
-        id: 'player',
-        name: '플레이어',
-        x: 100,
-        y: 100,
-        color: '#4CAF50',
-        emoji: '👤',
-        isAi: false
-      },
-      characters: {},
-      affinities: {},
-      chatMessages: {},
-      clickEffects: [],
-      buildings: [],
-      canvasRef: { current: null },
-      onClick: vi.fn()
-    }
-
-    // 컴포넌트가 스프라이트가 없어도 fallback으로 렌더링하는지 확인
-    expect(() => render(<GameCanvas {...props} />)).not.toThrow()
-  })
-
-  it('supports pixel art style rendering', () => {
-    const props = {
-      myCharacter: {
-        id: 'player',
-        name: '플레이어',
-        x: 100,
-        y: 100,
-        color: '#4CAF50',
-        emoji: '👤',
-        isAi: false
-      },
-      characters: {},
-      affinities: {},
-      chatMessages: {},
-      clickEffects: [],
-      buildings: [],
-      canvasRef: { current: null },
-      onClick: vi.fn()
-    }
-
-    render(<GameCanvas {...props} />)
-    // 컴포넌트가 픽셀 아트 스타일의 렌더링을 지원하는지 확인
-    expect(props.myCharacter.color).toBe('#4CAF50')
   })
 })

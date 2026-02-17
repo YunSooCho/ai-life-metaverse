@@ -112,8 +112,8 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('📋 퀘스트')).toBeInTheDocument()
-      expect(screen.getByText('진행 중')).toBeInTheDocument()
+      expect(screen.getByText('📋 QUEST LOG')).toBeInTheDocument()
+      expect(screen.getByText('ACTIVE')).toBeInTheDocument()
     })
 
     it('should render quest title and description', () => {
@@ -144,7 +144,7 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getAllByText('메인 퀘스트')[0]).toBeInTheDocument()
+      expect(screen.getAllByText('MAIN QUEST')[0]).toBeInTheDocument()
     })
 
     it('should display quest objectives', () => {
@@ -174,9 +174,9 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getAllByText('보상')[0]).toBeInTheDocument()
-      expect(screen.getByText('🏆 100 포인트')).toBeInTheDocument()
-      expect(screen.getByText('⭐ 50 경험치')).toBeInTheDocument()
+      expect(screen.getAllByText('REWARD')[0]).toBeInTheDocument()
+      expect(screen.getByText('🏆 100 PTS')).toBeInTheDocument()
+      expect(screen.getByText('⭐ 50 EXP')).toBeInTheDocument()
     })
 
     it('should show empty state when no active quests', () => {
@@ -191,7 +191,7 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('진행 중인 퀘스트가 없습니다')).toBeInTheDocument()
+      expect(screen.getByText('NO ACTIVE QUESTS')).toBeInTheDocument()
     })
 
     it('should show completed quests separately', () => {
@@ -206,8 +206,8 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('완료')).toBeInTheDocument()
-      expect(screen.getByText('✓ 완료')).toBeInTheDocument()
+      expect(screen.getByText('COMPLETED')).toBeInTheDocument()
+      expect(screen.getByText('✓ DONE')).toBeInTheDocument()
     })
 
     it('should show available quests', () => {
@@ -222,7 +222,7 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('수락 가능')).toBeInTheDocument()
+      expect(screen.getByText('AVAILABLE')).toBeInTheDocument()
       expect(screen.getByText('카페에서의 휴식')).toBeInTheDocument()
     })
   })
@@ -295,7 +295,7 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('보상 받기')).toBeInTheDocument()
+      expect(screen.getByText('CLAIM REWARD')).toBeInTheDocument()
     })
   })
 
@@ -330,7 +330,7 @@ describe('Quest Component', () => {
         />
       )
 
-      const acceptButton = screen.getByText('수락하기')
+      const acceptButton = screen.getByText('ACCEPT')
       fireEvent.click(acceptButton)
 
       expect(mockOnAcceptQuest).toHaveBeenCalledWith('visit_cafe')
@@ -360,7 +360,7 @@ describe('Quest Component', () => {
         />
       )
 
-      const claimButton = screen.getByText('보상 받기')
+      const claimButton = screen.getByText('CLAIM REWARD')
       fireEvent.click(claimButton)
 
       expect(mockOnClaimReward).toHaveBeenCalledWith('welcome')
@@ -461,7 +461,7 @@ describe('Quest Component', () => {
         />
       )
 
-      expect(screen.getByText('15/30초')).toBeInTheDocument()
+      expect(screen.getByText('15/30s')).toBeInTheDocument()
     })
   })
 

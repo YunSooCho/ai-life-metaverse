@@ -505,4 +505,85 @@ affinity:{char_a}:{char_b} = 72
 
 ---
 
-*마지막 업데이트: 2026-02-17 (타일맵 데이터 구조 추가)*
+## 13. 세이브/로드 시스템 (Save/Load System)
+
+### 세이브 데이터 구조
+
+```json
+{
+  "version": "1.0",
+  "timestamp": 1739770000000,
+  "player": {
+    "id": "char_abc123",
+    "name": "플레이어",
+    "x": 150,
+    "y": 200,
+    "color": "#FF0000",
+    "emoji": "😊"
+  },
+  "inventory": [
+    {
+      "id": "item_health",
+      "name": "건강 포션",
+      "quantity": 3
+    }
+  ],
+  "quests": [
+    {
+      "id": "quest_1",
+      "title": "첫 퀘스트",
+      "progress": 50
+    }
+  ],
+  "friendshipLevels": {
+    "char_1": 80,
+    "char_2": 50
+  },
+  "completedQuests": ["quest_0"],
+  "currentRoom": "main"
+}
+```
+
+### 세이브 슬롯 구조
+
+- **최대 슬롯 수:** 3개
+- **Storage Key:** `ai_life_save_{slot}`
+- **Storage:** localStorage
+
+### 세이브 슬롯 정보
+
+```json
+{
+  "slot": 1,
+  "exists": true,
+  "timestamp": 1739770000000,
+  "playerName": "플레이어"
+}
+```
+
+### API 함수
+
+| 함수 | 설명 | 파라미터 | 반환값 |
+|------|------|----------|--------|
+| `createSaveData(playerData)` | 세이브 데이터 생성 | `playerData` (object) | `saveData` (object) |
+| `saveGame(slot, playerData)` | 세이브 저장 | `slot` (1~3), `playerData` | `boolean` (성공 여부) |
+| `loadGame(slot)` | 세이브 로드 | `slot` (1~3) | `saveData` \| `null` |
+| `validateSaveData(saveData)` | 데이터 유효성 검사 | `saveData` | `boolean` |
+| `getSaveSlots()` | 슬롯 목록 조회 | - | `slots` (array) |
+| `deleteSave(slot)` | 슬롯 삭제 | `slot` (1~3) | `boolean` |
+| `deleteAllSaves()` | 전체 삭제 | - | `void` |
+| `formatSaveTimestamp(timestamp)` | 타임스탬프 포맷 | `timestamp` | `string` |
+
+### 유효성 검사 규칙
+
+필수 필드:
+- `version`: 버전 문자열
+- `timestamp`: 타임스탬프 숫자
+- `player.id`: 캐릭터 ID
+- `inventory`: 배열
+- `quests`: 배열
+- `friendshipLevels`: 객체
+
+---
+
+*마지막 업데이트: 2026-02-17 (세이브/로드 시스템 추가)*

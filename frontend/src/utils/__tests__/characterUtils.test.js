@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateDistance, getAffinityColor } from '@/utils/characterUtils'
+import { calculateDistance, getAffinityColor } from '../characterUtils'
 
 describe('calculateDistance', () => {
   it('calculates distance between two points correctly', () => {

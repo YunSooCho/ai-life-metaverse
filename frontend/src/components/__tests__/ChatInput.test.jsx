@@ -21,7 +21,7 @@ describe('ChatInput Component', () => {
   test('renders send button', () => {
     render(<ChatInput {...defaultProps} />)
 
-    const sendButton = screen.getByText('전송')
+    const sendButton = screen.getByText('SEND')
     expect(sendButton).toBeInTheDocument()
     expect(sendButton.disabled).toBe(false)
   })
@@ -45,7 +45,7 @@ describe('ChatInput Component', () => {
   test('calls onSubmit when send button is clicked', () => {
     render(<ChatInput {...defaultProps} value="테스트 메시지" />)
 
-    const sendButton = screen.getByText('전송')
+    const sendButton = screen.getByText('SEND')
     fireEvent.click(sendButton)
 
     expect(defaultProps.onSubmit).toHaveBeenCalled()
@@ -93,14 +93,14 @@ describe('ChatInput Component', () => {
   test('disables send button when disabled prop is true', () => {
     render(<ChatInput {...defaultProps} disabled={true} />)
 
-    const sendButton = screen.getByText('전송')
+    const sendButton = screen.getByText('SEND')
     expect(sendButton.disabled).toBe(true)
   })
 
   test('handles empty input submission', () => {
     render(<ChatInput {...defaultProps} value="" />)
 
-    const sendButton = screen.getByText('전송')
+    const sendButton = screen.getByText('SEND')
     fireEvent.click(sendButton)
 
     expect(defaultProps.onSubmit).toHaveBeenCalled()

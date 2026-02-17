@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useCharacter } from '@/hooks/useCharacter'
-import { socket } from '@/socket'
+import { useCharacter } from '../useCharacter'
+import { socket } from '../../socket'
 
-vi.mock('@/socket', () => ({
+vi.mock('../../socket', () => ({
   socket: {
     emit: vi.fn()
   }

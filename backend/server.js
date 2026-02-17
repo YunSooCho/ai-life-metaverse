@@ -193,6 +193,10 @@ io.on('connection', (socket) => {
 
     console.log('📝 캐릭터 등록:', character.name, '→', roomId)
 
+    // 소켓에 캐릭터 정보 저장 (disconnect에서 사용)
+    socket.characterId = character.id
+    socket.character = character
+
     // 방에 캐릭터 등록
     room.characters[character.id] = character
     characterRooms[character.id] = roomId
@@ -207,6 +211,20 @@ io.on('connection', (socket) => {
 
     // 해당 클라이언트에만 호감도 전송
     socket.emit('affinities', room.affinities)
+
+    // 입장 알림 방송 (방 내 다른 유저들에게)
+    io.to(roomId).emit('roomNotification', {
+      type: 'join',
+      character: {
+        id: character.id,
+        name: character.name,
+        emoji: character.emoji,
+        color: character.color
+      },
+      roomId,
+      roomName: room.name,
+      timestamp: Date.now()
+    })
 
     console.log(`📍 방 ${roomId} 캐릭터 수:`, Object.keys(room.characters).length)
   })
@@ -409,6 +427,22 @@ io.on('connection', (socket) => {
       _removed: true
     })
 
+    // 기존 방에서 퇴장 알림
+    io.to(currentRoomId).emit('roomNotification', {
+      type: 'leave',
+      character: {
+        id: character.id,
+        name: character.name,
+        emoji: character.emoji,
+        color: character.color
+      },
+      fromRoomId: currentRoomId,
+      fromRoomName: currentRoom.name,
+      toRoomId: newRoomId,
+      toRoomName: newRoom.name,
+      timestamp: Date.now()
+    })
+
     // 새 방에 캐릭터 추가
     newRoom.characters[characterId] = character
     characterRooms[characterId] = newRoomId
@@ -418,6 +452,22 @@ io.on('connection', (socket) => {
     socket.emit('characters', newRoom.characters)
     socket.emit('chatHistory', newRoom.chatHistory)
     socket.emit('affinities', newRoom.affinities)
+
+    // 새 방에서 입장 알림
+    io.to(newRoomId).emit('roomNotification', {
+      type: 'join',
+      character: {
+        id: character.id,
+        name: character.name,
+        emoji: character.emoji,
+        color: character.color
+      },
+      fromRoomId: currentRoomId,
+      fromRoomName: currentRoom.name,
+      roomId: newRoomId,
+      roomName: newRoom.name,
+      timestamp: Date.now()
+    })
 
     // 방 목록 업데이트
     io.emit('rooms', Object.values(rooms))
@@ -718,17 +768,32 @@ io.on('connection', (socket) => {
     // 플레이어 캐릭터 삭제 (AI 캐릭터는 유지)
     Object.keys(rooms).forEach(roomId => {
       const room = rooms[roomId]
+      const character = room.characters[socket.id]
 
-      if (room.characters[socket.id] && !room.characters[socket.id].isAi) {
+      if (character && !character.isAi) {
         delete room.characters[socket.id]
         delete characterRooms[socket.id]
+
+        // 퇴장 알림 방송
+        io.to(roomId).emit('roomNotification', {
+          type: 'leave',
+          character: {
+            id: character.id,
+            name: character.name,
+            emoji: character.emoji,
+            color: character.color
+          },
+          roomId,
+          roomName: room.name,
+          timestamp: Date.now()
+        })
 
         io.to(roomId).emit('characterUpdate', {
           id: socket.id,
           _removed: true
         })
 
-        console.log(`📍 방 ${roomId}에서 플레이어 제거`)
+        console.log(`📍 방 ${roomId}에서 플레이어 제거:`, character.name)
       }
     })
   })

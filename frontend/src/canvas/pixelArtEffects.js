@@ -51,14 +51,18 @@ export const EASING = {
     const step = Math.floor(t * steps) / steps
     const n1 = 7.5625
     const d1 = 2.75
-    if (step < 1 / d1) {
-      return n1 * step * step
-    } else if (step < 2 / d1) {
-      return n1 * (step -= 1.5 / d1) * step + 0.75
-    } else if (step < 2.5 / d1) {
-      return n1 * (step -= 2.25 / d1) * step + 0.9375
+    const adjustedStep = step // step을 읽기 전용으로 사용
+    if (adjustedStep < 1 / d1) {
+      return n1 * adjustedStep * adjustedStep
+    } else if (adjustedStep < 2 / d1) {
+      const s2 = adjustedStep - 1.5 / d1
+      return n1 * s2 * s2 + 0.75
+    } else if (adjustedStep < 2.5 / d1) {
+      const s3 = adjustedStep - 2.25 / d1
+      return n1 * s3 * s3 + 0.9375
     } else {
-      return n1 * (step -= 2.625 / d1) * step + 0.984375
+      const s4 = adjustedStep - 2.625 / d1
+      return n1 * s4 * s4 + 0.984375
     }
   }
 }
@@ -227,7 +231,11 @@ export class AnimationManager {
   remove(key) {
     const animation = this.animations.get(key)
     if (animation) {
+      // activeAnimations에서 제거 (먼저!)
+      this.activeAnimations = this.activeAnimations.filter(a => a !== animation)
+      // 애니메이션 중지
       animation.stop()
+      // 애니메이션 목록에서 제거
       this.animations.delete(key)
     }
     return this

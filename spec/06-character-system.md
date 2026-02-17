@@ -735,7 +735,7 @@ JSON 형식으로 응답해주세요:
 
 ---
 
-*마지막 업데이트: 2026-02-16 (감정 표현 시스템 추가)*
+*마지막 업데이트: 2026-02-17 (커스터마이징 시스템 추가)*
 ## 감정 표현 & FX 시스템 (Phase 4, 2026-02-17)
 
 ### 감정 이모지 (emojiSprite.js)
@@ -747,3 +747,187 @@ JSON 형식으로 응답해주세요:
 - 6종: dust, heart, anger, ripple, sparkle, loading
 - 파티클 기반 렌더링, 자동 수명 관리
 - 호감도 변화 연동 (positive→heart, negative→anger)
+
+---
+
+## 🎨 캐릭터 커스터마이징 시스템 (Character Customization System) - 2026-02-17
+
+### 캐스터마이징 데이터 구조
+
+```javascript
+{
+  hairStyle: 'short',      // 머리 스타일: short/medium/long/bald
+  clothingColor: 'blue',   // 옷 색상: 10개 색상 팔레트
+  accessory: 'none'        // 액세서리: none/glasses/hat/bow_tie/headphones/crown
+}
+```
+
+### 커스터마이징 옵션
+
+#### 머리 스타일 (HAIR_STYLES)
+- `short`: 짧은 머리 (👨)
+- `medium`: 중간 길이 (👩)
+- `long`: 긴 머리 (👱‍♀️)
+- `bald`: 대머리 (🧑‍🦲)
+
+#### 옷 색상 (CLOTHING_COLORS) - 10가지 색상 팔레트
+| ID | 이름 | 색상 | Hex |
+|----|------|------|-----|
+| blue | 파랑 | 파랑 | #2196F3 |
+| red | 빨강 | 빨강 | #F44336 |
+| green | 초록 | 초록 | #4CAF50 |
+| yellow | 노랑 | 노랑 | #FFEB3B |
+| purple | 보라 | 보라 | #9C27B0 |
+| pink | 분홍 | 분홍 | #E91E63 |
+| orange | 주황 | 주황 | #FF9800 |
+| cyan | 청록 | 청록 | #00BCD4 |
+| brown | 갈색 | 갈색 | #795548 |
+| gray | 회색 | 회색 | #9E9E9E |
+
+#### 액세서리 (ACCESSORIES) - 6가지
+| ID | 이름 | 설명 | 이모지 |
+|----|------|------|--------|
+| none | 없음 | 액세서리 착용하지 않음 | |
+| glasses | 안경 | 지적인 느낌의 안경 | 👓 |
+| hat | 모자 | 캡 스타일 모자 | 🧢 |
+| bow_tie | 넥타이 | 우아한 넥타이 | 🎀 |
+| headphones | 헤드폰 | 음악 애호가의 헤드폰 | 🎧 |
+| crown | 왕관 | 평범하지 않은 스타일 | 👑 |
+
+### 커스터마이징 유틸리티 (characterCustomization.js)
+
+#### API 메서드
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `getCustomization()` | localStorage에서 설정 가져오기 | 커스터마이징 객체 |
+| `saveCustomization(customization)` | localStorage에 설정 저장 | void |
+| `resetCustomization()` | 설정 리셋 | void |
+| `updateCustomization(customization, category, optionId)` | 옵션 업데이트 | 업데이트된 커스터마이징 |
+| `getOptionName(category, optionId)` | 옵션 이름 가져오기 | string |
+| `getOptionDescription(category, optionId)` | 옵션 설명 가져오기 | string |
+| `getOptionEmoji(category, optionId)` | 옵션 이모지 가져오기 | string |
+| `getColorHex(optionId)` | 옷 색상 hex 가져오기 | string |
+| `getAllOptions()` | 모든 옵션 목록 가져오기 | object |
+| `getCategories()` | 카테고리 목록 가져오기 | array |
+| `getEmojiCombination(customization)` | 이모지 조합 생성 | string |
+
+#### 사용 예시
+```javascript
+import { getCustomization, updateCustomization } from './utils/characterCustomization'
+
+// 설정 가져오기
+const customization = getCustomization()  // { hairStyle: 'short', clothingColor: 'blue', accessory: 'none' }
+
+// 머리 스타일 변경
+const updated = updateCustomization(customization, 'hairStyles', 'long')  // { hairStyle: 'long', ... }
+
+// 옷 색상 변경
+const updated = updateCustomization(customization, 'clothingColors', 'red')  // { clothingColor: 'red', ... }
+
+// 액세서리 변경
+const updated = updateCustomization(customization, 'accessories', 'glasses')  // { accessory: 'glasses', ... }
+
+// 이모지 조합 가져오기
+const emoji = getEmojiCombination(customization)  // "👱‍♀️👓"
+```
+
+### CharacterCustomizationModal 컴포넌트 ✅ 완료 (2026-02-17)
+
+**위치:** `frontend/src/components/CharacterCustomizationModal.jsx`
+
+**Props:**
+```javascript
+{
+  show: boolean,              // 표시 여부
+  onClose: () => void,        // 닫기 핸들러
+  onSave: (customization) => void  // 저장 핸들러
+}
+```
+
+**기능:**
+- localStorage에서 저장된 커스터마이징 설정 로드
+- 캐릭터 프리뷰 (머리 + 옷 + 액세서리 조합으로 실시간 표시)
+- 카테고리 탭: [머리 스타일] [옷 색상] [액세서리]
+- 옵션 선택 UI (이모지 + 이름 버튼, 색상 프리뷰)
+- "저장" / "취소" 픽셀 버튼
+- 저장 시 localStorage에 저장 + App.jsx로 콜백
+
+**스타일:**
+- pixel-theme.css 기반 픽셀 아트
+- 최대 크기: 600px × 80vh
+- 프리뷰 영역: 24px 패딩, 어두운 배경
+- 옵션 그리드: 100px min-width, 8px gap
+- 마우스 오버 효과: translate(-2px, -2px) + shadow
+
+**구현 상태:**
+- ✅ Modal UI 완성 (프리뷰, 탭, 버튼)
+- ✅ localStorage 연동
+- ✅ App.jsx 통합 (커스터마이징 버튼 + 저장 핸들러)
+
+### GameCanvas에 커스터마이징 적용 ✅ 완료 (2026-02-17)
+
+**수정 사항:**
+- `characterCustomization` prop를 받아서 myCharacter에만 적용
+- `clothingColor`에 따른 캐릭터 색상 동적 적용 (`getColorHex` 사용)
+- `accessory` 이모지를 캐릭터 위에 오버레이로 표시
+- `hairStyle`에 따른 머리 이모지 변경 (`getOptionEmoji` 사용)
+
+```javascript
+// GameCanvas.jsx - 커스터마이징 적용 로직
+const isMyCharacter = char.id === myCharacter.id
+const customization = isMyCharacter ? characterCustomization : null
+
+// 커스터마이징 정보 적용
+const accessoryEmoji = customization && customization.accessory !== 'none'
+  ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.ACCESSORIES, customization.accessory)
+  : null
+const characterCustomColor = customization
+  ? getColorHex(customization.clothingColor || 'blue')
+  : null
+const finalCharColor = characterCustomColor || color
+const finalEmoji = customization
+  ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.HAIR_STYLES, customization.hairStyle) || emoji
+  : emoji
+
+// 액세서리 렌더링
+if (accessoryEmoji) {
+  ctx.fillText(accessoryEmoji, x + CHARACTER_SIZE_SCALED / 3, y - CHARACTER_SIZE_SCALED / 3)
+}
+```
+
+**상태 관리:**
+- App.jsx에서 `characterCustomization` 상태 관리
+- 저장 시 `myCharacter`의 `color`와 `emoji` 업데이트
+- 소켓으로 캐릭터 업데이트 전송
+
+### localStorage 관리
+
+**Storage Key:** `character-customization`
+
+**데이터 구조:**
+```json
+{
+  "hairStyle": "short",
+  "clothingColor": "blue",
+  "accessory": "none"
+}
+```
+
+### 파일 위치
+- `frontend/src/data/customizationOptions.js` - 옵션 데이터 ✅ (2730 bytes)
+- `frontend/src/utils/characterCustomization.js` - 유틸리티 ✅ (4339 bytes)
+- `frontend/src/utils/__tests__/characterCustomization.test.js` - 유틸리티 테스트 ✅ (7296 bytes, 29개 테스트 통과)
+- `frontend/src/components/CharacterCustomizationModal.jsx` - 모달 컴포넌트 ✅ (7000+ bytes)
+- `frontend/src/components/__tests__/CharacterCustomizationModal.test.jsx` - 모달 테스트 ✅ (기본 1개 테스트)
+- `frontend/src/components/__tests__/GameCanvas.test.jsx` - GameCanvas 테스트 ✅ (8000+ bytes, 19개 테스트 통과)
+- `frontend/src/App.jsx` - 통합 ✅ (characterCustomization 상태 + 핸들러)
+
+### GitHub Issue
+- **#52:** [feat] 캐릭터 커스터마이징 시스템 - ✅ 완료 (데이터 구조 + 유틸리티)
+- **#54:** [feat] 캐릭터 커스터마이징 UI Modal 완성 - ✅ 완료 (2026-02-17)
+- **#55:** [feat] GameCanvas에 커스터마이징 적용 - ✅ 완료 (2026-02-17)
+
+### 테스트 결과
+- characterCustomization 테스트: 29개 ✅
+- GameCanvas 커스터마이징 기능 테스트: 19개 ✅
+- 총: 48개 테스트 전부 통과

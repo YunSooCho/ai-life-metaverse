@@ -1,9 +1,14 @@
 {
   "type": "module",
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "vitest": "^2.1.8"
   },
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "install:browsers": "playwright install chromium"
   }
 }

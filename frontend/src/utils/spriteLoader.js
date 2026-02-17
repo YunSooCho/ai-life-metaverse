@@ -12,6 +12,11 @@ class SpriteLoader {
    * @returns {Promise<HTMLImageElement>}
    */
   async loadSpriteSheet(path, name) {
+    // 빈 경로 체크
+    if (!path || path.length === 0) {
+      throw new Error(`Failed to load sprite: ${path}`)
+    }
+
     // 이미 캐싱되어 있으면 바로 반환
     if (this.cache.has(name)) {
       return this.cache.get(name);

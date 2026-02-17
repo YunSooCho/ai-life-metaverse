@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import CharacterList from '@/components/CharacterList'
+import CharacterList from '../CharacterList'
 
 describe('CharacterList Component', () => {
   const defaultProps = {

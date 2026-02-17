@@ -1,101 +1,99 @@
-import { describe, test, expect, vi } from 'vitest'
+import React from 'react'
 import { render } from '@testing-library/react'
+import '@testing-library/jest-dom'
+import { describe, it, expect } from 'vitest'
 import ChatBubble from '../components/ChatBubble'
 
+// SVG 컴포넌트이므로 svg wrapper 필요
+const renderInSvg = (ui) => {
+  return render(<svg>{ui}</svg>)
+}
+
 describe('ChatBubble Component', () => {
-  const mockChatData = { message: '테스트' }
+  const defaultProps = {
+    chatData: { message: 'Hello!', timestamp: Date.now() },
+    x: 100,
+    y: 200,
+    scale: 1
+  }
 
-  beforeEach(() => {
-    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-      font: '12px Arial',
-      measureText: vi.fn(() => ({ width: 40 }))
-    }))
+  it('renders nothing when chatData is null', () => {
+    const { container } = renderInSvg(<ChatBubble chatData={null} x={100} y={200} scale={1} />)
+    const rects = container.querySelectorAll('rect')
+    expect(rects.length).toBe(0)
   })
 
-  test('does not render when chatData is null', () => {
-    const { container } = render(
-      <ChatBubble chatData={null} x={100} y={100} scale={1} />
-    )
-    expect(container.firstChild).toBeNull()
+  it('renders nothing when message is empty', () => {
+    const { container } = renderInSvg(<ChatBubble chatData={{ message: '' }} x={100} y={200} scale={1} />)
+    const rects = container.querySelectorAll('rect')
+    expect(rects.length).toBe(0)
   })
 
-  test('does not render when chatData.message is empty', () => {
-    const { container } = render(
-      <ChatBubble chatData={{ message: '' }} x={100} y={100} scale={1} />
-    )
-    expect(container.firstChild).toBeNull()
+  it('renders bubble rect when message exists', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
+    const rects = container.querySelectorAll('rect')
+    // 메인 버블 rect + 하이라이트 rect = 2개
+    expect(rects.length).toBe(2)
   })
 
-  test('renders bubble path elements when message exists', () => {
-    const { container } = render(
-      <ChatBubble chatData={mockChatData} x={100} y={100} scale={1} />
-    )
-
+  it('renders bubble tail path', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
     const paths = container.querySelectorAll('path')
-    expect(paths.length).toBe(2)
+    expect(paths.length).toBe(1)
   })
 
-  test('renders bubble body with correct style', () => {
-    const { container } = render(
-      <ChatBubble chatData={mockChatData} x={100} y={100} scale={1} />
-    )
-
-    const paths = container.querySelectorAll('path')
-    const bubblePath = paths[0]
-    expect(bubblePath.getAttribute('fill')).toBe('#ffffff')
-    expect(bubblePath.getAttribute('stroke')).toBe('#cccccc')
-  })
-
-  test('renders tail path pointing to character', () => {
-    const { container } = render(
-      <ChatBubble chatData={mockChatData} x={100} y={100} scale={1} />
-    )
-
-    const paths = container.querySelectorAll('path')
-    const tailPath = paths[1]
-    expect(tailPath.getAttribute('fill')).toBe('#ffffff')
-    expect(tailPath.getAttribute('stroke')).toBe('#cccccc')
-  })
-
-  test('renders timestamp when provided', () => {
-    const testTimestamp = new Date('2024-02-15T14:30:00').getTime()
-    const chatDataWithTimestamp = { message: '테스트', timestamp: testTimestamp }
-    const { container } = render(
-      <ChatBubble chatData={chatDataWithTimestamp} x={100} y={100} scale={1} />
-    )
-
+  it('renders message text', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
     const texts = container.querySelectorAll('text')
-    const timestampText = Array.from(texts).find(text => {
-      const textContent = text.textContent
-      return textContent.includes('14') || textContent.includes('30')
-    })
-    expect(timestampText).toBeTruthy()
+    // 메시지 텍스트 + 타임스탬프 텍스트
+    expect(texts.length).toBeGreaterThanOrEqual(1)
   })
 
-  test('does not render timestamp when not provided', () => {
-    const { container } = render(
-      <ChatBubble chatData={mockChatData} x={100} y={100} scale={1} />
-    )
-
-    const texts = container.querySelectorAll('text')
-    const timestampText = Array.from(texts).find(text => 
-      text.getAttribute('fill') === '#888888'
-    )
-    expect(timestampText).toBeUndefined()
+  it('renders bubble body with white fill', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
+    const mainRect = container.querySelectorAll('rect')[0]
+    expect(mainRect.getAttribute('fill')).toBe('#ffffff')
   })
 
-  test('formats timestamp correctly', () => {
-    const testTimestamp = new Date('2024-02-15T23:45:00').getTime()
-    const chatDataWithTimestamp = { message: '테스트', timestamp: testTimestamp }
-    const { container } = render(
-      <ChatBubble chatData={chatDataWithTimestamp} x={100} y={100} scale={1} />
-    )
+  it('renders bubble body with black stroke', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
+    const mainRect = container.querySelectorAll('rect')[0]
+    expect(mainRect.getAttribute('stroke')).toBe('#000000')
+  })
 
+  it('renders tail pointing to character position', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
+    const path = container.querySelector('path')
+    expect(path).toBeTruthy()
+    expect(path.getAttribute('fill')).toBe('#ffffff')
+  })
+
+  it('renders timestamp when provided', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
     const texts = container.querySelectorAll('text')
-    const timestampText = Array.from(texts).find(text => 
-      text.getAttribute('fill') === '#888888'
-    )
-    expect(timestampText).toBeInTheDocument()
-    expect(timestampText.textContent).toMatch(/(23|45)/)
+    // 메시지 라인 + 타임스탬프
+    expect(texts.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('does not render timestamp when not provided', () => {
+    const props = { ...defaultProps, chatData: { message: 'No time' } }
+    const { container } = renderInSvg(<ChatBubble {...props} />)
+    const texts = container.querySelectorAll('text')
+    // 타임스탬프가 없으면 메시지 텍스트만
+    const lastText = texts[texts.length - 1]
+    expect(lastText.textContent).not.toMatch(/\d{2}:\d{2}/)
+  })
+
+  it('scales bubble with scale prop', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} scale={2} />)
+    const mainRect = container.querySelectorAll('rect')[0]
+    // scale=2이면 strokeWidth도 2배
+    expect(mainRect.getAttribute('stroke-width')).toBe('4')
+  })
+
+  it('renders pixel style with no rounded corners', () => {
+    const { container } = renderInSvg(<ChatBubble {...defaultProps} />)
+    const mainRect = container.querySelectorAll('rect')[0]
+    expect(mainRect.getAttribute('rx')).toBe('0')
   })
 })

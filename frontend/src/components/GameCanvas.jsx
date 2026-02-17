@@ -18,6 +18,13 @@ import {
   FX_TYPES
 } from '../utils/effects'
 import {
+  getOptionEmoji,
+  getColorHex
+} from '../utils/characterCustomization'
+import {
+  CUSTOMIZATION_CATEGORIES
+} from '../data/customizationOptions'
+import {
   getGameHour,
   getGameMinute,
   generateRandomWeather,
@@ -115,7 +122,12 @@ function GameCanvas({
   buildings,
   canvasRef,
   onClick,
-  onBuildingClick
+  onBuildingClick,
+  characterCustomization = {
+    hairStyle: 'short',
+    clothingColor: 'blue',
+    accessory: 'none'
+  }
 }) {
   const [animatedCharacters, setAnimatedCharacters] = useState({})
   const [spriteSheets, setSpriteSheets] = useState({})
@@ -436,6 +448,22 @@ function GameCanvas({
         const direction = characterDirections.current[char.id] || 'idle'
         const timestamp = performance.now()
 
+        // myCharacter인지 확인
+        const isMyCharacter = char.id === myCharacter.id
+
+        // 커스터마이징 정보 가져오기 (myCharacter만)
+        const customization = isMyCharacter ? characterCustomization : null
+        const accessoryEmoji = customization && customization.accessory !== 'none'
+          ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.ACCESSORIES, customization.accessory)
+          : null
+        const characterCustomColor = customization
+          ? getColorHex(customization.clothingColor || 'blue')
+          : null
+        const finalCharColor = characterCustomColor || color
+        const finalEmoji = customization
+          ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.HAIR_STYLES, customization.hairStyle) || emoji
+          : emoji
+
         // 스프라이트 렌더링 (사용 가능한 경우)
         if (isSpritesLoaded && spriteSheets.character) {
           spriteRenderer.renderCharacterSprite(
@@ -453,7 +481,7 @@ function GameCanvas({
           // fallback: 원형 캐릭터 렌더링
           ctx.beginPath()
           ctx.arc(x, y, CHARACTER_SIZE_SCALED / 2, 0, Math.PI * 2)
-          ctx.fillStyle = color
+          ctx.fillStyle = finalCharColor
           ctx.fill()
           ctx.strokeStyle = isConversing ? '#FFD700' : (isAi ? '#FF6B6B' : '#4CAF50')
           ctx.lineWidth = isConversing ? 4 : 3
@@ -462,7 +490,13 @@ function GameCanvas({
           ctx.font = `${CHARACTER_SIZE_SCALED / 2}px Arial`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          ctx.fillText(emoji, x, y)
+          ctx.fillText(finalEmoji, x, y)
+        }
+
+        // accessory 별도 표시 (myCharacter만)
+        if (accessoryEmoji) {
+          ctx.font = `${CHARACTER_SIZE_SCALED / 3}px Arial`
+          ctx.fillText(accessoryEmoji, x + CHARACTER_SIZE_SCALED / 3, y - CHARACTER_SIZE_SCALED / 3)
         }
 
         // 캐릭터 이름 (픽셀 아트 스타일)
@@ -772,7 +806,12 @@ GameCanvas.propTypes = {
   ).isRequired,
   canvasRef: PropTypes.object.isRequired,
   onClick: PropTypes.func.isRequired,
-  onBuildingClick: PropTypes.func
+  onBuildingClick: PropTypes.func,
+  characterCustomization: PropTypes.shape({
+    hairStyle: PropTypes.string,
+    clothingColor: PropTypes.string,
+    accessory: PropTypes.string
+  })
 }
 
 export default GameCanvas

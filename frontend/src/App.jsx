@@ -15,10 +15,14 @@ import Reward from './components/Reward'
 import Quest from './components/Quest'
 import LanguageSelector from './components/LanguageSelector'
 import SettingsPanel from './components/SettingsPanel'
+import CharacterCustomizationModal from './components/CharacterCustomizationModal'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
+import { getOptionEmoji, getColorHex } from './utils/characterCustomization'
+import { CUSTOMIZATION_CATEGORIES } from './data/customizationOptions'
 import { I18nProvider, useI18n } from './i18n/I18nContext'
+import { soundManager, BGM_URLS, SFX_URLS } from './utils/soundManager'
 
 const MAP_SIZE = { width: 1000, height: 700 }
 const CHARACTER_SIZE = 40
@@ -83,6 +87,59 @@ function AppContent() {
   const [availableQuests, setAvailableQuests] = useState({})
   const [showQuest, setShowQuest] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showCustomizationModal, setShowCustomizationModal] = useState(false)
+  const [characterCustomization, setCharacterCustomization] = useState({
+    hairStyle: 'short',
+    clothingColor: 'blue',
+    accessory: 'none'
+  })
+  const [weather, setWeather] = useState({ type: 'CLEAR' })
+
+  /**
+   * 커스터마이징 저장 핸들러
+   */
+  const handleCustomizationSave = (savedCustomization) => {
+    // 커스터마이징 상태 업데이트
+    setCharacterCustomization(savedCustomization)
+
+    // 커스터마이징에 따라 캐릭터 업데이트
+    const hairStyle = savedCustomization.hairStyle || 'short'
+    const accessory = savedCustomization.accessory || 'none'
+    const clothingColor = savedCustomization.clothingColor || 'blue'
+
+    // 이모지 조합 생성
+    const hairEmoji = getOptionEmoji(CUSTOMIZATION_CATEGORIES.HAIR_STYLES, hairStyle)
+    const accessoryEmoji = getOptionEmoji(CUSTOMIZATION_CATEGORIES.ACCESSORIES, accessory)
+
+    // 캐릭터 색상 업데이트
+    const characterColor = getColorHex(clothingColor)
+
+    // myCharacter 업데이트
+    setMyCharacter(prev => ({
+      ...prev,
+      color: characterColor,
+      emoji: hairEmoji + accessoryEmoji
+    }))
+
+    // 소켓으로 캐릭터 업데이트 전송
+    const updatedCharacter = {
+      ...myCharacter,
+      color: characterColor,
+      emoji: hairEmoji + accessoryEmoji
+    }
+    socket.emit('move', updatedCharacter)
+
+    // 토스트 메시지
+    setToast({
+      show: true,
+      message: '✨ 캐릭터 커스터마이징 저장 완료!',
+      type: 'success'
+    })
+
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 3000)
+  }
 
   const canvasRef = useRef(null)
   const chatHistoryRef = useRef(null)
@@ -356,7 +413,7 @@ function AppContent() {
   useSocketEvent('questRewardClaimed', (data) => {
     const { questId, reward, inventory } = data
     setInventory(inventory || {})
-    
+
     const message = `🎉 퀘스트 완료 보상 수령! 포인트: ${reward?.points || 0}, 경험치: ${reward?.experience || 0}`
     setToast({
       show: true,
@@ -366,12 +423,85 @@ function AppContent() {
     setTimeout(() => {
       setToast(prev => ({ ...prev, show: false }))
     }, 5000)
-    
+
     console.log('퀘스트 보상 수령:', data)
+  }, [])
+
+  // 방 입장/퇴장 알림 처리
+  useSocketEvent('roomNotification', (data) => {
+    const { type, character, roomId, roomName, fromRoomId, fromRoomName, toRoomId, toRoomName, timestamp } = data
+
+    // 입장 알림
+    if (type === 'join') {
+      const message = `${character.emoji} ${character.name}님이 ${roomName}(으)로 입장했습니다`
+      setToast({
+        show: true,
+        message,
+        type: 'info'
+      })
+
+      // 채팅 히스토리에 시스템 메시지 추가
+      setRoomChatHistory(prev => ({
+        ...prev,
+        [roomId]: [
+          ...(prev[roomId] || []),
+          {
+            characterName: '시스템',
+            message,
+            timestamp: timestamp || Date.now(),
+            isSystem: true
+          }
+        ]
+      }))
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 4000)
+
+      console.log('입장 알림:', data)
+    }
+
+    // 퇴장 알림
+    if (type === 'leave') {
+      const message = `${character.emoji} ${character.name}님이 ${roomName}(으)로 떠났습니다`
+      setToast({
+        show: true,
+        message,
+        type: 'warning'
+      })
+
+      // 채팅 히스토리에 시스템 메시지 추가
+      setRoomChatHistory(prev => ({
+        ...prev,
+        [roomId]: [
+          ...(prev[roomId] || []),
+          {
+            characterName: '시스템',
+            message,
+            timestamp: timestamp || Date.now(),
+            isSystem: true
+          }
+        ]
+      }))
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }))
+      }, 4000)
+
+      console.log('퇴장 알림:', data)
+    }
   }, [])
 
   useEffect(() => {
     socket.emit('join', myCharacter)
+
+    // Sound Manager 초기화 (첫 사용자 제스처 필요)
+    soundManager.init().catch(err => console.warn('Sound init failed:', err))
+
+    // 기본 BGM 재생 (성공하면)
+    soundManager.playBGM(BGM_URLS.MAIN).catch(err => {
+      console.warn('BGM playback failed:', err)
+    })
   }, [])
 
   const sendChatMessage = (message) => {
@@ -447,6 +577,11 @@ function AppContent() {
 
     setMyCharacter(updatedCharacter)
     socket.emit('move', updatedCharacter)
+
+    // 이동 효과음
+    soundManager.playSFX(SFX_URLS.MOVE).catch(err => {
+      console.warn('SFX playback failed:', err)
+    })
   }
 
   const handleKeyDown = (e) => {
@@ -506,6 +641,18 @@ function AppContent() {
         interactionType: typeMapping[type] || type,
         timestamp: Date.now()
       })
+
+      // 상호작용 효과음
+      const sfxType = typeMapping[type] || type
+      if (sfxType === 'greet') {
+        soundManager.playSFX(SFX_URLS.GREET).catch(err => {
+          console.warn('SFX playback failed:', err)
+        })
+      } else if (sfxType === 'gift') {
+        soundManager.playSFX(SFX_URLS.GIFT).catch(err => {
+          console.warn('SFX playback failed:', err)
+        })
+      }
     }
     setInteractionMenu({
       show: false,
@@ -561,6 +708,10 @@ function AppContent() {
     })
 
     if (clickedCharacter) {
+      soundManager.playSFX(SFX_URLS.GREET).catch(err => {
+        console.warn('SFX playback failed:', err)
+      })
+
       socket.emit('interact', {
         targetCharacterId: clickedCharacter.id,
         sourceCharacterId: myCharacter.id
@@ -798,6 +949,12 @@ function AppContent() {
           >
             🎒 인벤토리
           </button>
+          <button
+            className="room-button"
+            onClick={() => setShowCustomizationModal(prev => !prev)}
+          >
+            👕 커스터마이징
+          </button>
 <button
              className="room-button"
              onClick={() => setShowReward(prev => !prev)}
@@ -835,6 +992,7 @@ function AppContent() {
         canvasRef={canvasRef}
         onClick={handleCanvasClick}
         onBuildingClick={handleBuildingClick}
+        characterCustomization={characterCustomization}
       />
       <MiniMap
         myCharacter={myCharacter}
@@ -869,7 +1027,7 @@ function AppContent() {
                 <div className="chat-history-empty">채팅 기록이 없습니다</div>
               ) : (
                 roomChatHistory[currentRoom.id]?.map((chat, index) => (
-                  <div key={index} className="chat-history-item">
+                  <div key={index} className={`chat-history-item ${chat.isSystem ? 'system-message' : ''}`}>
                     <div className="chat-history-meta">
                       <span className="chat-history-name">{chat.characterName}</span>
                       <span className="chat-history-time">{formatTime(chat.timestamp)}</span>
@@ -956,6 +1114,12 @@ function AppContent() {
       {showSettings && (
         <SettingsPanel onClose={() => setShowSettings(false)} />
       )}
+
+      <CharacterCustomizationModal
+        show={showCustomizationModal}
+        onClose={() => setShowCustomizationModal(false)}
+        onSave={handleCustomizationSave}
+      />
      </div>
   )
 }

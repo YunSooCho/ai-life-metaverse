@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useSocketEvent } from '@/hooks/useSocketEvent'
-import { socket } from '@/socket'
+import { useSocketEvent } from '../useSocketEvent'
+import { socket } from '../../socket'
 
-vi.mock('@/socket', () => ({
+vi.mock('../../socket', () => ({
   socket: {
     on: vi.fn(),
     off: vi.fn()

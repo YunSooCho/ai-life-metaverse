@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import InteractionMenu from '@/components/InteractionMenu'
+import InteractionMenu from '../InteractionMenu'
 
 describe('InteractionMenu Component', () => {
   const defaultProps = {
@@ -44,37 +44,37 @@ describe('InteractionMenu Component', () => {
   it('renders all interaction buttons', () => {
     render(<InteractionMenu {...defaultProps} />)
     
-    expect(screen.getByText('👋 인사')).toBeInTheDocument()
-    expect(screen.getByText('🎁 선물주기')).toBeInTheDocument()
-    expect(screen.getByText('🤝 친하기')).toBeInTheDocument()
-    expect(screen.getByText('⚔️ 싸우기')).toBeInTheDocument()
+    expect(screen.getByText('INSA')).toBeInTheDocument()
+    expect(screen.getByText('GIFT')).toBeInTheDocument()
+    expect(screen.getByText('FRIEND')).toBeInTheDocument()
+    expect(screen.getByText('FIGHT')).toBeInTheDocument()
   })
 
   it('calls onInteraction with greeting when 인사 button is clicked', () => {
     render(<InteractionMenu {...defaultProps} />)
     
-    fireEvent.click(screen.getByText('👋 인사'))
+    fireEvent.click(screen.getByText('INSA'))
     expect(defaultProps.onInteraction).toHaveBeenCalledWith('greeting')
   })
 
   it('calls onInteraction with gift when 선물주기 button is clicked', () => {
     render(<InteractionMenu {...defaultProps} />)
     
-    fireEvent.click(screen.getByText('🎁 선물주기'))
+    fireEvent.click(screen.getByText('GIFT'))
     expect(defaultProps.onInteraction).toHaveBeenCalledWith('gift')
   })
 
   it('calls onInteraction with friend when 친하기 button is clicked', () => {
     render(<InteractionMenu {...defaultProps} />)
     
-    fireEvent.click(screen.getByText('🤝 친하기'))
+    fireEvent.click(screen.getByText('FRIEND'))
     expect(defaultProps.onInteraction).toHaveBeenCalledWith('friend')
   })
 
   it('calls onInteraction with fight when 싸우기 button is clicked', () => {
     render(<InteractionMenu {...defaultProps} />)
     
-    fireEvent.click(screen.getByText('⚔️ 싸우기'))
+    fireEvent.click(screen.getByText('FIGHT'))
     expect(defaultProps.onInteraction).toHaveBeenCalledWith('fight')
   })
 })

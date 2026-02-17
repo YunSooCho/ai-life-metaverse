@@ -21,52 +21,52 @@ describe('Reward Component', () => {
   describe('Rendering', () => {
     it('should render reward modal when show is true', () => {
       render(<Reward {...defaultProps} />)
-      expect(screen.getByText('🎁 보상 센터')).toBeInTheDocument()
+      expect(screen.getByText('🎁 REWARD CENTER')).toBeInTheDocument()
     })
 
     it('should not render when show is false', () => {
       render(<Reward {...defaultProps} show={false} />)
-      expect(screen.queryByText('🎁 보상 센터')).not.toBeInTheDocument()
+      expect(screen.queryByText('🎁 REWARD CENTER')).not.toBeInTheDocument()
     })
 
     it('should display all available rewards', () => {
       render(<Reward {...defaultProps} />)
-      expect(screen.getByText('첫 로그인 보상')).toBeInTheDocument()
-      expect(screen.getByText('일일 보너스')).toBeInTheDocument()
-      expect(screen.getByText('업적 달성 보상')).toBeInTheDocument()
+      expect(screen.getByText('FIRST LOGIN')).toBeInTheDocument()
+      expect(screen.getByText('DAILY BONUS')).toBeInTheDocument()
+      expect(screen.getByText('ACHIEVEMENT')).toBeInTheDocument()
     })
 
     it('should display reward points', () => {
       render(<Reward {...defaultProps} />)
-      expect(screen.getByText('💎 100점')).toBeInTheDocument()
-      expect(screen.getByText('💎 50점')).toBeInTheDocument()
-      expect(screen.getByText('💎 200점')).toBeInTheDocument()
+      expect(screen.getByText('💎 100 PTS')).toBeInTheDocument()
+      expect(screen.getByText('💎 50 PTS')).toBeInTheDocument()
+      expect(screen.getByText('💎 200 PTS')).toBeInTheDocument()
     })
 
     it('should display reward experience', () => {
       render(<Reward {...defaultProps} />)
-      expect(screen.getByText('⭐ 50경험치')).toBeInTheDocument()
-      expect(screen.getByText('⭐ 20경험치')).toBeInTheDocument()
-      expect(screen.getByText('⭐ 150경험치')).toBeInTheDocument()
+      expect(screen.getByText('⭐ 50 EXP')).toBeInTheDocument()
+      expect(screen.getByText('⭐ 20 EXP')).toBeInTheDocument()
+      expect(screen.getByText('⭐ 150 EXP')).toBeInTheDocument()
     })
 
     it('should display reward items', () => {
       render(<Reward {...defaultProps} />)
-      expect(screen.getByText('❤️ 체력 포션 x3')).toBeInTheDocument()
-      expect(screen.getByText('🪙 코인 x50')).toBeInTheDocument()
-      expect(screen.getByText('🎁 선물 상자 x1')).toBeInTheDocument()
-      expect(screen.getByText('⚡ 경험치 포션 x2')).toBeInTheDocument()
+      expect(screen.getByText('❤️ HP POTION x3')).toBeInTheDocument()
+      expect(screen.getByText('🪙 COIN x50')).toBeInTheDocument()
+      expect(screen.getByText('🎁 GIFT BOX x1')).toBeInTheDocument()
+      expect(screen.getByText('⚡ EXP POTION x2')).toBeInTheDocument()
     })
 
     it('should show claim button for unclaimed rewards', () => {
       render(<Reward {...defaultProps} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       expect(claimButtons.length).toBe(3)
     })
 
     it('should show claimed badge for claimed rewards', () => {
       render(<Reward {...defaultProps} claimedRewards={['firstLogin']} />)
-      expect(screen.getByText('수령 완료')).toBeInTheDocument()
+      expect(screen.getByText('CLAIMED')).toBeInTheDocument()
     })
 
     it('should have claimed class on claimed rewards', () => {
@@ -94,16 +94,16 @@ describe('Reward Component', () => {
 
     it('should call onClaimReward when claim button is clicked', () => {
       render(<Reward {...defaultProps} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       fireEvent.click(claimButtons[0])
       expect(mockOnClaimReward).toHaveBeenCalledWith('test-character', 'firstLogin')
     })
 
     it('should not call onClaimReward for already claimed rewards', () => {
       render(<Reward {...defaultProps} claimedRewards={['firstLogin']} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       expect(claimButtons.length).toBe(2)
-      expect(screen.getByText('수령 완료').closest('.reward-item')).toHaveClass('claimed')
+      expect(screen.getByText('CLAIMED').closest('.reward-item')).toHaveClass('claimed')
     })
 
     it('should deselect reward when clicking same reward again', () => {
@@ -126,7 +126,7 @@ describe('Reward Component', () => {
 
     it('should stop propagation on claim button click', () => {
       const { container } = render(<Reward {...defaultProps} />)
-      const claimButton = screen.getAllByText('수령')[0]
+      const claimButton = screen.getAllByText('CLAIM')[0]
       const rewardCard = claimButton.closest('.reward-item')
       fireEvent.click(claimButton)
       expect(rewardCard).not.toHaveClass('selected')
@@ -134,7 +134,7 @@ describe('Reward Component', () => {
 
     it('should handle multiple clicks on claim button', () => {
       render(<Reward {...defaultProps} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       fireEvent.click(claimButtons[0])
       fireEvent.click(claimButtons[0])
       expect(mockOnClaimReward).toHaveBeenCalledTimes(2)
@@ -144,15 +144,15 @@ describe('Reward Component', () => {
   describe('Edge Cases', () => {
     it('should render correctly when all rewards are claimed', () => {
       render(<Reward {...defaultProps} claimedRewards={['firstLogin', 'dailyBonus', 'achievement']} />)
-      const claimButtons = screen.queryAllByText('수령')
+      const claimButtons = screen.queryAllByText('CLAIM')
       expect(claimButtons.length).toBe(0)
-      const claimedBadges = screen.getAllByText('수령 완료')
+      const claimedBadges = screen.getAllByText('CLAIMED')
       expect(claimedBadges.length).toBe(3)
     })
 
     it('should display correct number of unclaimed rewards', () => {
       render(<Reward {...defaultProps} claimedRewards={['firstLogin']} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       expect(claimButtons.length).toBe(2)
     })
 
@@ -164,22 +164,22 @@ describe('Reward Component', () => {
 
     it('should handle empty claimedRewards array', () => {
       render(<Reward {...defaultProps} claimedRewards={[]} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       expect(claimButtons.length).toBe(3)
-      expect(screen.queryByText('수령 완료')).not.toBeInTheDocument()
+      expect(screen.queryByText('CLAIMED')).not.toBeInTheDocument()
     })
 
     it('should display reward details in correct order', () => {
       const { container } = render(<Reward {...defaultProps} />)
       const rewardCards = container.querySelectorAll('.reward-item')
-      expect(rewardCards[0]).toHaveTextContent('첫 로그인 보상')
-      expect(rewardCards[1]).toHaveTextContent('일일 보너스')
-      expect(rewardCards[2]).toHaveTextContent('업적 달성 보상')
+      expect(rewardCards[0]).toHaveTextContent('FIRST LOGIN')
+      expect(rewardCards[1]).toHaveTextContent('DAILY BONUS')
+      expect(rewardCards[2]).toHaveTextContent('ACHIEVEMENT')
     })
 
     it('should handle claim for each reward type', () => {
       render(<Reward {...defaultProps} />)
-      const claimButtons = screen.getAllByText('수령')
+      const claimButtons = screen.getAllByText('CLAIM')
       fireEvent.click(claimButtons[0])
       expect(mockOnClaimReward).toHaveBeenCalledWith('test-character', 'firstLogin')
       fireEvent.click(claimButtons[1])
@@ -196,8 +196,8 @@ describe('Reward Component', () => {
 
     it('should prevent clicking claim button on claimed rewards', () => {
       render(<Reward {...defaultProps} claimedRewards={['firstLogin']} />)
-      const firstRewardCard = screen.getByText('첫 로그인 보상').closest('.reward-item')
-      const claimButton = within(firstRewardCard).queryByText('수령')
+      const firstRewardCard = screen.getByText('FIRST LOGIN').closest('.reward-item')
+      const claimButton = within(firstRewardCard).queryByText('CLAIM')
       expect(claimButton).not.toBeInTheDocument()
     })
   })

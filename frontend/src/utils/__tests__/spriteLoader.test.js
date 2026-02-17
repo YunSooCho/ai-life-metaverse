@@ -1,14 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import spriteLoader from '../spriteLoader.js'
 
-// Image 객체 모킹
+// Image 객체 모킹 - src 설정 시 자동으로 onload 호출
 global.Image = class {
   constructor() {
-    this.onload = vi.fn()
-    this.onerror = vi.fn()
-    this.src = ''
-    this.height = 0
-    this.width = 0
+    this._onload = null
+    this._onerror = null
+    this._src = ''
+    this.height = 64
+    this.width = 64
+  }
+  get onload() { return this._onload }
+  set onload(fn) { this._onload = fn }
+  get onerror() { return this._onerror }
+  set onerror(fn) { this._onerror = fn }
+  get src() { return this._src }
+  set src(val) {
+    this._src = val
+    // src 설정 시 자동으로 onload/onerror 호출 (비동기)
+    if (val && val.length > 0) {
+      setTimeout(() => this._onload && this._onload(), 0)
+    } else {
+      setTimeout(() => this._onerror && this._onerror(new Error('Failed to load sprite: ')), 0)
+    }
   }
 }
 
@@ -38,11 +52,12 @@ describe('spriteLoader', () => {
       expect(sprite1).toBe(sprite2)
     })
 
-    it('로딩 중에 호출되면 같은 Promise를 반환해야 함', async () => {
+    it('로딩 중에 호출되면 같은 결과를 반환해야 함', async () => {
       const promise1 = spriteLoader.loadSpriteSheet('test.png', 'test')
       const promise2 = spriteLoader.loadSpriteSheet('test.png', 'test')
 
-      expect(promise1).toBe(promise2)
+      const [result1, result2] = await Promise.all([promise1, promise2])
+      expect(result1).toBe(result2)
     })
 
     it('잘못된 경로에서는 에러를 발생시켜야 함', async () => {

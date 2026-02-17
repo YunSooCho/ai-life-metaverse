@@ -845,53 +845,135 @@ function MyComponent() {
 
 ---
 
-## 사운드 시스템
+## 사운드 시스템 (2026-02-17 업데이트)
 
 ### 구현 방식
-- **Web Audio API:** 사운드 파일 없이 프로그래밍 방식으로 사운드 생성
+- **Web Audio API:** 오디오 파일 재생 방식
 - **오디오 컨텍스트:** 사용자 제스처 후 초기화 필수
-- **싱글톤 패턴:** `soundSystem` 모듈로 전역 접근
+- **싱글톤 패턴:** `soundManager` 모듈로 전역 접근
+- **분리된 볼륨 제어:** BGM/SFX/Voice 각각 별도 게인 노드
 
-### BGM 시스템
+### SoundManager API
+
+#### 초기화
 ```javascript
-soundSystem.init()  // 제스처 후 초기화
-soundSystem.playBgm('day')    // 아침/낮/저녁/밤
-soundSystem.setBgmVolume(0.5)
-soundSystem.stopBgm('day')
-soundSystem.stopAllBgm()
+await soundManager.init()  // AudioContext 초기화 (제스처 후)
+soundManager.setEnabled(true/false)  // 소리 끄기/켜기
 ```
 
-### 효과음 (SFX)
+#### BGM 시스템
 ```javascript
-soundSystem.playClick()         // 클릭
-soundSystem.playInteract()      // 인터랙션
-soundSystem.playItemUse()       // 아이템 사용
-soundSystem.playQuestComplete() // 퀘스트 완료
+// BGM 재생 (loop 지원)
+await soundManager.playBGM(BGM_URLS.MAIN, true)  // loop 기본값: true
+soundManager.stopBGM()
 ```
 
-### 날씨 환경음
+#### 효과음 (SFX)
 ```javascript
-soundSystem.startWeatherSound('RAIN')  // 비/눈 소리
-soundSystem.stopWeatherSound()
+await soundManager.playSFX(SFX_URLS.BUTTON_CLICK)
+await soundManager.playSFX(SFX_URLS.MOVE)
+await soundManager.playSFX(SFX_URLS.ITEM_GET)
+await soundManager.playSFX(SFX_URLS.GREET)
+await soundManager.playSFX(SFX_URLS.GIFT)
+await soundManager.playSFX(SFX_URLS.QUEST_COMPLETE)
 ```
 
-### 볼륨 제어 & 음소거
+#### 대화 사운드 (Voice)
 ```javascript
-soundSystem.setBgmVolume(0.3)
-soundSystem.setSfxVolume(0.5)
-soundSystem.toggleMute()  // returns: boolean
+// 캐릭터별 톤 설정 (pitch 변환 0.5 ~ 2.0)
+await soundManager.playVoice(VOICE_URLS.AI1, 1.0)  // 기본 피치
+await soundManager.playVoice(VOICE_URLS.AI2, 1.2)  // 높은 톤
+await soundManager.playVoice(VOICE_URLS.AI3, 0.8)  // 낮은 톤
 ```
 
-### 시간대별 BGM
-| 시간대 | 주파수 | 파형 | 특징 |
-|--------|--------|------|------|
-| 아침 (morning) | 440Hz | sine | 밝은 톤 |
-| 낮 (day) | 523.25Hz | triangle | 활기 |
-| 저녁 (evening) | 392Hz | sine | 차분 |
-| 밤 (night) | 330Hz | sine | 어두운 톤 |
+#### 볼륨 제어
+```javascript
+soundManager.setBGMVolume(0.5)   // 0.0 ~ 1.0
+soundManager.setSFXVolume(0.7)   // 0.0 ~ 1.0
+soundManager.setVoiceVolume(0.8) // 0.0 ~ 1.0
+```
+
+#### 전체 제어
+```javascript
+soundManager.stopAll()  // 모든 소리 중지
+```
+
+### 오디오 파일 URL 상수
+
+```javascript
+// BGM (테마별)
+export const BGM_URLS = {
+  MAIN: '/audio/bgm/main.mp3',
+  CAFE: '/audio/bgm/cafe.mp3',
+  LIBRARY: '/audio/bgm/library.mp3',
+  NIGHT: '/audio/bgm/night.mp3'
+}
+
+// 효과음
+export const SFX_URLS = {
+  BUTTON_CLICK: '/audio/sfx/button-click.mp3',
+  MOVE: '/audio/sfx/move.mp3',
+  ITEM_GET: '/audio/sfx/item-get.mp3',
+  GREET: '/audio/sfx/greet.mp3',
+  GIFT: '/audio/sfx/gift.mp3',
+  QUEST_COMPLETE: '/audio/sfx/quest-complete.mp3'
+}
+
+// 대화 사운드 (캐릭터별)
+export const VOICE_URLS = {
+  AI1: '/audio/voice/ai1.mp3',
+  AI2: '/audio/voice/ai2.mp3',
+  AI3: '/audio/voice/ai3.mp3'
+}
+```
+
+### 오디오 파일 구조
+```
+frontend/public/audio/
+├── bgm/
+│   ├── main.mp3      - 메인 테마
+│   ├── cafe.mp3      - 카페 테마
+│   ├── library.mp3   - 도서관 테마
+│   └── night.mp3     - 밤 테마
+├── sfx/
+│   ├── button-click.mp3  - 버튼 클릭
+│   ├── move.mp3          - 캐릭터 이동
+│   ├── item-get.mp3      - 아이템 획득
+│   ├── greet.mp3         - 인사
+│   ├── gift.mp3          - 선물
+│   └── quest-complete.mp3 - 퀘스트 완료
+└── voice/
+    ├── ai1.mp3       - AI 캐릭터 1
+    ├── ai2.mp3       - AI 캐릭터 2
+    └── ai3.mp3       - AI 캐릭터 3
+```
+
+### App.jsx 통합 (2026-02-17 완료)
+```javascript
+import { soundManager, BGM_URLS, SFX_URLS } from './utils/soundManager'
+
+// 컴포넌트 마운트 시 초기화
+useEffect(() => {
+  soundManager.init().catch(err => console.warn('Sound init failed:', err))
+  soundManager.playBGM(BGM_URLS.MAIN).catch(err => console.warn('BGM playback failed:', err))
+}, [])
+
+// 캐릭터 클릭 시 효과음
+if (clickedCharacter) {
+  soundManager.playSFX(SFX_URLS.GREET)
+}
+
+// 캐릭터 이동 시 효과음
+moveCharacter(dx, dy)
+soundManager.playSFX(SFX_URLS.MOVE)
+```
 
 ### 파일 위치
-- `frontend/src/utils/soundSystem.js` - 핵심 로직
+- `frontend/src/utils/soundManager.js` - 핵심 로직 (5547 bytes)
+- `frontend/src/utils/__tests__/soundManager.test.js` - 테스트 (4663 bytes)
+
+### GitHub Issue
+- **#53:** [feat] 사운드 시스템 구현 ✅ 완료 (2026-02-17)
 
 ---
 
@@ -916,3 +998,216 @@ soundSystem.toggleMute()  // returns: boolean
 ### 파일 위치
 - `frontend/src/components/SettingsPanel.jsx`
 - `frontend/src/components/SettingsPanel.css`
+
+---
+
+## 🧪 E2E 브라우저 테스트 시스템 (2026-02-17 완료)
+
+### 개요
+Playwright 기반 E2E 테스트 시스템으로 전체 UI 시나리오 자동화
+
+### 테스트 환경
+- **테스트 프레임워크:** Playwright (@playwright/test 1.58.2)
+- **테스트 브라우저:** Chromium (기본)
+- **테스트 URL:** http://10.76.29.91:3000 (로컬 네트워크)
+- **설정 파일:** `playwright.config.js`
+
+### 테스트 시나리오 (S01~S15)
+
+#### S01. 초기 로딩 (5개 테스트)
+- 페이지 로딩 확인
+- 헤더 표시 확인
+- 상태바 표시 확인
+- 조작 안내 텍스트 표시
+- favicon 로드 확인
+
+#### S02. GameCanvas (5개 테스트)
+- 타일맵 배경 렌더링
+- 건물 5개 표시
+- 플레이어 캐릭터 표시
+- AI 캐릭터 표시
+- 미니맵 표시
+
+#### S03. 시간/날씨 HUD (6개 테스트)
+- HUD 박스 표시
+- 게임 시간 표시 (HH:MM)
+- 시간대 이모지 표시
+- 날씨 상태 표시
+- 오버레이 색상 변화
+- 비/눈 파티클 효과
+
+#### S04. 캐릭터 이동 (6개 테스트)
+- 방향키 이동 확인
+- WASD 키 이동 확인
+- 캔버스 클릭 이동
+- 건물 충돌 처리
+- 맵 경계 처리
+- 미니맵 업데이트
+
+#### S05. 채팅 시스템 (7개 테스트)
+- 텍스트 입력 및 표시
+- SEND 버튼 클릭
+- Enter 키 전송
+- Shift+Enter 줄바꿈
+- 말풍선 표시
+- AI 채팅 응답 (GLM-4.7)
+- AI 말풍선 표시
+
+#### S06. 방 메뉴 (6개 테스트)
+- 방 버튼 클릭 및 모달 열기
+- ROOMS 헤더 표시
+- 현재 방 목록 표시
+- 방 인원 수 표시
+- NEW ROOM NAME 입력
+- 모달 닫기
+
+#### S07. 인벤토리 (8개 테스트)
+- 인벤토리 모달 열기
+- INVENTORY 헤더 표시
+- TOTAL 아이템 수 표시
+- REFRESH 버튼 동작
+- 아이템 그리드 목록
+- 소비 아이템 USE 버튼
+- INVENTORY EMPTY 상태
+- 모달 닫기
+
+#### S08. 보상 센터 (7개 테스트)
+- 보상 모달 열기
+- REWARD CENTER 헤더 표시
+- 보상 목록 표시
+- PTS/EXP 배지 표시
+- CLAIM 버튼 동작
+- CLAIMED 표시
+- 모달 닫기
+
+#### S09. 퀘스트 로그 (11개 테스트)
+- 퀘스트 로그 모달 열기
+- QUEST LOG 헤더 표시
+- ACTIVE 탭 표시
+- 퀘스트 카드 표시
+- OBJECTIVES 리스트
+- 진행바 및 퍼센트 표시
+- REWARD 섹션
+- CLAIM REWARD 버튼
+- AVAILABLE 탭 표시
+- ACCEPT 버튼 동작
+- 모달 닫기
+
+#### S10. 캐릭터 인터랙션 (5개 테스트)
+- AI 캐릭터 클릭 → 메뉴 열기
+- 캐릭터 이름 헤더 표시
+- 인터랙션 버튼 표시 (INSA/GIFT/FRIEND/FIGHT)
+- 인터랙션 실행 및 호감도 변화
+- 메뉴 외부 클릭 → 닫기
+
+#### S11. 이벤트 로그 (3개 테스트)
+- 기록 버튼 클릭 → 로그 열기/닫기
+- H 키로 히스토리 토글
+- 이벤트 로그 콘텐츠 확인
+
+#### S12. 토스트 알림 (3개 테스트)
+- 인터랙션 발생 시 토스트 표시
+- success/warning/info 타입별 스타일
+- 자동 사라짐
+
+#### S13. NPC 자동 행동 (4개 테스트)
+- AI 유리 캐릭터 존재 확인
+- 시간대별 이동 (스케줄 시스템)
+- 부드러운 애니메이션
+- 활동 대사 자동 출력
+
+#### S14. 픽셀 아트 스타일 (7개 테스트)
+- Press Start 2P 폰트 적용 (헤더)
+- Press Start 2P 폰트 적용 (버튼)
+- Press Start 2P 폰트 적용 (입력 필드)
+- 픽셀 보더/그림자 스타일
+- 버튼 hover/active 효과
+- 레트로 색상 팔레트
+- 정리 작업
+
+#### S15. 콘솔 에러 체크 (3개 테스트)
+- JavaScript 에러 0건 확인
+- PropTypes 경고 최소화
+- 404 리소스 에러 체크
+
+### 테스트 파일 구조
+```
+e2e/
+├── s01-initial-loading.spec.js      (5개 테스트)
+├── s02-gamecanvas.spec.js           (5개 테스트)
+├── s03-weather-hud.spec.js          (6개 테스트)
+├── s04-character-movement.spec.js   (6개 테스트)
+├── s05-chat-system.spec.js          (7개 테스트)
+├── s06-rooms-modal.spec.js          (6개 테스트)
+├── s07-inventory-modal.spec.js      (8개 테스트)
+├── s08-reward-center-modal.spec.js  (7개 테스트)
+├── s09-quest-log-modal.spec.js      (11개 테스트)
+├── s10-character-interaction.spec.js (5개 테스트)
+├── s11-event-log.spec.js            (3개 테스트)
+├── s12-toast-notifications.spec.js  (3개 테스트)
+├── s13-npc-ai-behavior.spec.js      (4개 테스트)
+├── s14-pixel-art-style.spec.js      (7개 테스트)
+└── s15-console-errors.spec.js       (3개 테스트)
+```
+
+### 총 테스트: 86개 테스트, 15개 파일
+
+### 테스트 실행
+
+**로컬 머신:**
+```bash
+npm run test:e2e              # 헤드리스 테스트
+npm run test:e2e:headed       # 헤드드 테스트
+npm run test:e2e:ui           # Playwright UI 모드
+```
+
+**특정 시나리오:**
+```bash
+npx playwright test e2e/s01-initial-loading.spec.js
+npx playwright test --grep "S03"
+```
+
+### Playwright 설정 (`playwright.config.js`)
+```javascript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://10.76.29.91:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+  webServer: {
+    command: 'npm run dev -- --port 3000',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
+});
+```
+
+### E2E 시나리오 문서
+- **e2e-scenarios.md:** 테스트 체크리스트 (S01~S15)
+
+### GitHub Issue
+- **#59:** [test] E2E 브라우저 테스트 자동화 ✅ 완료 (2026-02-17)
+  - 테스트 파일 모두 작성 (S01~S15)
+  - 총 86개 테스트
+
+### 참고 사항
+- 스마트폰 대응 (터치 이동 지원)
+- 모든 시나리오 모바일 호환성 고려
+- 콘솔 에러 감지로 배포 전 품질 보장

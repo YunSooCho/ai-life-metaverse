@@ -323,6 +323,21 @@ canvas {
   line-height: 1.4;
 }
 
+/* 시스템 메시지 스타일 */
+.chat-history-item.system-message {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.chat-history-item.system-message .chat-history-name {
+  color: #81C784;
+}
+
+.chat-history-item.system-message .chat-history-message {
+  color: #A5D6A7;
+  font-style: italic;
+}
+
 /* 호감도 표시 */
 .affinity-display {
   position: fixed;
