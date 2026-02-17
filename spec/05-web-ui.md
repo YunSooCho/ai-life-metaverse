@@ -668,3 +668,62 @@ import './styles/pixel-theme.css'  // Phase 3: 픽셀아트 테마 전역 적용
 ---
 
 *마지막 업데이트: 2026-02-16 23:30 (Phase 3 완료)*
+
+---
+
+## 국제화 (i18n)
+
+### 지원 언어
+- **한국어 (ko)** - 기본 언어
+- **일본어 (ja)**
+- **영어 (en)**
+
+### 구현 방식
+- **Backend:** API 응답에서 `clientLang` 파라미터 기반으로 언어별 텍스트 반환
+- **Frontend:** `i18n/` 폴더에 JSON 텍스트 리소스 파일
+- **State:** App.jsx에서 `userLang` 상태 관리, `localStorage`에 저장
+- **언어 전환:** Settings UI에서 선택 또는 브라우저 자동 감지
+
+### 데이터 구조
+```json
+// i18n/ko.json
+{
+  "ui": {
+    "title": "AI 라이프",
+    "rooms": "방",
+    "inventory": "인벤토리",
+    "rewards": "보상"
+  },
+  "character": {
+    "player": "플레이어",
+    "aiYuri": "AI 유리"
+  },
+  "quests": {
+    "active": "활성 중",
+    "available": "수락 가능"
+  }
+}
+
+// i18n/ja.json
+{
+  "ui": { "title": "AIライフ" },
+  ...
+}
+
+// i18n/en.json
+{
+  "ui": { "title": "AI Life" },
+  ...
+}
+```
+
+### 적용 범위
+- ✅ UI 텍스트 (버튼, 헤더, 라벨)
+- ✅ 캐릭터 이름
+- ✅ 퀘스트 텍스트
+- ✅ 시스템 메시지
+- ❌ AI 대화 (개별 대화 텍스트는 실시간 번역 사용 고려)
+
+### API 확장
+`GET /api/characters?lang=ja` → 일본어 이름 반환
+`GET /api/quests?lang=en` → 영어 퀘스트 텍스트 반환
