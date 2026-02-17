@@ -631,6 +631,265 @@ function setConversingState(state) {
 
 ---
 
+## 🎭 감정 시스템 & FX 시스템 (EmotionSystem & FXSystem) - 2026-02-17 업데이트
+
+### EmotionSystem 클래스
+
+감정 표현 시스템 관리 및 애니메이션 제어
+
+#### 상수 (Constants)
+
+| 상수 | 설명 | 값 예시 |
+|------|------|---------|
+| `EMOTION_TYPES` | 16개 감정 타입 | { HAPPY: 'happy', SAD: 'sad', ... } |
+| `EMOTION_EMOJIS` | 감정별 이모지 | { happy: '😊', sad: '😢', ... } |
+| `EMOTION_COLORS` | 감정별 색상 | { happy: '#FFD93D', sad: '#6C7EB0', ... } |
+| `EMOTION_DURATION` | 감정별 지속 시간 (ms) | { happy: 3000, sad: 4000, ... } |
+
+#### 메서드 (Methods)
+
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `constructor()` | EmotionSystem 인스턴스 초기화 | EmotionSystem |
+| `setEmotion(characterId, emotionType)` | 캐릭터 감정 설정 | { type, emoji, color, startTime, duration } |
+| `getEmotion(characterId)` | 캐릭터 감정 가져오기 | Emotion 객체 또는 null |
+| `clearEmotion(characterId)` | 캐릭터 감정 클리어 | void |
+| `clearAll()` | 모든 감정 클리어 | void |
+| `getAnimationProgress(characterId)` | 애니메이션 진행도 계산 (0~1) | number |
+| `getBounceOffset(characterId)` | 바운스 애니메이션 오프셋 | { x, y } |
+| `isValidEmotion(emotionType)` | 감정 유효성 검사 | boolean |
+| `setAutoEmotionByAffinity(characterId, affinity)` | 호감도에 따른 자동 감정 설정 | Emotion 객체 |
+
+#### 애니메이션 효과 (Animation Effects)
+
+| 효과 | 설명 | 적용 대상 |
+|------|------|----------|
+| Pop-in | 감정 나타날 때 확대 효과 | 모든 감정 |
+| Fade-out | 감정 사라질 때 페이드 아웃 | 마지막 20% 시간 |
+| Bounce | 수직 바운스 애니메이션 (500ms) | 감정 설정 직후 |
+
+#### 호감도 기반 자동 감정 (Affinity-Based Emotion)
+
+| 호감도 범위 | 감정 | 설명 |
+|------------|------|------|
+| 80~100  | `love` | ❤️ 강한 긍정 |
+| 60~79   | `happy` | 😊 긍정 |
+| 40~59   | `neutral` | 😐 중립 |
+| 20~39   | `confused` | 😕 혼란 |
+| 0~19    | `sad` | 😢 부정 |
+
+#### 사용 예시 (Example Usage)
+
+```javascript
+import { EmotionSystem, EMOTION_TYPES } from './emotionSystem'
+
+const emotionSystem = new EmotionSystem()
+
+// 감정 설정
+emotionSystem.setEmotion('char1', EMOTION_TYPES.HAPPY)
+
+// 감정 가져오기
+const emotion = emotionSystem.getEmotion('char1')
+console.log(emotion.type)     // 'happy'
+console.log(emotion.emoji)    // '😊'
+console.log(emotion.color)    // '#FFD93D'
+
+// 호감도에 따른 자동 감정 설정
+emotionSystem.setAutoEmotionByAffinity('char2', 85)  // love
+
+// 애니메이션 오프셋 계산
+const offset = emotionSystem.getBounceOffset('char1')
+console.log(offset.x, offset.y)  // 캐릭터 위에 표시할 위치
+```
+
+---
+
+### FXSystem 클래스
+
+시각 효과 (VFX) 관리 시스템
+
+#### FX 타입 (FX Types)
+
+| 타입 | 설명 | 사용 사례 |
+|------|------|----------|
+| `jump_dust` | 점프 먼지 | 캐릭터 이동 시 |
+| `heart_rise` | 하트 상승 | 호감도 상승 |
+| `affinity_up` | 호감도 상승 효과 | 호감도 +1 이상 |
+| `affinity_down` | 호감도 하락 효과 | 호감도 -1 이하 |
+| `loading` | 로딩 효과 | 데이터 로드 중 |
+| `click_ripple` | 클릭 리플 | 캔버스 클릭 시 |
+| `particle_burst` | 파티클 버스트 | 특수 이벤트 |
+
+#### 메서드 (Methods)
+
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `constructor()` | FXSystem 인스턴스 초기화 | FXSystem |
+| `addEffect(type, x, y, options)` | FX 효과 추가 | FXEffect |
+| `addJumpDust(x, y)` | 점프 먼지 효과 추가 (5개 파티클) | void |
+| `addHeartRise(x, y)` | 하트 상승 효과 추가 | void |
+| `addAffinityUp(x, y)` | 호감도 상승 효과 추가 (3개 하트) | void |
+| `addAffinityDown(x, y)` | 호감도 하락 효과 추가 | void |
+| `addClickRipple(x, y, color)` | 클릭 리플 효과 추가 (3개 리플) | void |
+| `update()` | 모든 FX 업데이트 | void |
+| `clearAll()` | 모든 FX 클리어 | void |
+| `getRenderEffects()` | 렌더링 FX 목록 반환 | RenderEffect[] |
+| `getCount()` | FX 개수 반환 | number |
+
+#### FXEffect 클래스
+
+시각 효과 객체
+
+| 필드 | 설명 | 기본값 |
+|------|------|--------|
+| `id` | 고유 ID | 자동 생성 |
+| `type` | FX 타입 | - |
+| `x` | X 좌표 | - |
+| `y` | Y 좌표 | - |
+| `startTime` | 시작 시간 | Date.now() |
+| `duration` | 지속 시간 (ms) | 500 |
+| `size` | 크기 | 16 |
+| `color` | 색상 | '#FFFFFF' |
+| `direction` | 이동 방향 | 'up' |
+| `speed` | 이동 속도 | 2 |
+| `opacity` | 투명도 (0~1) | 1 |
+| `scale` | 스케일 | 1 |
+
+#### 이동 방향 (Directions)
+
+| 방향 | 설명 |
+|------|------|
+| `up` | 위로 이동 |
+| `down` | 아래로 이동 |
+| `left` | 왼쪽으로 이동 |
+| `right` | 오른쪽으로 이동 |
+| `none` | 이동 없음 |
+
+#### 사용 예시 (Example Usage)
+
+```javascript
+import { FXSystem, FX_TYPES } from './emotionSystem'
+
+const fxSystem = new FXSystem()
+
+// 점프 먼지 효과 추가
+fxSystem.addJumpDust(100, 200)
+
+// 호감도 상승 효과 추가
+fxSystem.addAffinityUp(150, 250)
+
+// 클릭 리플 효과 추가
+fxSystem.addClickRipple(300, 400, '#00FF00')
+
+// 업데이트 및 렌더링
+fxSystem.update()
+const renderEffects = fxSystem.getRenderEffects()
+renderEffects.forEach(fx => {
+  // 캔버스에 FX 렌더링
+  ctx.save()
+  ctx.globalAlpha = fx.opacity
+  ctx.translate(fx.x, fx.y)
+  ctx.scale(fx.scale, fx.scale)
+  // FX 렌더링 코드
+  ctx.restore()
+})
+
+// 모든 FX 클리어
+fxSystem.clearAll()
+```
+
+---
+
+### GameCanvas 통합 (GameCanvas Integration)
+
+#### Ref 구조
+
+```javascript
+const emotionSystemRef = useRef(new EmotionSystem())
+const fxSystemRef = useRef(new FXSystem())
+```
+
+#### 감정 렌더링 (Emotion Rendering)
+
+```javascript
+// GameCanvas.jsx
+const emotion = emotionSystemRef.current.getEmotion(characterId)
+if (emotion) {
+  const bounceOffset = emotionSystemRef.current.getBounceOffset(characterId)
+  const emotionOpacity = emotionSystemRef.current.getAnimationProgress(characterId)
+  
+  ctx.globalAlpha = emotionOpacity
+  const emotionX = x + bounceOffset.x
+  const emotionY = y - CHARACTER_SIZE_SCALED / 2 + bounceOffset.y
+  renderEmotionEmoji(ctx, emotionType, emotionX, emotionY, scale, performance.now())
+  ctx.globalAlpha = 1
+}
+```
+
+#### FX 렌더링 (FX Rendering)
+
+```javascript
+// GameCanvas.jsx - FX 업데이트
+fxSystemRef.current.update()
+const fxEffects = fxSystemRef.current.getRenderEffects()
+
+// GameCanvas.jsx - FX 렌더링
+fxEffects.forEach(fx => {
+  const fxX = fx.x * scale
+  const fxY = fx.y * scale
+  ctx.save()
+  ctx.globalAlpha = fx.opacity
+  ctx.translate(fxX, fxY)
+  ctx.scale(fx.scale, fx.scale)
+  // FX 타입별 렌더링 코드
+  ctx.restore()
+})
+```
+
+#### 이벤트 연결 (Event Connection)
+
+| 이벤트 | 감정 시스템 | FX 시스템 |
+|--------|------------|-----------|
+| 캐릭터 클릭 | - | `addClickRipple()` |
+| 호감도 ↑ | `setAutoEmotionByAffinity()` | `addAffinityUp()` |
+| 호감도 ↓ | `setAutoEmotionByAffinity()` | `addAffinityDown()` |
+| 캐릭터 이동 | - | `addJumpDust()` |
+
+---
+
+### 테스트 커버리지 (Test Coverage)
+
+| 항목 | 테스트 클래스 | 개수 | 상태 |
+|------|--------------|------|------|
+| 상수 | emotionSystem.test.js | 6 | ✅ 통과 |
+| getAutoEmotionAffinity | emotionSystem.test.js | 5 | ✅ 통과 |
+| EmotionSystem 클래스 | emotionSystem.test.js | 10 | ✅ 통과 |
+| FX 시스템 상수 | emotionSystem.test.js | 1 | ✅ 통과 |
+| FXEffect 클래스 | emotionSystem.test.js | 3 | ✅ 통과 |
+| FXSystem 클래스 | emotionSystem.test.js | 11 | ✅ 통과 |
+| 통합 테스트 | emotionSystem.test.js | 2 | ✅ 통과 |
+| **총계** | **emotionSystem.test.js** | **38** | **✅ 100% 통과** |
+
+### 관련 파일
+
+| 파일 | 설명 |
+|------|------|
+| `frontend/src/utils/emotionSystem.js` | 감정 시스템 & FX 시스템 (8885 bytes) |
+| `frontend/src/utils/__tests__/emotionSystem.test.js` | 테스트 파일 (11014 bytes) |
+| `frontend/src/components/GameCanvas.jsx` | GameCanvas 통합 |
+| `frontend/src/App.jsx` | 이벤트 연결 (클릭 리플, 점프 dust) |
+| `spec/06-character-system.md` | 문서 (이 섹션) |
+
+### 향후 개선 (Future Improvements)
+
+1. **감정 전환 애니메이션** - 감정 변경 시 페이드 인/아웃
+2. **FX 스프라이트 시트** - 이미지 기반 FX (현재 원형/이모지)
+3. **감정 조합** - 여러 감정 동시 표시
+4. **SFX 연동** - 감정/FX에 효과음 추가
+5. **파티클 시스템** - 더 복잡한 파티클 효과
+
+---
+
 ## 기분/감정 시스템 (Mood System)
 
 ### 감정 상태 기존 모델 (Legacy)

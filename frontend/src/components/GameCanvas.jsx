@@ -18,6 +18,15 @@ import {
   FX_TYPES
 } from '../utils/effects'
 import {
+  EMOTION_TYPES,
+  EMOTION_EMOJIS,
+  EMOTION_COLORS,
+  getAutoEmotionAffinity,
+  EmotionSystem,
+  FXSystem,
+  FX_TYPES as NEW_FX_TYPES
+} from '../utils/emotionSystem'
+import {
   getOptionEmoji,
   getColorHex
 } from '../utils/characterCustomization'
@@ -142,6 +151,10 @@ function GameCanvas({
   const lastWeatherChange = useRef(Date.now())
   const fxParticlesRef = useRef([])
   const prevAffinitiesRef = useRef({})
+
+  // 감정 시스템 및 FX 시스템 refs
+  const emotionSystemRef = useRef(new EmotionSystem())
+  const fxSystemRef = useRef(new FXSystem())
 
   // 날씨 변경 (5 게임 시간마다 = 5분)
   useEffect(() => {
@@ -540,18 +553,36 @@ function GameCanvas({
           ctx.shadowBlur = 0
         }
 
-        // 감정 이모지 렌더링 (호감도 기반)
+        // 감정 이모지 렌더링 (EmotionSystem 사용)
         if (char.id !== myCharacter.id && affinity !== undefined) {
-          const emotion = char.emotion || getEmotionFromAffinity(affinity)
-          renderEmotionEmoji(ctx, emotion, x, y - CHARACTER_SIZE_SCALED / 2, scale, performance.now())
+          const emotionType = char.emotion || getAutoEmotionAffinity(affinity)
+          const emotion = emotionSystemRef.current.getEmotion(char.id)
+          
+          // 감정이 없으면 자동 설정
+          if (!emotion && affinity !== undefined) {
+            emotionSystemRef.current.setEmotion(char.id, emotionType)
+          }
+          
+          if (emotion) {
+            const bounceOffset = emotionSystemRef.current.getBounceOffset(char.id)
+            const emotionOpacity = emotionSystemRef.current.getAnimationProgress(char.id)
+            
+            ctx.globalAlpha = emotionOpacity
+            const emotionX = x + bounceOffset.x
+            const emotionY = y - CHARACTER_SIZE_SCALED / 2 + bounceOffset.y
+            renderEmotionEmoji(ctx, emotionType, emotionX, emotionY, scale, performance.now())
+            ctx.globalAlpha = 1
+          }
         }
 
-        // 호감도 변화 FX 감지
+        // 호감도 변화 FX 감지 (FXSystem 사용)
         const prevAff = prevAffinitiesRef.current[char.id] || 0
         if (affinity !== prevAff && char.id !== myCharacter.id) {
-          const fxType = getFxForAffinityChange(affinity - prevAff)
-          if (fxType) {
-            fxParticlesRef.current.push(createFxParticle(fxType, x / scale, y / scale))
+          const affinityDiff = affinity - prevAff
+          if (affinityDiff > 0) {
+            fxSystemRef.current.addAffinityUp(x / scale, y / scale)
+          } else if (affinityDiff < 0) {
+            fxSystemRef.current.addAffinityDown(x / scale, y / scale)
           }
           prevAffinitiesRef.current[char.id] = affinity
         }
@@ -593,29 +624,96 @@ function GameCanvas({
         if (age < 500) {
           const progress = age / 500
           const alpha = 1 - progress
-          const size = (CHARACTER_SIZE_SCALED / 2) * (1 + progress)
-          const y = effect.y * scale - (CHARACTER_SIZE_SCALED / 2) - (progress * 50)
 
-          ctx.beginPath()
-          ctx.font = `${28 * scale}px Arial`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.globalAlpha = alpha
-          ctx.shadowColor = '#FF69B4'
-          ctx.shadowBlur = 10
-          ctx.fillText('💗', effect.x * scale, y)
-          ctx.globalAlpha = 1
-          ctx.shadowBlur = 0
+          if (effect.type === 'dust') {
+            // Dust FX 렌더링
+            const dustSize = 8 * scale * (1 - progress)
+            ctx.fillStyle = `rgba(200, 200, 200, ${alpha})`
+            ctx.beginPath()
+            ctx.arc(effect.x * scale, effect.y * scale, dustSize, 0, Math.PI * 2)
+            ctx.fill()
+          } else {
+            // 하트 FX 렌더링 (기존)
+            const size = (CHARACTER_SIZE_SCALED / 2) * (1 + progress)
+            const y = effect.y * scale - (CHARACTER_SIZE_SCALED / 2) - (progress * 50)
+
+            ctx.beginPath()
+            ctx.font = `${28 * scale}px Arial`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.globalAlpha = alpha
+            ctx.shadowColor = '#FF69B4'
+            ctx.shadowBlur = 10
+            ctx.fillText('💗', effect.x * scale, y)
+            ctx.globalAlpha = 1
+            ctx.shadowBlur = 0
+          }
         }
       })
 
-      // FX 파티클 렌더링
-      fxParticlesRef.current = fxParticlesRef.current.filter(fx => renderFx(ctx, fx, scale))
+      // FX 파티클 업데이트 및 렌더링 (FXSystem 사용)
+      fxSystemRef.current.update()
+      const fxEffects = fxSystemRef.current.getRenderEffects()
+      fxEffects.forEach(fx => {
+        const fxX = fx.x * scale
+        const fxY = fx.y * scale
+        ctx.save()
+        ctx.globalAlpha = fx.opacity
+        ctx.translate(fxX, fxY)
+        ctx.scale(fx.scale, fx.scale)
+        
+        // FX 타입별 렌더링
+        switch (fx.type) {
+          case NEW_FX_TYPES.JUMP_DUST:
+          case NEW_FX_TYPES.AFFINITY_DOWN:
+            ctx.fillStyle = fx.color
+            ctx.beginPath()
+            ctx.arc(0, 0, fx.size / 2, 0, Math.PI * 2)
+            ctx.fill()
+            break
+          case NEW_FX_TYPES.HEART_RISE:
+          case NEW_FX_TYPES.AFFINITY_UP:
+            ctx.font = `${fx.size}px Arial`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('❤️', 0, 0)
+            break
+          case NEW_FX_TYPES.CLICK_RIPPLE:
+            ctx.strokeStyle = fx.color
+            ctx.lineWidth = 2
+            ctx.globalAlpha = fx.opacity * 0.5
+            ctx.beginPath()
+            ctx.arc(0, 0, fx.size / 2, 0, Math.PI * 2)
+            ctx.stroke()
+            break
+          case NEW_FX_TYPES.LOADING:
+            ctx.strokeStyle = fx.color
+            ctx.lineWidth = 2
+            ctx.globalAlpha = fx.opacity
+            ctx.beginPath()
+            ctx.arc(0, 0, fx.size / 2, 0, Math.PI * 2)
+            ctx.stroke()
+            break
+          case NEW_FX_TYPES.PARTICLE_BURST:
+            ctx.fillStyle = fx.color
+            ctx.beginPath()
+            ctx.arc(0, 0, fx.size / 2, 0, Math.PI * 2)
+            ctx.fill()
+            break
+        }
+        
+        ctx.restore()
+      })
 
-      requestAnimationFrame(render)
+      renderLoopId = requestAnimationFrame(render)
     }
     
-    render()
+    let renderLoopId = requestAnimationFrame(render)
+
+    // Cleanup: 이전 렌더 루프 취소 (중복 방지!)
+    return () => {
+      cancelAnimationFrame(renderLoopId)
+    }
   }, [myCharacter, characters, chatMessages, affinities, clickEffects, buildings, animatedCharacters, isSpritesLoaded, spriteSheets, weather])
 
   // 캐릭터 클릭 핸들러
@@ -638,6 +736,9 @@ function GameCanvas({
     // 클릭 좌표를 맵 좌표로 변환
     const mapX = clickX / scale
     const mapY = clickY / scale
+
+    // 클릭 리플 FX 효과 추가
+    fxSystemRef.current.addClickRipple(mapX, mapY, '#4CAF50')
 
     // 캐릭터 클릭 감지
     let clickedCharacter = null

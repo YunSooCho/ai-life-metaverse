@@ -640,5 +640,62 @@ Tests  41 passed (41)
 
 ---
 
-**마지막 업데이트:** 2026-02-17 16:00
+---
+
+## 2026-02-17 19:30 업데이트: Issue #60 완료 - Press Start 2P 폰트 적용
+
+**Issue:** #60 [feat] 픽셀 아트 폰트 적용 - Press Start 2P 폰트 연동
+
+### 완료 상태:
+- ✅ **Issue #60 Closed**
+- ✅ **테스트 4개 전부 통과**
+
+### 작업 내용:
+
+#### 1. Google Fonts 로드 최적화
+**문제:** pixel-theme.css에서 `@import`로 폰트 로드 → 성능 저하 (순차 로드)
+**해결:** index.html에 `<link>` 태그로 병렬 로드 → 성능 향상
+
+**수정 파일: `frontend/index.html`**
+```html
+<!-- 추가 내용 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+```
+
+**수정 파일: `frontend/src/styles/pixel-theme.css`**
+```css
+/* 기존 */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* 수정 */
+/* Press Start 2P 폰트는 index.html에서 <link>로 로드됨 (별도 @import 불필요) */
+```
+
+#### 2. 테스트 코드 작성
+**파일:** `frontend/src/tests/font-apply.test.jsx`
+
+**테스트 개수:** 4개
+- Google Fonts가 CSS에 정의되어 있어야 함
+- 주요 UI 요소에 pixel-font 클래스가 적용되어야 함
+- pixel-font 클래스가 존재해야 함
+- Press Start 2P 폰트 family가 정의되어 있어야 함
+
+**테스트 결과:**
+```
+✓ src/tests/font-apply.test.jsx (4 tests) 26ms
+
+Test Files  1 passed (1)
+Tests  4 passed (4)
+```
+
+### 수정 파일:
+- `frontend/index.html` (Google Fonts `<link>` 추가)
+- `frontend/src/styles/pixel-theme.css` (중복 `@import` 제거)
+- `frontend/src/tests/font-apply.test.jsx` (신규)
+
+---
+
+**마지막 업데이트:** 2026-02-17 19:30
 **PM:** 지니 (Genie) 🧞

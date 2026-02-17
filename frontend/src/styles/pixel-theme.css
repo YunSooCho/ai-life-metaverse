@@ -2,7 +2,7 @@
    AI Life Metaverse - Pixel Art Theme (レトロスタイル)
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* Press Start 2P 폰트는 index.html에서 <link>로 로드됨 (별도 @import 불필요) */
 
 /* ============================================
    PLIXEL COLOR PALETTE (32色限定)

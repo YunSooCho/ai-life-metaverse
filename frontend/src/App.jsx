@@ -772,6 +772,16 @@ function AppContent() {
     else if (clickGridY < currentGridY) dy = -1
 
     if (dx !== 0 || dy !== 0) {
+      // 점프 dust FX 효과
+      const dustX = myCharacter.x + (dx * CHARACTER_SIZE / 2)
+      const dustY = myCharacter.y + (dy * CHARACTER_SIZE / 2)
+      setClickEffects(prev => [...prev, {
+        x: dustX,
+        y: dustY,
+        timestamp: Date.now(),
+        type: 'dust'
+      }])
+      
       moveCharacter(dx, dy)
     }
   }
