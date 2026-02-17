@@ -129,19 +129,20 @@ function GameCanvas({
   useEffect(() => {
     const loadSprites = async () => {
       try {
+        // 스프라이트 파일은 /images/sprites/ 폴더에 있으므로 sprites/ 접두사 필요
         const characterSprite = await spriteLoader.loadSpriteSheet(
-          'character/RPGCharacterSprites32x32.svg',
+          'sprites/character/RPGCharacterSprites32x32.svg',
           'character'
         )
-        
+
         // 건물 스프라이트 로드 (하나의 파일로 로드)
         let buildingSprite = null
         try {
-          buildingSprite = await spriteLoader.loadSpriteSheet('buildings/buildings.svg', 'buildings')
+          buildingSprite = await spriteLoader.loadSpriteSheet('sprites/buildings/buildings.svg', 'buildings')
         } catch (e) {
           console.warn('Failed to load building sprite:', e)
         }
-        
+
         // 타일맵 스프라이트 로드
         let tileSprite = null
         try {
@@ -149,7 +150,7 @@ function GameCanvas({
         } catch (e) {
           console.warn('Failed to load tile sprite:', e)
         }
-        
+
         // 입장 하이라이트 스프라이트 로드
         let entranceSprite = null
         try {
@@ -475,6 +476,7 @@ function GameCanvas({
         const x = animatedChar.x * scale
         const y = animatedChar.y * scale
         const { color, emoji, name, isAi, isConversing } = char
+        const displayName = name || '익명'  // Fallback: name이 undefined이면 '익명' 표시
         const direction = characterDirections.current[char.id] || 'idle'
         const timestamp = performance.now()
 
@@ -518,7 +520,7 @@ function GameCanvas({
         ctx.shadowBlur = 2
         ctx.shadowOffsetX = 1
         ctx.shadowOffsetY = 1
-        ctx.fillText(name, x, y - CHARACTER_SIZE_SCALED / 2)
+        ctx.fillText(displayName, x, y - CHARACTER_SIZE_SCALED / 2)
         ctx.shadowBlur = 0
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 0

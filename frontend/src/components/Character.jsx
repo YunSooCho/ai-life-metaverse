@@ -13,6 +13,7 @@ export default function Character({ char, myCharacterId, affinities, chatMessage
   const scaledX = x * scale
   const scaledY = y * scale
   const CHARACTER_SIZE_SCALED = CHARACTER_SIZE * scale
+  const displayName = name || '익명'  // Fallback: name이 undefined이면 '익명' 표시
 
   return (
     <>
@@ -42,7 +43,7 @@ export default function Character({ char, myCharacterId, affinities, chatMessage
         fill="#ffffff"
         textAnchor="middle"
       >
-        {name}
+        {displayName}
       </text>
       {isAi && (
         <text

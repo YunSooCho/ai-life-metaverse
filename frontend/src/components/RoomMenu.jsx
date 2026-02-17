@@ -1,6 +1,16 @@
 import PropTypes from 'prop-types'
 
-export default function RoomMenu({ show, rooms, currentRoom, onJoinRoom, onCreateRoom, onClose }) {
+// JavaScript default parameters로 defaultProps 마이그레이션 (React 18 권장 사항)
+// defaultProps는 폐기 예정이므로 함수 매개변수 기본값 사용
+
+export default function RoomMenu({ 
+  show, 
+  rooms = [], 
+  currentRoom = null, 
+  onJoinRoom, 
+  onCreateRoom, 
+  onClose 
+}) {
   if (!show) return null
 
   return (
@@ -45,7 +55,8 @@ export default function RoomMenu({ show, rooms, currentRoom, onJoinRoom, onCreat
 
         <div className="room-list pixel-scroll">
           {rooms.map((room) => {
-            const isActive = room.id === currentRoom
+            // currentRoom이 object인 경우 id 속성으로 비교
+            const isActive = currentRoom ? room.id === currentRoom.id : false
             const memberCount = room.members?.length || 0
 
             return (
@@ -67,6 +78,7 @@ export default function RoomMenu({ show, rooms, currentRoom, onJoinRoom, onCreat
   )
 }
 
+// currentRoom은 object 타입 (id, name 속성 포함)
 RoomMenu.propTypes = {
   show: PropTypes.bool.isRequired,
   rooms: PropTypes.arrayOf(
@@ -76,13 +88,13 @@ RoomMenu.propTypes = {
       members: PropTypes.array
     })
   ).isRequired,
-  currentRoom: PropTypes.string,
+  currentRoom: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired
+  }),
   onJoinRoom: PropTypes.func.isRequired,
   onCreateRoom: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired
 }
 
-RoomMenu.defaultProps = {
-  currentRoom: null,
-  rooms: []
-}
+// defaultProps 제거 - JavaScript default parameters 사용 (React 18 호환성)

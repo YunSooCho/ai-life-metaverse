@@ -39,7 +39,6 @@ function App() {
   const [rooms, setRooms] = useState([])
   const [currentRoom, setCurrentRoom] = useState({ id: 'main', name: '메인 광장' })
   const [showRoomMenu, setShowRoomMenu] = useState(false)
-  const [newRoomName, setNewRoomName] = useState('')
   const [interactionMenu, setInteractionMenu] = useState({
     show: false,
     targetCharacter: null,
@@ -392,14 +391,13 @@ function App() {
     }
   }
 
-  const handleCreateRoom = () => {
-    if (newRoomName.trim()) {
+  const handleCreateRoom = (roomName) => {
+    if (roomName && roomName.trim()) {
       const roomId = `room-${Date.now()}`
       socket.emit('createRoom', {
         roomId,
-        name: newRoomName
+        name: roomName.trim()
       })
-      setNewRoomName('')
       setShowRoomMenu(false)
     }
   }
@@ -891,11 +889,9 @@ function App() {
         show={showRoomMenu}
         rooms={rooms}
         currentRoom={currentRoom}
-        onChangeRoom={handleChangeRoom}
+        onJoinRoom={handleChangeRoom}
         onClose={() => setShowRoomMenu(false)}
         onCreateRoom={handleCreateRoom}
-        newRoomName={newRoomName}
-        onNewRoomNameChange={setNewRoomName}
       />
 
       {showEventLog && (
