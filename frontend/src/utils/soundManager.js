@@ -66,6 +66,10 @@ class SoundManager {
 
       // 오디오 파일 로드
       const response = await fetch(bgmUrl)
+      if (!response.ok) {
+        console.warn(`BGM 파일을 찾을 수 없음: ${bgmUrl}`)
+        return
+      }
       const arrayBuffer = await response.arrayBuffer()
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
 
@@ -83,7 +87,8 @@ class SoundManager {
 
       console.log('BGM 재생:', bgmUrl)
     } catch (error) {
-      console.error('BGM 재생 실패:', error)
+      // 오디오 파일이 없거나 코덱 문제로 silent fail
+      console.warn(`BGM 파일 로드 실패: ${bgmUrl}. 무시하고 계속합니다.`)
     }
   }
 
@@ -112,6 +117,10 @@ class SoundManager {
 
     try {
       const response = await fetch(sfxUrl)
+      if (!response.ok) {
+        console.warn(`SFX 파일을 찾을 수 없음: ${sfxUrl}`)
+        return
+      }
       const arrayBuffer = await response.arrayBuffer()
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
 
@@ -121,7 +130,7 @@ class SoundManager {
       source.connect(this.sfxGainNode)
       source.start(0)
     } catch (error) {
-      console.error('SFX 재생 실패:', error)
+      console.warn(`SFX 파일 로드 실패: ${sfxUrl}. 무시하고 계속합니다.`)
     }
   }
 
@@ -136,6 +145,10 @@ class SoundManager {
 
     try {
       const response = await fetch(voiceUrl)
+      if (!response.ok) {
+        console.warn(`Voice 파일을 찾을 수 없음: ${voiceUrl}`)
+        return
+      }
       const arrayBuffer = await response.arrayBuffer()
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
 
@@ -146,7 +159,7 @@ class SoundManager {
       source.connect(this.voiceGainNode)
       source.start(0)
     } catch (error) {
-      console.error('Voice 재생 실패:', error)
+      console.warn(`Voice 파일 로드 실패: ${voiceUrl}. 무시하고 계속합니다.`)
     }
   }
 

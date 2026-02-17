@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-export default function Toast({ message, type, show, onClose }) {
+export default function Toast({ message = '', type = 'info', show, onClose = null }) {
   if (!show || !message) return null
 
   const getToastClass = () => {
@@ -27,10 +27,4 @@ Toast.propTypes = {
   type: PropTypes.oneOf(['success', 'warning', 'info']),
   show: PropTypes.bool.isRequired,
   onClose: PropTypes.func
-}
-
-Toast.defaultProps = {
-  message: '',
-  type: 'info',
-  onClose: null
 }

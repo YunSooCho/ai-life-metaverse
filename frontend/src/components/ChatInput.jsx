@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import { useRef, useEffect } from 'react'
 
-export default function ChatInput({ value, onChange, onSubmit, disabled }) {
+export default function ChatInput({ value, onChange, onSubmit, disabled = false }) {
   const textareaRef = useRef(null)
   const MAX_HEIGHT = 120
 
@@ -58,8 +58,4 @@ ChatInput.propTypes = {
   onChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   disabled: PropTypes.bool
-}
-
-ChatInput.defaultProps = {
-  disabled: false
 }

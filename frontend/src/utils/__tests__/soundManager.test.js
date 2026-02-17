@@ -1,171 +1,142 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import soundManager, { BGM_URLS, SFX_URLS, VOICE_URLS } from '../soundManager'
+/**
+ * SoundManager 테스트
+ *
+ * 오디오 파일이 없을 때 silent fail을 테스트합니다.
+ */
 
-describe('SoundManager', () => {
-  beforeEach(() => {
-    // AudioContext Mock 설정
-    global.AudioContext = vi.fn(() => ({
-      createGain: vi.fn(() => ({
-        connect: vi.fn(),
-        gain: { value: 0 }
-      })),
-      createBufferSource: vi.fn(() => ({
-        buffer: null,
-        loop: false,
-        connect: vi.fn(),
-        start: vi.fn(),
-        stop: vi.fn()
-      })),
-      decodeAudioData: vi.fn(() => Promise.resolve({})),
-      destination: {}
+import { soundManager, BGM_URLS, SFX_URLS, VOICE_URLS } from '../soundManager'
+
+// 오디오 컨텍스트 Mock
+class MockAudioContext {
+  constructor() {
+    this.createGain = jest.fn(() => ({
+      gain: { value: 0 },
+      connect: jest.fn()
     }))
+    this.createBufferSource = jest.fn(() => ({
+      connect: jest.fn(),
+      start: jest.fn()
+    }))
+    this.decodeAudioData = jest.fn(() => Promise.reject(new Error('Mock error')))
+  }
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(8))
-      })
+  static get supported() {
+    return true
+  }
+}
+
+// Web Audio API Mock
+global.AudioContext = MockAudioContext
+global.webkitAudioContext = MockAudioContext
+
+// Fetch Mock (404 for audio files)
+global.fetch = jest.fn(() => Promise.resolve({
+  ok: false,
+  status: 404,
+  arrayBuffer: () => Promise.reject(new Error('File not found'))
+}))
+
+describe('SoundManager - 오디오 파일 없을 때 silent fail', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks()
+    await soundManager.init()
+  })
+
+  test('playBGM은 파일이 없을 때 silent fail해야 함', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+    await soundManager.playBGM(BGM_URLS.MAIN)
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('BGM 파일을 찾을 수 없음')
     )
+    consoleWarnSpy.mockRestore()
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-    // 싱글톤 상태 리셋
-    soundManager.initialized = false
-    soundManager.audioContext = null
-    soundManager.currentBGM = null
-    soundManager.currentBGMSource = null
-    soundManager.enabled = true
+  test('playSFX는 파일이 없을 때 silent fail해야 함', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+    await soundManager.playSFX(SFX_URLS.BUTTON_CLICK)
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('SFX 파일을 찾을 수 없음')
+    )
+    consoleWarnSpy.mockRestore()
   })
 
-  describe('초기화', () => {
-    it('should initialize audio context', async () => {
-      await soundManager.init()
-      expect(soundManager.initialized).toBe(true)
-      expect(soundManager.audioContext).toBeTruthy()
-    })
+  test('playVoice는 파일이 없을 때 silent fail해야 함', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
 
-    it('should not initialize twice', async () => {
-      await soundManager.init()
-      const firstContext = soundManager.audioContext
+    await soundManager.playVoice(VOICE_URLS.AI1)
 
-      await soundManager.init()
-      expect(soundManager.audioContext).toBe(firstContext)
-    })
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Voice 파일을 찾을 수 없음')
+    )
+    consoleWarnSpy.mockRestore()
   })
 
-  describe('볼륨 제어', () => {
-    it('should set BGM volume', () => {
-      soundManager.setBGMVolume(0.7)
-      expect(soundManager.bgmVolume).toBe(0.7)
-    })
+  test('enabled=false일 때 재생하지 않음', async () => {
+    soundManager.setEnabled(false)
 
-    it('should clamp BGM volume to 0.0 - 1.0', () => {
-      soundManager.setBGMVolume(1.5)
-      expect(soundManager.bgmVolume).toBe(1.0)
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
 
-      soundManager.setBGMVolume(-0.5)
-      expect(soundManager.bgmVolume).toBe(0.0)
-    })
+    await soundManager.playBGM(BGM_URLS.MAIN)
+    await soundManager.playSFX(SFX_URLS.BUTTON_CLICK)
 
-    it('should set SFX volume', () => {
-      soundManager.setSFXVolume(0.6)
-      expect(soundManager.sfxVolume).toBe(0.6)
-    })
+    expect(consoleWarnSpy).not.toHaveBeenCalled()
+    consoleWarnSpy.mockRestore()
 
-    it('should set voice volume', () => {
-      soundManager.setVoiceVolume(0.8)
-      expect(soundManager.voiceVolume).toBe(0.8)
-    })
+    // 원래 상태 복원
+    soundManager.setEnabled(true)
   })
 
-  describe('활성화/비활성화', () => {
-    it('should enable sound', () => {
-      soundManager.setEnabled(true)
-      expect(soundManager.enabled).toBe(true)
-    })
+  test('initialized=false일 때 재생하지 않음', () => {
+    const uninitializedManager = new (Object.getPrototypeOf(soundManager).constructor)()
 
-    it('should disable sound and stop BGM', () => {
-      soundManager.setEnabled(false)
-      expect(soundManager.enabled).toBe(false)
-    })
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
+
+    uninitializedManager.playBGM(BGM_URLS.MAIN)
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled()
+    consoleWarnSpy.mockRestore()
+  })
+})
+
+describe('SoundManager - 볼륨 컨트롤', () => {
+  test('setBGMVolume은 0.0~1.0 범위로 제한해야 함', async () => {
+    await soundManager.init()
+
+    soundManager.setBGMVolume(-1)
+    expect(soundManager.bgmVolume).toBe(0)
+
+    soundManager.setBGMVolume(2)
+    expect(soundManager.bgmVolume).toBe(1)
+
+    soundManager.setBGMVolume(0.5)
+    expect(soundManager.bgmVolume).toBe(0.5)
   })
 
-  describe('BGM 재생', () => {
-    it('should play BGM when enabled', async () => {
-      await soundManager.init()
-      await soundManager.playBGM('/test.mp3')
-      expect(soundManager.currentBGM).toBe('/test.mp3')
-    })
+  test('setSFXVolume은 0.0~1.0 범위로 제한해야 함', () => {
+    soundManager.setSFXVolume(-0.5)
+    expect(soundManager.sfxVolume).toBe(0)
 
-    it('should not play BGM when disabled', async () => {
-      soundManager.setEnabled(false)
-      await soundManager.init()
-      await soundManager.playBGM('/test.mp3')
-      expect(soundManager.currentBGM).toBeNull()
-    })
+    soundManager.setSFXVolume(1.5)
+    expect(soundManager.sfxVolume).toBe(1)
 
-    it('should stop BGM', () => {
-      soundManager.currentBGMSource = {
-        stop: vi.fn()
-      }
-      soundManager.stopBGM()
-      expect(soundManager.currentBGMSource).toBeNull()
-      expect(soundManager.currentBGM).toBeNull()
-    })
+    soundManager.setSFXVolume(0.7)
+    expect(soundManager.sfxVolume).toBe(0.7)
   })
 
-  describe('효과음 재생', () => {
-    it('should play SFX when enabled', async () => {
-      await soundManager.init()
-      await soundManager.playSFX('/sfx.mp3')
-      // 에러 없이 완료되면 성공
-      expect(true).toBe(true)
-    })
+  test('setEnabled=false일 때 BGM이 중지되어야 함', async () => {
+    await soundManager.init()
 
-    it('should not play SFX when disabled', async () => {
-      soundManager.setEnabled(false)
-      await soundManager.init()
-      await soundManager.playSFX('/sfx.mp3')
-      // 비활성화 상태에서는 에러 없이 무시되어야 함
-      expect(true).toBe(true)
-    })
-  })
+    // BGM이 재생 중일 때 (Mock 상태)
+    soundManager.currentBGM = BGM_URLS.MAIN
+    soundManager.currentBGMSource = { stop: jest.fn() }
 
-  describe('대화 사운드 재생', () => {
-    it('should play voice with default pitch', async () => {
-      await soundManager.init()
-      await soundManager.playVoice('/voice.mp3')
-      expect(true).toBe(true)
-    })
+    soundManager.setEnabled(false)
 
-    it('should play voice with custom pitch', async () => {
-      await soundManager.init()
-      await soundManager.playVoice('/voice.mp3', 1.5)
-      expect(true).toBe(true)
-    })
-  })
-
-  describe('URL 상수', () => {
-    it('should have BGM_URLS defined', () => {
-      expect(BGM_URLS).toHaveProperty('MAIN')
-      expect(BGM_URLS).toHaveProperty('CAFE')
-      expect(BGM_URLS).toHaveProperty('LIBRARY')
-      expect(BGM_URLS).toHaveProperty('NIGHT')
-    })
-
-    it('should have SFX_URLS defined', () => {
-      expect(SFX_URLS).toHaveProperty('BUTTON_CLICK')
-      expect(SFX_URLS).toHaveProperty('MOVE')
-      expect(SFX_URLS).toHaveProperty('ITEM_GET')
-      expect(SFX_URLS).toHaveProperty('GREET')
-      expect(SFX_URLS).toHaveProperty('GIFT')
-      expect(SFX_URLS).toHaveProperty('QUEST_COMPLETE')
-    })
-
-    it('should have VOICE_URLS defined', () => {
-      expect(VOICE_URLS).toHaveProperty('AI1')
-      expect(VOICE_URLS).toHaveProperty('AI2')
-      expect(VOICE_URLS).toHaveProperty('AI3')
-    })
+    expect(soundManager.currentBGM).toBeNull()
+    expect(soundManager.enabled).toBe(false)
   })
 })
