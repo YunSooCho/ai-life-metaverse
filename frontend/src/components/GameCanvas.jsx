@@ -6,6 +6,16 @@ import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
 import tilemapData from '../data/tilemap.json'
 import {
+  renderEmotionEmoji,
+  getEmotionFromAffinity
+} from '../utils/emojiSprite'
+import {
+  createFxParticle,
+  renderFx,
+  getFxForAffinityChange,
+  FX_TYPES
+} from '../utils/effects'
+import {
   getGameHour,
   getGameMinute,
   generateRandomWeather,
@@ -115,6 +125,8 @@ function GameCanvas({
   const gameStartTime = useRef(Date.now())
   const weatherParticlesRef = useRef([])
   const lastWeatherChange = useRef(Date.now())
+  const fxParticlesRef = useRef([])
+  const prevAffinitiesRef = useRef({})
 
   // 날씨 변경 (5 게임 시간마다 = 5분)
   useEffect(() => {
@@ -550,6 +562,22 @@ function GameCanvas({
           ctx.shadowBlur = 0
         }
 
+        // 감정 이모지 렌더링 (호감도 기반)
+        if (char.id !== myCharacter.id && affinity !== undefined) {
+          const emotion = char.emotion || getEmotionFromAffinity(affinity)
+          renderEmotionEmoji(ctx, emotion, x, y - CHARACTER_SIZE_SCALED / 2, scale, performance.now())
+        }
+
+        // 호감도 변화 FX 감지
+        const prevAff = prevAffinitiesRef.current[char.id] || 0
+        if (affinity !== prevAff && char.id !== myCharacter.id) {
+          const fxType = getFxForAffinityChange(affinity - prevAff)
+          if (fxType) {
+            fxParticlesRef.current.push(createFxParticle(fxType, x / scale, y / scale))
+          }
+          prevAffinitiesRef.current[char.id] = affinity
+        }
+
         // 채팅 버블 렌더링
         const chatData = chatMessages[char.id] || (char.id === myCharacter.id ? chatMessages[myCharacter.id] : null)
 
@@ -602,6 +630,9 @@ function GameCanvas({
           ctx.shadowBlur = 0
         }
       })
+
+      // FX 파티클 렌더링
+      fxParticlesRef.current = fxParticlesRef.current.filter(fx => renderFx(ctx, fx, scale))
 
       requestAnimationFrame(render)
     }

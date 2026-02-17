@@ -14,6 +14,11 @@
 | `sprite_id` | 픽셀아트 스프라이트 ID (2026-02-16) | character_yuri.png |
 | `sprite_palette` | 색상 팔레트 ID (2026-02-16) | palette_default |
 
+**Name Fallback (2026-02-17):**
+- `name`이 `undefined` 또는 `null`이면 UI에 "익명"으로 표시
+- Character.jsx와 GameCanvas.jsx에서 `name || '익명'` 적용
+- Issue #37 해결
+
 ---
 
 ## 🎨 픽셀아트 스프라이트 시스템 (Pixel Art Sprite System) - 2026-02-16

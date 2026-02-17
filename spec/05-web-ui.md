@@ -489,6 +489,19 @@ const buildingSources = {
 - 내용: 방 이름 (픽셀 폰트 14px)
 - "방 만들기" 버튼: 픽셀 버튼
 
+**Props (2026-02-17 업데이트):**
+- `show` (boolean): 표시 여부
+- `rooms` (array): 방 목록
+- `currentRoom` (object): 현재 방 `{ id, name }` - **타입 변경: string → object**
+- `onJoinRoom` (func): 방 입장 핸들러
+- `onCreateRoom` (func): 방 생성 핸들러
+- `onClose` (func): 닫기 핸들러
+
+**버그 수정 (2026-02-17, Issue #39):**
+- currentRoom 타입: PropTypes.string → PropTypes.shape({ id, name })
+- defaultProps 제거 → JavaScript default parameters 사용 (React 18 호환성)
+- isActive 계산: `room.id === currentRoom` → `room.id === currentRoom.id`
+
 ### 10. AffinityDisplay - 픽셀 하트/호감도
 - 하트: 16x16 픽셀 하트 스프라이트
 - 색상:
