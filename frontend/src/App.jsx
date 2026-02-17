@@ -13,14 +13,18 @@ import MiniMap from './components/MiniMap'
 import Inventory from './components/Inventory'
 import Reward from './components/Reward'
 import Quest from './components/Quest'
+import LanguageSelector from './components/LanguageSelector'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
+import { I18nProvider, useI18n } from './i18n/I18nContext'
 
 const MAP_SIZE = { width: 1000, height: 700 }
 const CHARACTER_SIZE = 40
 const CELL_SIZE = 50
 
-function App() {
+function AppContent() {
+  const { t, language } = useI18n()
+
   const [myCharacter, setMyCharacter] = useState({
     id: 'player',
     name: '플레이어',
@@ -757,14 +761,15 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>🧞 AI 라이프 POC</h1>
+        <h1>{t('app.title')}</h1>
         <div className="stats">
-          <span>나: {myCharacter.name}</span>
-          <span>방: {currentRoom.name}</span>
-          <span>다른 캐릭터: {Object.keys(characters).length}</span>
-          <span>연결 상태: {socket.connected ? '✅' : '❌'}</span>
+          <span>{t('ui.tabs.profile')}: {myCharacter.name}</span>
+          <span>{currentRoom.name}</span>
+          <span>{Object.keys(characters).length}</span>
+          <span>{socket.connected ? '✅' : '❌'}</span>
         </div>
         <div className="room-controls">
+          <LanguageSelector />
           <button
             className="room-button"
             onClick={() => setShowRoomMenu(prev => !prev)}

@@ -376,3 +376,6 @@ Re-optimizing dependencies because vite config has changed
 9:31:52 AM [vite] hmr update /src/components/MiniMap.jsx
 9:31:53 AM [vite] hmr update /src/components/MiniMap.jsx
 9:31:55 AM [vite] hmr update /src/App.jsx
+10:01:11 AM [vite] hmr update /src/App.jsx
+10:01:14 AM [vite] hmr update /src/App.jsx
+10:01:15 AM [vite] hmr update /src/App.jsx
