@@ -372,3 +372,7 @@ Re-optimizing dependencies because vite config has changed
 9:30:18 AM [vite] hmr update /src/components/GameCanvas.jsx
 9:30:19 AM [vite] hmr update /src/components/GameCanvas.jsx
 9:30:26 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:31:43 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:52 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:53 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:55 AM [vite] hmr update /src/App.jsx

@@ -9,6 +9,7 @@ function MiniMap({
   myCharacter,
   characters,
   buildings,
+  weather,
   onClick
 }) {
   const canvasRef = useRef(null)
@@ -138,11 +139,25 @@ function MiniMap({
       ctx.lineWidth = 2
       ctx.stroke()
 
+      // 날씨 아이콘 표시 (우상단)
+      if (weather) {
+        ctx.font = '20px Arial'
+        ctx.textAlign = 'right'
+        ctx.textBaseline = 'top'
+        const weatherIcons = {
+          CLEAR: '☀️',
+          CLOUDY: '☁️',
+          RAIN: '🌧️',
+          SNOW: '❄️'
+        }
+        ctx.fillText(weatherIcons[weather] || '☀️', canvas.width - 5, 5)
+      }
+
       requestAnimationFrame(render)
     }
 
     render()
-  }, [myCharacter, characters, buildings])
+  }, [myCharacter, characters, buildings, weather])
 
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current
@@ -208,6 +223,7 @@ MiniMap.propTypes = {
       color: PropTypes.string.isRequired
     })
   ).isRequired,
+  weather: PropTypes.oneOf(['CLEAR', 'CLOUDY', 'RAIN', 'SNOW']),
   onClick: PropTypes.func.isRequired
 }
 

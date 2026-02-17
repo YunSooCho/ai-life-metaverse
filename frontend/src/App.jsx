@@ -826,6 +826,7 @@ function App() {
         myCharacter={myCharacter}
         characters={characters}
         buildings={buildings}
+        weather={weather?.type || 'CLEAR'}
         onClick={handleMiniMapClick}
       />
       <ChatInput
