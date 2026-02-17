@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['frontend/src/**/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}', 'frontend/src/utils/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}', 'shared/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}'],
+    include: ['tests/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}', 'frontend/src/**/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}', 'frontend/src/utils/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}', 'shared/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}'],
     setupFiles: ['./frontend/src/__tests__/setup.js'],
   }
 })

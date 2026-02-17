@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import Character from './Character'
 import ChatBubble from './ChatBubble'
+import CharacterProfile from './CharacterProfile'
 import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
 import tilemapData from '../data/tilemap.json'
@@ -119,6 +120,7 @@ function GameCanvas({
   const [spriteSheets, setSpriteSheets] = useState({})
   const [isSpritesLoaded, setIsSpritesLoaded] = useState(false)
   const [weather, setWeather] = useState(WEATHER_TYPES.CLEAR)
+  const [selectedCharacter, setSelectedCharacter] = useState(null)
   const animationRef = useRef(null)
   const lastTimeRef = useRef(0)
   const characterDirections = useRef({})
@@ -640,13 +642,74 @@ function GameCanvas({
     render()
   }, [myCharacter, characters, chatMessages, affinities, clickEffects, buildings, animatedCharacters, isSpritesLoaded, spriteSheets, weather])
 
+  // 캐릭터 클릭 핸들러
+  const handleCanvasClick = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const clickY = e.clientY - rect.top
+
+    const container = canvas.parentElement
+    const containerWidth = container.clientWidth
+    const containerHeight = container.clientHeight
+    const scale = Math.min(containerWidth / MAP_SIZE.width, containerHeight / MAP_SIZE.height)
+
+    // 클릭 좌표를 맵 좌표로 변환
+    const mapX = clickX / scale
+    const mapY = clickY / scale
+
+    // 캐릭터 클릭 감지
+    let clickedCharacter = null
+    const clickDistanceThreshold = 25 // 클릭 반경
+
+    // 내 클릭 처리 (기존 onClick)
+    if (onClick) {
+      onClick(e)
+    }
+
+    // 다른 캐릭터 클릭 감지
+    for (const [id, char] of Object.entries(characters)) {
+      const distance = Math.sqrt(Math.pow(char.x - mapX, 2) + Math.pow(char.y - mapY, 2))
+      if (distance < clickDistanceThreshold) {
+        clickedCharacter = char
+        break
+      }
+    }
+
+    if (clickedCharacter && clickedCharacter.id !== myCharacter.id) {
+      setSelectedCharacter(clickedCharacter)
+    } else {
+      setSelectedCharacter(null)
+    }
+  }, [canvasRef, characters, myCharacter, onClick])
+
+  // 프로필 닫기 핸들러
+  const handleCloseProfile = useCallback(() => {
+    setSelectedCharacter(null)
+  }, [])
+
   return (
-    <div className="canvas-container">
+    <div className="canvas-container" style={{ position: 'relative' }}>
       <canvas
         ref={canvasRef}
-        onClick={onClick}
-        onTouchStart={onClick}
+        onClick={handleCanvasClick}
+        onTouchStart={handleCanvasClick}
       />
+      {/* 캐릭터 프로필 카드 */}
+      {selectedCharacter && (
+        <CharacterProfile
+          character={selectedCharacter}
+          affinity={affinities[myCharacter.id]?.[selectedCharacter.id] || 0}
+          isVisible={true}
+          onClose={handleCloseProfile}
+          scale={scale}
+        />
+      )}
     </div>
   )
 }
