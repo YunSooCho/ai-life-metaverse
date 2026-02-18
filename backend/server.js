@@ -173,6 +173,25 @@ console.log('✅ AI 캐릭터 초기화:', aiCharacter2.name, '→', DEFAULT_ROO
 
 app.use(express.json())
 
+// 루트 경로 핸들러 (헬스 체크)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'AI Life Metaverse Backend Server',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  })
+})
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    rooms: Object.keys(rooms).length,
+    characters: Object.values(rooms).reduce((sum, room) => sum + Object.keys(room.characters).length, 0)
+  })
+})
+
 app.get('/api/events/:characterId', (req, res) => {
   const { characterId } = req.params
   const logs = eventLogs[characterId] || []

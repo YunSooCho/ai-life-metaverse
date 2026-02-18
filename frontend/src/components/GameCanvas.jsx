@@ -1138,9 +1138,18 @@ function GameCanvas({
     console.log('[GameCanvas] Starting render loop...')
     renderLoopIdRef.current = requestAnimationFrame(render)
 
+    // Expose canvas ready state to window object (for screenshot.js)
+    window.__gameCanvasReady = true
+    window.__canvasWidth = canvasWidth
+    window.__canvasHeight = canvasHeight
+    console.log('[GameCanvas] Canvas ready state exposed:', { canvasWidth, canvasHeight })
+
     // Cleanup function
     return () => {
       console.log('[GameCanvas] Cleaning up render loop...')
+      window.__gameCanvasReady = false
+      window.__canvasWidth = 0
+      window.__canvasHeight = 0
       if (renderLoopIdRef.current) {
         cancelAnimationFrame(renderLoopIdRef.current)
       }

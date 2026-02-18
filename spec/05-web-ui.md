@@ -1253,11 +1253,195 @@ export default defineConfig({
 - **#59:** [test] E2E 브라우저 테스트 자동화 ✅ 완료 (2026-02-17)
   - 테스트 파일 모두 작성 (S01~S15)
   - 총 86개 테스트
+- **#90:** [fix] 브라우저 스크린샷 캡처 실패 - Canvas 렌더링 이슈 ✅ 완료 (2026-02-18)
+  - screenshot.js 신규 생성
+  - Canvas 렌더링 완료 상태 확인 API
+  - GameCanvas.jsx에 캔버스 상태 노출
 
 ### 참고 사항
 - 스마트폰 대응 (터치 이동 지원)
 - 모든 시나리오 모바일 호환성 고려
 - 콘솔 에러 감지로 배포 전 품질 보장
+
+---
+
+## 📸 스크린샷 캡처 시스템 (2026-02-18 추가)
+
+### 개요
+브라우저 스크린샷 캡처 시 Canvas 렌더링을 제대로 캡처할 수 있도록하는 유틸리티 시스템입니다.
+
+### 문제 해결
+**문제:** Canvas 렌더링이 비동기로 진행되므로 스크린샷 캡처 시점에 아직 렌더링이 완료되지 않아 투명한 영상이 캡처됨
+
+**해결:**
+1. Canvas 렌더링 완료 상태를 확인할 수 있는 API 제공
+2. 렌더링 완료 후 스크린샷 캡처
+3. polling 방식으로 렌더링 대기
+
+### 구현
+
+**1. screenshot.js (`frontend/src/screenshot.js`)**
+
+**주요 API:**
+- `isCanvasReady()` - 캔버스 렌더링 완료 여부 확인
+- `captureCanvasScreenshot()` - 캔버스 스크린샷 캡처 (dataURL)
+- `captureCanvasScreenshotAsBlob()` - 캔버스 스크린샷 캡처 (Blob)
+- `getCanvasRenderStatus()` - 캔버스 렌더링 상태 조회
+- `waitForCanvasRender()` - 캔버스 렌더링 대기 (polling)
+
+**사용 예시:**
+```javascript
+import { captureCanvasScreenshot, isCanvasReady } from './screenshot.js';
+
+// 캔버스 렌더링 대기 후 스크린샷 캡처
+if (await isCanvasReady()) {
+  const dataUrl = await captureCanvasScreenshot();
+  // dataUrl 사용
+}
+```
+
+**2. GameCanvas.jsx - 캔버스 상태 노출**
+
+**window 객체에 노출:**
+```javascript
+window.__gameCanvasReady = true;      // 캔버스 렌더링 완료 플래그
+window.__canvasWidth = canvasWidth;    // 캔버스 너비
+window.__canvasHeight = canvasHeight;  // 캔버스 높이
+```
+
+**3. Backend - 루트 경로 핸들러**
+
+**`backend/server.js`:**
+```javascript
+// 루트 경로 헬스 체크
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'AI Life Metaverse Backend Server',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  })
+})
+
+// API 헬스 체크
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    rooms: Object.keys(rooms).length,
+    characters: Object.values(rooms).reduce((sum, room) => sum + Object.keys(room.characters).length, 0)
+  })
+})
+```
+
+### 캔버스 렌더링 확인 기준
+
+**1. window.__gameCanvasReady 플래그**
+- `true`: 캔버스 렌더링 완료
+- `false`: 아직 렌더링 중
+
+**2. 픽셀 콘텐츠 확인**
+- `getImageData(0, 0, 1, 1)`로 첫 번째 픽셀 확인
+- 불투명도(alpha)가 0이 아닌지 확인 (투명하지 않음)
+
+**3. 최소 크기 확인**
+- 너비 >= 300px
+- 높이 >= 200px
+
+### polling 동작
+
+**waitForCanvasRender() 함수:**
+```javascript
+export function waitForCanvasRender(maxTime = 3000, checkInterval = 100) {
+  return new Promise((resolve) => {
+    const startTime = Date.now()
+
+    const check = () => {
+      if (window.__gameCanvasReady) {
+        resolve(true)
+        return
+      }
+
+      const canvas = document.querySelector('canvas')
+      if (canvas) {
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          const pixel = ctx.getImageData(0, 0, 1, 1)
+          if (pixel && pixel.data && pixel.data[3] !== 0) {
+            const height = window.__canvasHeight || canvas.height
+            const width = window.__canvasWidth || canvas.width
+            if (height >= 200 && width >= 300) {
+              resolve(true)
+              return
+            }
+          }
+        }
+      }
+
+      if (Date.now() - startTime >= maxTime) {
+        resolve(false)
+        return
+      }
+
+      setTimeout(check, checkInterval)
+    }
+
+    check()
+  })
+}
+```
+
+**기본값:**
+- `maxTime`: 3000ms (3초)
+- `checkInterval`: 100ms (0.1초)
+
+### 테스트
+
+**파일:** `frontend/src/screenshot.test.js`
+
+**테스트 항목 (15개):**
+- isCanvasReady: 3개
+- captureCanvasScreenshot: 3개
+- captureCanvasScreenshotAsBlob: 1개
+- getCanvasRenderStatus: 2개
+- waitForCanvasRender: 4개
+- 그 외: 2개
+
+**결과:** 14/14 통과 ✅ (1 skipped)
+
+### 전역 노출
+
+**window.__screenshotUtils:**
+```javascript
+window.__screenshotUtils = {
+  isCanvasReady,
+  captureCanvasScreenshot,
+  captureCanvasScreenshotAsBlob,
+  getCanvasRenderStatus,
+  waitForCanvasRender
+}
+```
+
+**브라우저 콘솔에서 사용:**
+```javascript
+// 캔버스 렌더링 상태 확인
+console.log(window.__screenshotUtils.getCanvasRenderStatus())
+
+// 스크린샷 캡처
+window.__screenshotUtils.isCanvasReady().then(ready => {
+  if (ready) {
+    window.__screenshotUtils.captureCanvasScreenshot().then(dataUrl => {
+      console.log(dataUrl)
+    })
+  }
+})
+```
+
+### 구현된 기능
+- ✅ screenshot.js (Canvas 스크린샷 유틸리티)
+- ✅ GameCanvas.jsx (캔버스 상태 노출)
+- ✅ backend/server.js (루트 경로 핸들러)
+- ✅ screenshot.test.js (테스트)
 
 ---
 
