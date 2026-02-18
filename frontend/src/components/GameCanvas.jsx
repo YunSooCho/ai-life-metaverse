@@ -682,45 +682,227 @@ function GameCanvas({
         ctx.fill()
 
         // PixelArtRenderer로 캐릭터 렌더링
-        // PixelArtRenderer: draw character using simple colored rectangles as fallback
+        // JRPG Chibi Style Character Renderer
         {
-          const charW = CHARACTER_SIZE_SCALED * 0.6
-          const charH = CHARACTER_SIZE_SCALED * 0.8
-          const charX = x - charW / 2
-          const charY = y - charH / 2 - (bounce * currentScale)
+          const s = CHARACTER_SIZE_SCALED
+          const bx = x  // center x
+          const by = y - (bounce * currentScale) // center y with bounce
           
-          // Body
           const bodyColor = isMyCharacter 
-            ? (characterCustomColor || '#4169E1')
-            : (isAi ? '#FF6347' : (color || '#4169E1'))
+            ? (characterCustomColor || '#4477DD')
+            : (isAi ? '#DD4455' : (color || '#4477DD'))
+          const hairColor = isMyCharacter ? '#2A1B0A' : (isAi ? '#CC6633' : '#2A1B0A')
+          const skinColor = '#FDDCB5'
+          const eyeWhite = '#FFFFFF'
+          const eyeColor = isAi ? '#CC3333' : '#443322'
+          const eyeHighlight = '#FFFFFF'
+          
+          // === JRPG Chibi proportions: big head (60%), small body (40%) ===
+          const headR = s * 0.32  // head radius (big!)
+          const headCX = bx
+          const headCY = by - s * 0.12
+          
+          // --- Body (small, rounded) ---
+          const bodyW = s * 0.28
+          const bodyH = s * 0.22
+          const bodyX = bx - bodyW / 2
+          const bodyY = by + s * 0.12
+          
+          // Body fill
           ctx.fillStyle = bodyColor
-          ctx.fillRect(charX + charW * 0.2, charY + charH * 0.4, charW * 0.6, charH * 0.5)
+          ctx.beginPath()
+          ctx.moveTo(bodyX + 3, bodyY)
+          ctx.lineTo(bodyX + bodyW - 3, bodyY)
+          ctx.quadraticCurveTo(bodyX + bodyW, bodyY, bodyX + bodyW, bodyY + 3)
+          ctx.lineTo(bodyX + bodyW, bodyY + bodyH - 2)
+          ctx.quadraticCurveTo(bodyX + bodyW, bodyY + bodyH, bodyX + bodyW - 3, bodyY + bodyH)
+          ctx.lineTo(bodyX + 3, bodyY + bodyH)
+          ctx.quadraticCurveTo(bodyX, bodyY + bodyH, bodyX, bodyY + bodyH - 2)
+          ctx.lineTo(bodyX, bodyY + 3)
+          ctx.quadraticCurveTo(bodyX, bodyY, bodyX + 3, bodyY)
+          ctx.fill()
           
-          // Head (skin color)
-          ctx.fillStyle = '#FFE4C4'
-          const headSize = charW * 0.5
-          ctx.fillRect(charX + (charW - headSize) / 2, charY + charH * 0.1, headSize, headSize)
+          // Body outline
+          ctx.strokeStyle = '#333333'
+          ctx.lineWidth = 1.5
+          ctx.stroke()
           
-          // Hair
-          const hairColor = isAi ? '#8B4513' : '#000000'
-          ctx.fillStyle = hairColor
-          ctx.fillRect(charX + (charW - headSize) / 2, charY + charH * 0.05, headSize, headSize * 0.3)
+          // Collar / shirt detail
+          ctx.fillStyle = '#FFFFFF'
+          ctx.beginPath()
+          ctx.moveTo(bx - bodyW * 0.2, bodyY)
+          ctx.lineTo(bx, bodyY + bodyH * 0.25)
+          ctx.lineTo(bx + bodyW * 0.2, bodyY)
+          ctx.fill()
           
-          // Eyes
-          ctx.fillStyle = '#000000'
-          const eyeSize = Math.max(2, charW * 0.08)
-          ctx.fillRect(charX + charW * 0.35, charY + charH * 0.22, eyeSize, eyeSize)
-          ctx.fillRect(charX + charW * 0.55, charY + charH * 0.22, eyeSize, eyeSize)
-          
-          // Legs
-          ctx.fillStyle = '#333333'
-          ctx.fillRect(charX + charW * 0.25, charY + charH * 0.85, charW * 0.2, charH * 0.15)
-          ctx.fillRect(charX + charW * 0.55, charY + charH * 0.85, charW * 0.2, charH * 0.15)
-          
-          // Outline
-          ctx.strokeStyle = '#222222'
+          // --- Arms (small stubs) ---
+          ctx.fillStyle = bodyColor
+          // Left arm
+          ctx.beginPath()
+          ctx.ellipse(bodyX - 2, bodyY + bodyH * 0.3, s * 0.06, s * 0.1, -0.2, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.strokeStyle = '#333333'
           ctx.lineWidth = 1
-          ctx.strokeRect(charX + charW * 0.2, charY + charH * 0.4, charW * 0.6, charH * 0.5)
+          ctx.stroke()
+          // Right arm
+          ctx.beginPath()
+          ctx.ellipse(bodyX + bodyW + 2, bodyY + bodyH * 0.3, s * 0.06, s * 0.1, 0.2, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.stroke()
+          
+          // --- Legs (short, chibi style) ---
+          const legW = s * 0.09
+          const legH = s * 0.1
+          // Left leg
+          ctx.fillStyle = '#555566'
+          ctx.beginPath()
+          ctx.ellipse(bx - legW * 1.1, bodyY + bodyH + legH * 0.4, legW, legH, 0, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.strokeStyle = '#333333'
+          ctx.lineWidth = 1
+          ctx.stroke()
+          // Right leg
+          ctx.beginPath()
+          ctx.ellipse(bx + legW * 1.1, bodyY + bodyH + legH * 0.4, legW, legH, 0, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.stroke()
+          
+          // Shoes
+          ctx.fillStyle = '#8B4513'
+          ctx.beginPath()
+          ctx.ellipse(bx - legW * 1.1, bodyY + bodyH + legH * 0.8, legW * 1.1, legH * 0.5, 0, 0, Math.PI)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.ellipse(bx + legW * 1.1, bodyY + bodyH + legH * 0.8, legW * 1.1, legH * 0.5, 0, 0, Math.PI)
+          ctx.fill()
+          
+          // === HEAD (big round chibi head) ===
+          // Hair back layer
+          ctx.fillStyle = hairColor
+          ctx.beginPath()
+          ctx.arc(headCX, headCY, headR * 1.08, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Head/face
+          ctx.fillStyle = skinColor
+          ctx.beginPath()
+          ctx.arc(headCX, headCY + headR * 0.08, headR * 0.88, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.strokeStyle = '#333333'
+          ctx.lineWidth = 1.5
+          ctx.stroke()
+          
+          // Hair front layer (JRPG bangs)
+          ctx.fillStyle = hairColor
+          ctx.beginPath()
+          ctx.arc(headCX, headCY - headR * 0.15, headR * 1.05, Math.PI * 1.1, Math.PI * 1.9)
+          ctx.quadraticCurveTo(headCX + headR * 0.9, headCY - headR * 0.3, headCX + headR * 0.7, headCY + headR * 0.1)
+          ctx.lineTo(headCX + headR * 0.5, headCY + headR * 0.05)
+          ctx.lineTo(headCX + headR * 0.2, headCY + headR * 0.15)
+          ctx.lineTo(headCX - headR * 0.1, headCY + headR * 0.05)
+          ctx.lineTo(headCX - headR * 0.4, headCY + headR * 0.18)
+          ctx.lineTo(headCX - headR * 0.6, headCY + headR * 0.05)
+          ctx.quadraticCurveTo(headCX - headR * 0.9, headCY - headR * 0.3, headCX - headR * 0.8, headCY - headR * 0.5)
+          ctx.closePath()
+          ctx.fill()
+          
+          // Hair side strands
+          ctx.beginPath()
+          ctx.moveTo(headCX - headR * 0.85, headCY - headR * 0.1)
+          ctx.quadraticCurveTo(headCX - headR * 1.1, headCY + headR * 0.5, headCX - headR * 0.75, headCY + headR * 0.7)
+          ctx.lineTo(headCX - headR * 0.7, headCY + headR * 0.4)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.moveTo(headCX + headR * 0.85, headCY - headR * 0.1)
+          ctx.quadraticCurveTo(headCX + headR * 1.1, headCY + headR * 0.5, headCX + headR * 0.75, headCY + headR * 0.7)
+          ctx.lineTo(headCX + headR * 0.7, headCY + headR * 0.4)
+          ctx.fill()
+          
+          // === EYES (big anime-style JRPG eyes) ===
+          const eyeW = headR * 0.28
+          const eyeH = headR * 0.38
+          const eyeLX = headCX - headR * 0.32
+          const eyeRX = headCX + headR * 0.32
+          const eyeY = headCY + headR * 0.05
+          
+          // Eye whites
+          ctx.fillStyle = eyeWhite
+          ctx.beginPath()
+          ctx.ellipse(eyeLX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.ellipse(eyeRX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Iris (large, anime style)
+          const irisR = eyeW * 0.7
+          ctx.fillStyle = eyeColor
+          ctx.beginPath()
+          ctx.arc(eyeLX, eyeY + eyeH * 0.1, irisR, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.arc(eyeRX, eyeY + eyeH * 0.1, irisR, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Pupil
+          ctx.fillStyle = '#111111'
+          ctx.beginPath()
+          ctx.arc(eyeLX, eyeY + eyeH * 0.15, irisR * 0.5, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.arc(eyeRX, eyeY + eyeH * 0.15, irisR * 0.5, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Eye highlight (anime sparkle)
+          ctx.fillStyle = eyeHighlight
+          ctx.beginPath()
+          ctx.arc(eyeLX - irisR * 0.3, eyeY - eyeH * 0.1, irisR * 0.35, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.arc(eyeRX - irisR * 0.3, eyeY - eyeH * 0.1, irisR * 0.35, 0, Math.PI * 2)
+          ctx.fill()
+          // Small secondary highlight
+          ctx.beginPath()
+          ctx.arc(eyeLX + irisR * 0.25, eyeY + eyeH * 0.2, irisR * 0.15, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.arc(eyeRX + irisR * 0.25, eyeY + eyeH * 0.2, irisR * 0.15, 0, Math.PI * 2)
+          ctx.fill()
+          
+          // Eye outline
+          ctx.strokeStyle = '#222222'
+          ctx.lineWidth = 1.2
+          ctx.beginPath()
+          ctx.ellipse(eyeLX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.ellipse(eyeRX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2)
+          ctx.stroke()
+          
+          // Eyelashes (top, thick)
+          ctx.strokeStyle = '#111111'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.arc(eyeLX, eyeY, eyeW, Math.PI * 1.15, Math.PI * 1.85)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(eyeRX, eyeY, eyeW, Math.PI * 1.15, Math.PI * 1.85)
+          ctx.stroke()
+          
+          // --- Mouth (small, cute) ---
+          ctx.fillStyle = '#DD7788'
+          ctx.beginPath()
+          ctx.arc(headCX, headCY + headR * 0.45, headR * 0.08, 0, Math.PI)
+          ctx.fill()
+          
+          // --- Blush (anime cheek blush) ---
+          ctx.fillStyle = 'rgba(255, 150, 150, 0.35)'
+          ctx.beginPath()
+          ctx.ellipse(headCX - headR * 0.5, headCY + headR * 0.3, headR * 0.15, headR * 0.08, 0, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.beginPath()
+          ctx.ellipse(headCX + headR * 0.5, headCY + headR * 0.3, headR * 0.15, headR * 0.08, 0, 0, Math.PI * 2)
+          ctx.fill()
         }
 
         // AI/대화 중 표시 (PixelArtRenderer 위에 그리기)
