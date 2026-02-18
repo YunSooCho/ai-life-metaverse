@@ -157,7 +157,7 @@ async function generateChatResponse(characterId, userMessage) {
       body: JSON.stringify({
         model: 'zai-glm-4.7',
         messages,
-        max_tokens: 300,
+        max_tokens: 1024,
         temperature: 0.7,
         top_p: 0.9
       })
@@ -173,33 +173,68 @@ async function generateChatResponse(characterId, userMessage) {
     const messageObj = data.choices[0].message
     let aiResponse = messageObj.content || ''
 
-    // GLM-4.7 reasoning 모드 대응: reasoning만 있으면 마지막 실제 대화 부분 추출
+    // GLM-4.7 reasoning 모드 대응: reasoning만 있으면 실제 대화 부분 추출
     if (!aiResponse && messageObj.reasoning) {
-      // reasoning 텍스트에서 실제 응답 부분만 추출
       const reasoning = messageObj.reasoning
-      // **Final Response:** 또는 마지막 큰따옴표 안의 텍스트 등 패턴 매칭
-      const finalMatch = reasoning.match(/(?:Final Response|최종 응답|답변)[:\s]*[""]?([^""\n]+)/i)
-      if (finalMatch) {
-        aiResponse = finalMatch[1].trim()
-      } else {
-        // 마지막 줄에서 한국어 대화 추출 시도
-        const lines = reasoning.split('\n').filter(l => l.trim())
-        const lastLine = lines[lines.length - 1]?.trim() || ''
-        // 마크다운/분석 텍스트가 아닌 자연스러운 한국어 대화인지 확인
-        if (lastLine && !lastLine.startsWith('*') && !lastLine.startsWith('#') && !lastLine.startsWith('-') && lastLine.length < 200) {
-          aiResponse = lastLine.replace(/^[""\s*]+|[""\s*]+$/g, '')
-        } else {
-          // fallback: 페르소나 기반 간단 응답
-          const fallbacks = [
-            `안녕하세요! ${persona.name}이에요 😊`,
-            '재미있는 얘기네요! ✨',
-            '그렇군요~ 더 얘기해줘요! 😄',
-            '오 정말요? 신기하다! 🌟'
-          ]
-          aiResponse = fallbacks[Math.floor(Math.random() * fallbacks.length)]
+      let extracted = null
+
+      // 1순위: Draft 응답에서 한국어 대화 추출 (가장 정확)
+      const draftMatch = reasoning.match(/Draft[^:]*:\s*\*?\s*([^*()\n][^\n]*[가-힣][^\n]*)/i)
+      if (draftMatch) {
+        extracted = draftMatch[1].replace(/^[""\s*]+|[""\s*]+$/g, '').trim()
+      }
+
+      // 2순위: "Response:" 또는 "Final Response:" 패턴
+      if (!extracted) {
+        const responseMatch = reasoning.match(/(?:Final\s+)?Response[:\s]*[""]?([^""\n]*[가-힣][^""\n]*)/i)
+        if (responseMatch) extracted = responseMatch[1].trim()
+      }
+
+      // 3순위: 한국어가 포함된 인용문 (큰따옴표/이탈릭 안의 한국어)
+      if (!extracted) {
+        const quoteMatches = reasoning.match(/[""\*]([^""\*\n]*[가-힣][^""\*\n]{5,})[""\*]/g)
+        if (quoteMatches && quoteMatches.length > 0) {
+          // 가장 긴 한국어 인용문 선택
+          const longest = quoteMatches.sort((a, b) => b.length - a.length)[0]
+          extracted = longest.replace(/^[""\s*]+|[""\s*]+$/g, '').trim()
         }
       }
-      console.log('🔄 reasoning→대화 변환:', aiResponse.substring(0, 50))
+
+      // 4순위: 한국어 문장 직접 탐색 (이모티콘 포함된 자연스러운 대화)
+      if (!extracted) {
+        const lines = reasoning.split('\n')
+        for (const line of lines) {
+          const cleaned = line.replace(/^\s*[\*\-#\d.]+\s*/, '').trim()
+          // 한국어가 5자 이상이고 분석 키워드가 아닌 줄
+          const hasKorean = (cleaned.match(/[가-힣]/g) || []).length >= 5
+          const isAnalysis = /^(Analyze|Adopt|Draft|Persona|Traits|Language|Constraint|Content|Tone|Input)/i.test(cleaned)
+          if (hasKorean && !isAnalysis && cleaned.length < 150 && cleaned.length > 10) {
+            extracted = cleaned.replace(/^[""\s*]+|[""\s*]+$/g, '')
+            break
+          }
+        }
+      }
+
+      if (extracted && extracted.length > 5) {
+        // 영어 잔여물 제거 (Too long, Draft 등)
+        extracted = extracted.replace(/\s*\(Too[^)]*\)?.*$/i, '').trim()
+        extracted = extracted.replace(/\s*\(Let'?s[^)]*\)?.*$/i, '').trim()
+        extracted = extracted.replace(/\s*\(Draft[^)]*\)?.*$/i, '').trim()
+        // 150자 초과 시 자르기
+        aiResponse = extracted.length > 150 ? extracted.substring(0, 147) + '...' : extracted
+      } else {
+        // 최종 fallback: 페르소나+토픽 기반 응답
+        const fallbacks = [
+          `안녕하세요! ${persona.name}이에요 😊`,
+          `${persona.interests[Math.floor(Math.random() * persona.interests.length)]}에 대해 얘기해볼까요? ✨`,
+          '오늘은 기분이 좋아요~ 뭐 하고 있었어요? 😄',
+          '이 세계 정말 신기하지 않아요? 🌟',
+          '같이 산책할래요? 날씨가 좋은 것 같아요! 🌤️',
+          '뭔가 재미있는 일이 없을까~ 🤔'
+        ]
+        aiResponse = fallbacks[Math.floor(Math.random() * fallbacks.length)]
+      }
+      console.log('🔄 reasoning→대화 변환:', extracted ? '추출성공' : 'fallback', '→', aiResponse.substring(0, 50))
     }
 
     if (!aiResponse) {
