@@ -45,3 +45,11 @@ Thumbs.db
 # Misc
 .cache/
 .temp/
+
+# Data files (temporary storage)
+data/
+backend/data/
+backend/backend/data/
+
+# Test results
+test-results/

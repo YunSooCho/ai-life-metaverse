@@ -55,6 +55,30 @@
 | angry | 2 | 200ms | ✅ | 화남: 눈썹/입 애니메이션 |
 | surprised | 2 | 150ms | ❌ | 놀람: 눈/입 둥글게 (비루프) |
 
+### FX 스프라이트 시스템 (Issue #93: 완료 ✅ 2026-02-18)
+
+**FX 타입:**
+- `jump`: 점프 궤적 효과 (파티클, 방향별 왼쪽/오른쪽)
+- `heart`: 하트 효과 (상승, 페이드, 반짝이)
+- `dead`: 데드 효과 (X 아이콘, 흔들림, 희미티)
+- `loading`: 로딩 효과 (회전 인디케이터, 세그먼트)
+
+**FX 구현:**
+- `spriteRenderer.renderFX(ctx, fxType, x, y, size, progress, options)`
+- 각 FX별 렌더링 메서드:
+  - `renderJumpFX(ctx, x, y, size, progress, options)`
+  - `renderHeartFX(ctx, x, y, size, progress, options)`
+  - `renderDeadFX(ctx, x, y, size, progress, options)`
+  - `renderLoadingFX(ctx, x, y, size, progress, options)`
+
+**FX 옵션:**
+- color: 커스텀 색상
+- direction: 방향 (left/right)
+- targetY: 하트 효과 목표 Y 좌표
+- segments: 로딩 세그먼트 수 (기본 8)
+
+**테스트 결과:** 20/20 통과 ✅ (fxRenderer.test.js)
+
 ### 애니메이션 시스템 기능
 
 **채널 기반 애니메이션 관리:**
