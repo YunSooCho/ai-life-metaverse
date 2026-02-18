@@ -881,4 +881,119 @@ interface SaveOptions {
 
 ---
 
-*마지막 업데이트: 2026-02-18 (Phase 3: 배경 픽셀아트 타일 시스템 완료)*
+## 14. 데이터 영속성 시스템 (Data Persistence)
+
+### 개요
+서버 측 데이터 영속성을 위한 JSON 파일 기반 저장소 시스템.
+캐릭터 데이터, 인벤토리, 호감도, 이벤트 로그, 건물 방문 기록을 영구 저장.
+
+### 구현 파일
+
+- `backend/data-store.js` - JsonDataStore 클래스 및 유틸리티
+- `backend/__tests__/data-store.test.js` - 단위 테스트 (28개)
+- `backend/__tests__/data-store-integration.test.js` - 통합 테스트 (15개)
+
+---
+
+### JsonDataStore 클래스
+
+| 메서드 | 설명 | 파라미터 | 반환값 |
+|--------|------|----------|--------|
+| `load()` | JSON 파일에서 데이터 로드 | - | `boolean` (성공 여부) |
+| `save()` | JSON 파일에 데이터 저장 | - | `boolean` (성공 여부) |
+| `get(key)` | 키로 데이터 가져오기 | `key` (string) | `any` |
+| `set(key, value)` | 키로 데이터 설정 | `key` (string), `value` (any) | `void` |
+| `getAll()` | 모든 데이터 가져오기 | - | `object` |
+| `setAll(data)` | 모든 데이터 설정 | `data` (object) | `void` |
+| `delete(key)` | 데이터 삭제 | `key` (string) | `void` |
+| `has(key)` | 키 존재 여부 확인 | `key` (string) | `boolean` |
+| `keys()` | 모든 키 목록 | - | `string[]` |
+| `size()` | 데이터 크기 | - | `number` |
+| `clear()` | 모든 데이터 초기화 | - | `void` |
+
+---
+
+### 저장소 인스턴스
+
+| 저장소 | 파일명 | 설명 |
+|--------|--------|------|
+| `characterDataStore` | `character-data.json` | 캐릭터 데이터 |
+| `inventoryDataStore` | `inventory-data.json` | 인벤토리 데이터 |
+| `affinityDataStore` | `affinity-data.json` | 호감도 데이터 |
+| `eventLogDataStore` | `event-log.json` | 이벤트 로그 |
+| `buildingVisitDataStore` | `building-visit.json` | 건물 방문 기록 |
+
+---
+
+### 유틸리티 함수
+
+| 함수 | 설명 | 파라미터 | 반환값 |
+|------|------|----------|--------|
+| `saveCharacterData(characterId, characterData)` | 캐릭터 데이터 저장 | `characterId` (string), `characterData` (object) | `void` |
+| `loadCharacterData(characterId)` | 캐릭터 데이터 로드 | `characterId` (string) | `object \| undefined` |
+| `saveInventoryData(characterId, inventoryData)` | 인벤토리 데이터 저장 | `characterId` (string), `inventoryData` (object) | `void` |
+| `loadInventoryData(characterId)` | 인벤토리 데이터 로드 | `characterId` (string) | `object` (빈 객체 반환) |
+| `saveAffinityData(characterId, affinityData)` | 호감도 데이터 저장 | `characterId` (string), `affinityData` (object) | `void` |
+| `loadAffinityData(characterId)` | 호감도 데이터 로드 | `characterId` (string) | `object` (빈 객체 반환) |
+| `saveEventLog(characterId, logData)` | 이벤트 로그 저장 (누적) | `characterId` (string), `logData` (object) | `void` |
+| `loadEventLog(characterId)` | 이벤트 로그 로드 | `characterId` (string) | `array` (빈 배열 반환) |
+| `saveBuildingVisit(characterId, visitData)` | 건물 방문 기록 저장 | `characterId` (string), `visitData` (object) | `void` |
+| `loadBuildingVisit(characterId)` | 건물 방문 기록 로드 | `characterId` (string) | `object \| undefined` |
+| `initializeAllDataStores()` | 모든 저장소 초기화 | - | `void` |
+| `backupAllData()` | 전체 데이터 백업 | - | `string` (백업 경로) |
+
+---
+
+### 백업 시스템
+
+**백업 경로:** `backend/data/backup/{timestamp}/`
+
+**백업 파일:**
+- `character-data.json`
+- `inventory-data.json`
+- `affinity-data.json`
+- `event-log.json`
+- `building-visit.json`
+
+---
+
+### Graceful Degradation
+
+**에러 처리:**
+- **JSON 파싱 실패:** 빈 객체로 초기화, 로그 출력
+- **파일 시스템 에러:** 메모리 모드로 동작, 로그 출력
+- **존재하지 않는 파일:** 초기 데이터로 생성
+
+---
+
+### 테스트 결과
+
+**총 테스트:** 43개 통과, 1개 skipped
+
+| 테스트 파일 | 통과 | 실패 | Skipped |
+|-------------|------|------|---------|
+| `data-store.test.js` | 28 | 0 | 0 |
+| `data-store-integration.test.js` | 15 | 0 | 1 |
+
+**통합 테스트 카테고리:**
+- 데이터 연동 테스트 (캐릭터↔인벤토리↔호감도) ✅
+- 워크플로우 테스트 (캐릭터 생애 주기) ✅
+- 에러 복구 테스트 ✅
+- Graceful Degradation 테스트 ✅
+- 데이터 무결성 테스트 (100개 캐릭터) ✅
+- 백업 시스템 테스트 ✅
+
+---
+
+### 향후 확장
+
+**Redis/DB 통합 (계획):**
+- Redis 캐싱 레이어 추가
+- PostgreSQL/MongoDB 영구 저장소
+- 분산 데이터베이스 지원
+- 트랜잭션 처리
+- 데이터 마이그레이션 툴
+
+---
+
+*마지막 업데이트: 2026-02-19 (데이터 영속성 시스템 테스트 강화 완료)*
