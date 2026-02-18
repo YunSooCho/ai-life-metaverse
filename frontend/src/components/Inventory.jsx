@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 
 const ITEMS = {
   healthPotion: {
     id: 'healthPotion',
-    name: 'HP POTION',
+    nameKey: 'ui.items.healthPotion',
     type: 'consumable',
     effect: { hp: 50 },
     icon: '❤️',
@@ -11,7 +12,7 @@ const ITEMS = {
   },
   coin: {
     id: 'coin',
-    name: 'COIN',
+    nameKey: 'ui.items.coin',
     type: 'currency',
     effect: { currency: 10 },
     icon: '🪙',
@@ -19,7 +20,7 @@ const ITEMS = {
   },
   giftBox: {
     id: 'giftBox',
-    name: 'GIFT BOX',
+    nameKey: 'ui.items.giftBox',
     type: 'consumable',
     effect: { affinity: 10 },
     icon: '🎁',
@@ -27,7 +28,7 @@ const ITEMS = {
   },
   experiencePotion: {
     id: 'experiencePotion',
-    name: 'EXP POTION',
+    nameKey: 'ui.items.experiencePotion',
     type: 'consumable',
     effect: { experience: 100 },
     icon: '⚡',
@@ -36,6 +37,7 @@ const ITEMS = {
 }
 
 export default function Inventory({ show, onClose, inventory, characterId, onUseItem, onGetInventory }) {
+  const { t } = useI18n()
   const [selectedItem, setSelectedItem] = useState(null)
 
   if (!show) return null
@@ -66,7 +68,7 @@ export default function Inventory({ show, onClose, inventory, characterId, onUse
     <div className="modal-overlay pixel-overlay">
       <div className="inventory-modal pixel-panel pixel-pop">
         <div className="inventory-header pixel-panel-header pixel-text-lg pixel-font">
-          <h2>🎒 INVENTORY</h2>
+          <h2>🎒 {t('ui.inventory.title')}</h2>
           <button className="close-button pixel-button pixel-button-red" onClick={onClose}>
             ✕
           </button>
@@ -74,16 +76,16 @@ export default function Inventory({ show, onClose, inventory, characterId, onUse
 
         <div className="inventory-content">
           <div className="inventory-stats pixel-panel-body">
-            <p className="pixel-text-md pixel-font">📦 TOTAL: {totalItems}</p>
+            <p className="pixel-text-md pixel-font">📦 {t('ui.inventory.total')}: {totalItems}</p>
             <button className="refresh-button pixel-button" onClick={handleGetInventory}>
-              REFRESH
+              {t('ui.buttons.refresh')}
             </button>
           </div>
 
           <div className="inventory-items pixel-scroll">
             {totalItems === 0 ? (
               <div className="empty-inventory pixel-font pixel-text-md">
-                <p>INVENTORY EMPTY</p>
+                <p>{t('ui.inventory.empty')}</p>
               </div>
             ) : (
               <div className="pixel-grid">
@@ -101,7 +103,7 @@ export default function Inventory({ show, onClose, inventory, characterId, onUse
                     >
                       <div className="item-icon pixel-icon-lg">{item.icon}</div>
                       <div className="item-info pixel-font pixel-text-sm">
-                        <div className="item-name pixel-text-md">{item.name}</div>
+                        <div className="item-name pixel-text-md">{t(item.nameKey)}</div>
                         <div className="item-quantity pixel-badge-orange">x{quantity}</div>
                         <div className="item-description pixel-text-sm">{item.description}</div>
                       </div>
@@ -113,7 +115,7 @@ export default function Inventory({ show, onClose, inventory, characterId, onUse
                             handleUseItem(itemId)
                           }}
                         >
-                          USE
+                          {t('ui.buttons.use')}
                         </button>
                       )}
                     </div>

@@ -19,6 +19,7 @@
 
 import { useRef, useEffect, useState, useCallback, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
+import { useI18n } from '../i18n/I18nContext'
 import Character from './Character'
 import ChatBubble from './ChatBubble'
 import CharacterProfile from './CharacterProfile'
@@ -76,7 +77,7 @@ import {
 import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
 
 export const MAP_SIZE = { width: 1000, height: 700 }
-export const CHARACTER_SIZE = 64
+export const CHARACTER_SIZE = 40
 export const CELL_SIZE = 50
 const DEFAULT_SPEED = 3
 const SPRITE_SIZE = 32
@@ -177,6 +178,7 @@ function GameCanvas({
   weather = 'CLEAR',
   animatedCharacters: propsAnimatedCharacters = {}
 }) {
+  const { t } = useI18n()
   const [animatedCharacters, setAnimatedCharacters] = useState({})
   const [spriteSheets, setSpriteSheets] = useState({})
   const [isSpritesLoaded, setIsSpritesLoaded] = useState(false)
@@ -624,7 +626,7 @@ function GameCanvas({
         const x = animatedChar.x * currentScale
         const y = animatedChar.y * currentScale
         const { color, emoji, name, isAi, isConversing } = char
-        const displayName = name || '익명'
+        const displayName = name || t('app.anonymous')
         const direction = characterDirections.current[char.id] || 'idle'
         const timestamp = performance.now()
 

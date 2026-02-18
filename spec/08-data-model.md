@@ -34,8 +34,46 @@
 | `social_style` | VARCHAR | 사회적 성향 |
 | `is_ai` | BOOLEAN | AI 에이전트인가? |
 | `llm_config` | TEXT | LLM 설정 (JSON) |
+| **`level`** | **INT** | **캐릭터 레벨 (1~100, 기본값: 1)**
+| **`exp`** | **BIGINT** | **경험치 (기본값: 0)**
+| **`max_exp`** | **BIGINT** | **현재 레벨 최대 경험치**
+| **`stats`** | **TEXT** | **스테이터스 (JSON: hp, maxHp, affinity, charisma, intelligence)**
 | `created_at` | TIMESTAMP | 생성일 |
 | `last_active` | TIMESTAMP | 마지막 활동 |
+
+---
+
+### 캐릭터 스테이터스 (Character Stats)
+
+| 필드 | 타입 | 설명 | 기본값 |
+|------|------|------|--------|
+| `hp` | INT | 현재 HP | 100 |
+| `maxHp` | INT | 최대 HP | 100 |
+| `affinity` | INT | 친화력 (0~100) | 10 |
+| `charisma` | INT | 카리스마 (0~100) | 5 |
+| `intelligence` | INT | 지능 (0~100) | 5 |
+
+---
+
+### 레벨 시스템
+
+- **레벨 범위:** 1 ~ 100
+- **레벨업 공식:** `required_exp = 100 * level^2`
+- **예시:**
+  - Lv.1 → Lv.2: 100 EXP
+  - Lv.2 → Lv.3: 400 EXP
+  - Lv.10 → Lv.11: 10,000 EXP
+  - Lv.99 → Lv.100: 980,100 EXP
+
+---
+
+### 레벨업 보너스
+
+각 레벨업 시 스테이터스 자동 증가:
+- **HP:** +10 ~ +14 (랜덤)
+- **친화력 (Affinity):** +2 ~ +3 (랜덤)
+- **카리스마 (Charisma):** +1 ~ +2 (랜덤)
+- **지능 (Intelligence):** +1 ~ +2 (랜덤)
 
 ---
 
@@ -586,4 +624,88 @@ affinity:{char_a}:{char_b} = 72
 
 ---
 
-*마지막 업데이트: 2026-02-17 (세이브/로드 시스템 추가)*
+## 로컬 저장 시스템 (LocalStorage)
+
+### 구현 파일
+
+- `frontend/src/utils/storageService.ts` - 저장 서비스
+- `frontend/src/hooks/useLocalSave.ts` - React Hook
+
+### Storage Keys
+
+| Key | 설명 |
+|-----|------|
+| `ai-life-game-state` | 게임 상태 (전체) |
+| `ai-life-player-character` | 플레이어 캐릭터 |
+| `ai-life-settings` | 설정 |
+| `ai-life-session-data` | 세션 데이터 |
+
+### GameState Interface
+
+```typescript
+interface GameState {
+  myCharacter: any           // 플레이어 캐릭터
+  characters: Record<string, any>  // 모든 캐릭터
+  affinities: Record<string, number>  // 친밀도
+  inventory: any[]          // 인벤토리
+  quests: any[]             // 퀘스트
+  settings?: any            // 설정
+  lastSaved: string         // 마지막 저장 시간 (ISO 8601)
+}
+```
+
+### StorageService API
+
+| 함수 | 설명 | 파라미터 | 반환값 |
+|------|------|----------|--------|
+| `saveGameState(state, options)` | 게임 상태 저장 | `state` (Partial\<GameState\>), `options` | `boolean` |
+| `loadGameState()` | 게임 상태 로드 | - | `GameState \| null` |
+| `savePlayerCharacter(character)` | 플레이어 캐릭터 저장 | `character` (object) | `boolean` |
+| `loadPlayerCharacter()` | 플레이어 캐릭터 로드 | - | `object \| null` |
+| `saveSettings(settings)` | 설정 저장 | `settings` (object) | `boolean` |
+| `loadSettings()` | 설정 로드 | - | `object \| null` |
+| `saveSessionData(data)` | 세션 데이터 저장 | `data` (object) | `boolean` |
+| `loadSessionData()` | 세션 데이터 로드 | - | `object \| null` |
+| `startAutoSave(callback)` | 자동 저장 시작 | `callback` (function) | `void` |
+| `stopAutoSave()` | 자동 저장 중지 | - | `void` |
+| `clearAllData()` | 모든 데이터 삭제 | - | `boolean` |
+| `hasSaveData()` | 저장 데이터 확인 | - | `boolean` |
+| `getLastSaveTime()` | 마지막 저장 시간 | - | `Date \| null` |
+
+### 환경 설정 (AutoSave)
+
+| 설정 | 기본값 | 설명 |
+|------|--------|------|
+| `AUTO_SAVE_INTERVAL` | 5분 | 자동 저장 간격 |
+
+### useLocalSave Hook
+
+```typescript
+function useLocalSave(
+  getState: () => Partial<GameState>,
+  options?: UseLocalSaveOptions
+): {
+  save: (options?: SaveOptions) => boolean
+  load: () => GameState | null
+  saveSettings: (settings: any) => boolean
+  loadSettings: () => any | null
+  hasData: () => boolean
+  getLastSaveTime: () => Date | null
+  clearAll: () => boolean
+  startAutoSave: () => void
+  stopAutoSave: () => void
+}
+```
+
+### SaveOptions
+
+```typescript
+interface SaveOptions {
+  autoSave?: boolean   // 자동 저장 여부
+  silent?: boolean     // 콘솔 출력 여부
+}
+```
+
+---
+
+*마지막 업데이트: 2026-02-18 (로컬 저장 시스템 구현 완료)*

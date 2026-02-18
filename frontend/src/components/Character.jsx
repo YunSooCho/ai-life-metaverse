@@ -1,6 +1,7 @@
 // 캐릭터 컴포넌트 - 픽셀 아트 스프라이트 애니메이션 지원
 import PropTypes from 'prop-types'
 import { useState, useEffect, useRef } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 import characterSpriteRenderer from '../utils/characterSpriteRenderer.js'
 import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
 
@@ -13,11 +14,12 @@ function getAffinityColor(affinity) {
 }
 
 export default function Character({ char, myCharacterId, affinities, chatMessages, scale }) {
+  const { t } = useI18n()
   const { x, y, color, emoji, name, isAi, id, emotion } = char
   const scaledX = x * scale
   const scaledY = y * scale
   const CHARACTER_SIZE_SCALED = CHARACTER_SIZE * scale
-  const displayName = name || '익명'  // Fallback: name이 undefined이면 '익명' 표시
+  const displayName = name || t('app.anonymous')  // Fallback: name이 undefined이면 익명 표시
 
   // 이동 상태 추적 (MovementHistory 사용)
   const [isMoving, setIsMoving] = useState(false)

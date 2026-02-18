@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import './InventoryWindow.css';
 
 /**
@@ -16,9 +17,11 @@ function InventoryWindow({
   items = [],
   onItemSelect,
   onClose,
-  title = '인벤토리'
+  title
 }) {
+  const { t } = useI18n()
   const [selectedItem, setSelectedItem] = useState(null);
+  const displayTitle = title || t('ui.inventory.title')
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
@@ -34,7 +37,7 @@ function InventoryWindow({
       <div className="inventory-window">
         {/* 헤더 */}
         <div className="inventory-header">
-          <h2 className="inventory-title">{title}</h2>
+          <h2 className="inventory-title">{displayTitle}</h2>
           <button className="pixel-close-button" onClick={onClose}>
             ✕
           </button>
@@ -44,7 +47,7 @@ function InventoryWindow({
         <div className="inventory-content">
           {items.length === 0 ? (
             <div className="inventory-empty">
-              <p className="empty-text">아이템이 없습니다</p>
+              <p className="empty-text">{t('ui.inventory.empty')}</p>
             </div>
           ) : (
             <div className="inventory-grid">
@@ -72,8 +75,8 @@ function InventoryWindow({
               <h3 className="detail-name">{selectedItem.name}</h3>
               <p className="detail-description">{selectedItem.description}</p>
               <div className="detail-actions">
-                <button className="pixel-action-button">사용</button>
-                <button className="pixel-action-button">버리기</button>
+                <button className="pixel-action-button">{t('ui.buttons.use')}</button>
+                <button className="pixel-action-button">{t('ui.inventory.drop')}</button>
               </div>
             </div>
           </div>
