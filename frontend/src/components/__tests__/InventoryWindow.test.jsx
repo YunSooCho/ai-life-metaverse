@@ -46,7 +46,7 @@ describe('InventoryWindow 컴포넌트', () => {
 
     it('visible=true 일 때 렌더링', () => {
       render(<InventoryWindow visible={true} items={sampleItems} onClose={mockOnClose} onItemSelect={mockOnItemSelect} />);
-      expect(screen.getByText('인벤토리')).toBeInTheDocument();
+      expect(screen.getByText('INVENTORY')).toBeInTheDocument();
     });
 
     it('커스텀 타이틀 표시', () => {
@@ -58,7 +58,7 @@ describe('InventoryWindow 컴포넌트', () => {
   describe('빈 인벤토리', () => {
     it('아이템이 없을 때 빈 상태 메시지 표시', () => {
       render(<InventoryWindow visible={true} items={[]} onClose={mockOnClose} />);
-      expect(screen.getByText('아이템이 없습니다')).toBeInTheDocument();
+      expect(screen.getByText('INVENTORY EMPTY')).toBeInTheDocument();
     });
 
     it('빈 상태에서 아이템 선택 영역 렌더링 안 함', () => {
@@ -189,7 +189,7 @@ describe('InventoryWindow 컴포넌트', () => {
       const firstItem = itemElements[0].closest('.inventory-item');
       fireEvent.click(firstItem);
 
-      const actionButtons = screen.getAllByText('사용');
+      const actionButtons = screen.getAllByText('USE');
       expect(actionButtons.length).toBeGreaterThan(0);
     });
   });

@@ -27,6 +27,6 @@
     "CharacterCustomizationModal.jsx 중복 import 제거",
     "테스트 I18nProvider props 수정"
   ],
-  "e2eCounter": 3,
-  "lastE2E": "2026-02-18T08:10:00Z"
+  "e2eCounter": 0,
+  "lastE2E": "2026-02-18T10:35:00Z"
 }
