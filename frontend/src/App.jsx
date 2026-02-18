@@ -612,12 +612,18 @@ function AppContent() {
     socket.emit('join', myCharacter)
 
     // Sound Manager 초기화 (첫 사용자 제스처 필요)
-    soundManager.init().catch(err => console.warn('Sound init failed:', err))
-
-    // 기본 BGM 재생 (성공하면)
-    soundManager.playBGM(BGM_URLS.MAIN).catch(err => {
-      console.warn('BGM playback failed:', err)
-    })
+    if (soundManager && typeof soundManager.init === 'function') {
+      soundManager.init().then(() => {
+        // 기본 BGM 재생 (성공하면)
+        soundManager.playBGM(BGM_URLS.MAIN).catch(err => {
+          console.warn('BGM playback failed:', err)
+        })
+      }).catch(err => {
+        console.warn('Sound init failed:', err)
+      })
+    } else {
+      console.warn('Sound manager not available')
+    }
   }, [])
 
   const sendChatMessage = (message) => {

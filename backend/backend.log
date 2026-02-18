@@ -135,3 +135,30 @@
 📍 방 main 캐릭터 수: 3
 📝 캐릭터 등록: 플레이어 → main
 📍 방 main 캐릭터 수: 3
+👤 클라이언트 연결: 2ECdVgE-dbARi3QYAAAD
+📝 캐릭터 등록: 플레이어 → main
+📍 방 main 캐릭터 수: 3
+📝 캐릭터 등록: 플레이어 → main
+📍 방 main 캐릭터 수: 3
+🤝 AI 상호작용 시작: AI 히카리 → AI 유리 (main)
+💬 대화 상태 변경: ai-agent-2 → 대화 중
+💬 대화 상태: ai-agent-2 → continuing
+🤖 GLM-4.7 응답 생성: 게임과 음악도 좋지만, 저랑 같이 운동하면 훨씬 재밌을 거예요! 지루할 틈 없이 달려봐요! 와아! 🏃‍♀️...
+📢 AI 대화: AI 히카리: 게임과 음악도 좋지만, 저랑 같이 운동하면 훨씬 재밌을 거예요! 지루할 틈 없이 달려봐요!...
+💬 대화 상태 변경: ai-agent-1 → 대화 중
+💬 대화 상태: ai-agent-1 → continuing
+🔄 reasoning→대화 변환: 추출성공 → (존댓말을 사용하세요). So I should stick to ~요/죠 endings mo
+🤖 GLM-4.7 응답 생성: (존댓말을 사용하세요). So I should stick to ~요/죠 endings mostly, maybe mixing in some casual particles to fit...
+📢 AI 응답: AI 유리: (존댓말을 사용하세요). So I should stick to ~요/죠 endings mo...
+💬 대화 상태 변경: ai-agent-1 → 대화 아님
+💬 대화 상태 변경: ai-agent-2 → 대화 아님
+🤝 AI 상호작용 시작: AI 유리 → AI 히카리 (main)
+💬 대화 상태 변경: ai-agent-1 → 대화 중
+💬 대화 상태: ai-agent-1 → continuing
+⚠️ GLM-4.7 API 에러: {
+  message: "We're experiencing high traffic right now! Please try again soon.",
+  type: 'too_many_requests_error',
+  param: 'queue',
+  code: 'queue_exceeded'
+}
+💬 대화 상태 변경: ai-agent-1 → 대화 아님
