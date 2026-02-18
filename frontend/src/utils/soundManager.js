@@ -283,8 +283,12 @@ class SoundManager {
   }
 
   /**
-   * 사운드 매니저 초기화
+   * 사운드 매니저 초기화 (별칭: init)
    */
+  async init() {
+    return this.initialize();
+  }
+
   async initialize() {
     // BGM
     await this.loadSound('main_theme', BGM_URLS.MAIN, 'bgm')
