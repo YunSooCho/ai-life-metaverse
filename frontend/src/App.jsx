@@ -584,6 +584,11 @@ function AppContent() {
     })
   }
 
+  const handleMove = (character) => {
+    setMyCharacter(prev => ({ ...prev, x: character.x, y: character.y }))
+    socket.emit('move', character)
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'h' || e.key === 'H') {
       setShowChatHistory(prev => !prev)
@@ -1002,7 +1007,9 @@ function AppContent() {
         canvasRef={canvasRef}
         onClick={handleCanvasClick}
         onBuildingClick={handleBuildingClick}
+        onMove={handleMove}
         characterCustomization={characterCustomization}
+        weather={weather?.type || 'CLEAR'}
       />
       <MiniMap
         myCharacter={myCharacter}

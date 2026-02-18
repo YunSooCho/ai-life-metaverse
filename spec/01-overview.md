@@ -45,14 +45,15 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
 ### 리팩토링 목표
 현재 Canvas 도형 기반 렌더링을 **픽셀아트 스프라이트 기반**으로 전환하여 전체 프로젝트를 레트로 게임 스타일로 리팩토링
 
-### 4-Phase 리팩토링 계획
+### 5-Phase 리팩토링 계획
 
 | Phase | 내용 | GitHub Issue | 상태 |
 |-------|------|--------------|------|
 | **Phase 1** | 스프라이트 기반 렌더링 시스템 | #44 ✅ | ✅ 완료 |
-| **Phase 2** | 건물/맵 타일 렌더링 최적화 | #45 ✅ | ✅ 완료 |
+| **Phase 2** | 건물/맵 타일 렌더링 최적화 | #47 ✅ | ✅ 부분 완료 |
 | **Phase 3** | UI 컴포넌트 레트로 스타일링 | #46 ✅ | ✅ 완료 |
-| **Phase 4** | 감정 표현 & FX 강화 | - | ⏳ 기획 중 |
+| **Phase 4** | 캐릭터 시스템 구현 (이동/충돌/테스트) | #61 ✅ | ✅ 완료 (2026-02-17 21:30) |
+| **Phase 5** | 감정 표현 & FX 강화 | - | ⏳ 기획 중 |
 
 ### Phase 1: 스프라이트 기반 렌더링 시스템 (#44) ✅ 완료 (2026-02-17 10:30)
 - `spriteLoader.js` 유틸리티: 이미지 로딩, 캐싱, 로딩 추적, 에러 처리
@@ -85,6 +86,65 @@ AI 에이전트들이 서로 만나고, 사람들과 함께 살아가는 2D 메�
   - MiniMap.jsx 픽셀아트 스타일 적용
 
 ### Phase 3: UI 컴포넌트 레트로 스타일링 (#46) ✅ 완료 (2026-02-17 11:00)
+- **픽셀 폰트:** Press Start 2P (Google Fonts)
+- **pixel-theme.css 완전 구현:**
+  - 32색 색상 팔레트 (:root 변수)
+  - 픽셀 폰트 (font-family, letter-spacing)
+  - 픽셀 보더 (sm/md/lg)
+  - 픽셀 버튼 (RPG 스타일 + hover/active 효과)
+  - 픽셀 입력창, 패널/카드
+  - 픽셀 말풍선, 메뉴 (RPG 스타일)
+  - 픽셀 토스트, 아이콘
+  - 픽셀 그리드, 스크롤바
+  - 픽셀 애니메이션 (pop/bounce/shake)
+  - 픽셀 뱃지, 오버레이
+  - 모바일 최적화
+- **컴포넌트 스타일링:**
+  - `ChatBubble.jsx`: 도트 말풍선 스타일 (Press Start 2P, SVG rect/path)
+  - `ChatInput.jsx`: 픽셀 입력창 (pixel-panel, pixel-input, pixel-button-green)
+  - `InteractionMenu.jsx`: RPG 메뉴 스타일 (화살표 커서)
+  - `Inventory.jsx`: 도트 아이콘 + 레트로 그리드 (pixel-grid, pixel-grid-item)
+  - `Quest.jsx`: RPG 퀘스트 로그 (Quest.css 별도 스타일)
+- **테스트 코드 완료:**
+  - tests/pixel-ui-styling.test.js
+  - 59개 테스트 전부 통과 ✅
+
+### Phase 4: 캐릭터 시스템 구현 (#61) ✅ 완료 (2026-02-17 21:30)
+- **캐릭터 스프라이트 시스템:**
+  - spriteLoader.js (이미지 로드 + 캐싱) ✅
+  - spriteRenderer.js (애니메이션 + 방향별 렌더링) ✅
+- **캐릭터 상태 관리:**
+  - 위치 (x, y) ✅
+  - 방향 (idle, walk_up, walk_down, walk_left, walk_right) ✅
+  - 이동 상태 (isConversing 체크) ✅
+- **Canvas 기반 캐릭터 렌더링:**
+  - 픽셀 아트 캐릭터 (프로그래매틱 렌더링) ✅
+  - 걷기 애니메이션 (bounce) ✅
+  - 방향별 렌더링 (눈 위치 변경) ✅
+- **키보드 입력 처리:**
+  - inputHandler.js (방향키/WASD) ✅
+  - 대각선 이동 정규화 ✅
+  - 키 상태 관리 ✅
+- **충돌 감지:**
+  - 캐릭터 충돌 (checkCollision) ✅
+  - 건물 충돌 (checkBuildingCollision) ✅
+  - 맵 경계 체크 (checkMapBounds) ✅
+- **테스트 코드 완료:**
+  - tests/character-movement.test.js (새로 생성)
+  - 28개 테스트 전부 통과 ✅
+  - 충돌 감지, 이동 가능 여부, 속도, 방향 계산 등 커버
+
+### Phase 3: 캐릭터 스프라이트 애니메이션 시스템 (#66) ✅ 완료 (2026-02-18)
+- **AnimationController.js 구현:** 애니메이션 상태 전환 (idle/walk), 방향 관리, 프레임 계산
+- **CharacterSpriteRenderer.js 구현:** 4방향 스프라이트 렌더링, AnimationController 통합, 폴백 렌더링
+- **characterSprites.json:** 4방향 × 4프레임 스프라이트 좌표 정의
+- **Character.jsx 통합:** 이동 감지, 방향 결정, 하위 호환성 유지
+- **테스트 코드 완료:**
+  - tests/CharacterSpriteRenderer.test.js
+  - 30개 테스트 전부 통과 ✅ (AnimationController 16개, characterSprites.json 14개)
+- **구현 상태:** 코드 완성, 테스트 통과
+
+### Phase 5: 감정 표현 & FX 강화 (#29)
 - **픽셀 폰트:** Press Start 2P (Google Fonts)
 - **pixel-theme.css 완전 구현:**
   - 32색 색상 팔레트 (:root 변수)

@@ -1,0 +1,49 @@
+{
+  "spriteSheet": "sprites/characters.png",
+  "spriteSize": 32,
+  "framesPerAnimation": 4,
+  "directions": {
+    "down": 0,
+    "up": 1,
+    "left": 2,
+    "right": 3
+  },
+  "animations": {
+    "idle": {
+      "frameCount": 1,
+      "frameDuration": 0,
+      "loop": false
+    },
+    "walk": {
+      "frameCount": 4,
+      "frameDuration": 200,
+      "loop": true
+    }
+  },
+  "frames": {
+    "down": [
+      { "x": 0, "y": 0, "width": 32, "height": 32 },
+      { "x": 32, "y": 0, "width": 32, "height": 32 },
+      { "x": 64, "y": 0, "width": 32, "height": 32 },
+      { "x": 96, "y": 0, "width": 32, "height": 32 }
+    ],
+    "up": [
+      { "x": 0, "y": 32, "width": 32, "height": 32 },
+      { "x": 32, "y": 32, "width": 32, "height": 32 },
+      { "x": 64, "y": 32, "width": 32, "height": 32 },
+      { "x": 96, "y": 32, "width": 32, "height": 32 }
+    ],
+    "left": [
+      { "x": 0, "y": 64, "width": 32, "height": 32 },
+      { "x": 32, "y": 64, "width": 32, "height": 32 },
+      { "x": 64, "y": 64, "width": 32, "height": 32 },
+      { "x": 96, "y": 64, "width": 32, "height": 32 }
+    ],
+    "right": [
+      { "x": 0, "y": 96, "width": 32, "height": 32 },
+      { "x": 32, "y": 96, "width": 32, "height": 32 },
+      { "x": 64, "y": 96, "width": 32, "height": 32 },
+      { "x": 96, "y": 96, "width": 32, "height": 32 }
+    ]
+  }
+}

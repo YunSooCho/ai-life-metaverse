@@ -529,7 +529,54 @@ const buildingSources = {
 - 배경: 반투명 어두운
 - 스크롤: 픽셀 스크롤바
 
-### 13. CharacterProfile - 캐릭터 프로필 카드 UI (2026-02-17 완료)
+### 13. DialogBox - 픽셀아트 대화창 (2026-02-17 완료)
+- **목표:** 미연시 스타일 픽셀아트 대화창 UI
+- **위치:** `frontend/src/components/DialogBox.jsx`
+- **스타일:** 픽셀아트 레트로 스타일
+- **주요 기능:**
+  - 화자 이름 표시 (색상: 골드 #ffd700)
+  - 대화 내용 렌더링 (줄바꿈 지원)
+  - 선택지 시스템 (다중 선택지)
+  - 닫기 버튼 (왼쪽 상단)
+- **Props:**
+  - `visible` (boolean): 표시 여부
+  - `speaker` (string): 화자 이름
+  - `text` (string): 대화 내용
+  - `choices` (array): 선택지 목록 `[{ text: string, onSelect: function }]`
+  - `onClose` (func): 닫기 핸들러
+- **CSS:** `DialogBox.css`
+  - slide-up 애니메이션 (300ms)
+  - 픽셀 보더 (4px solid #4a4a5a)
+  - 긴 텍스트 스크롤 (max-height: 200px)
+- **테스트:** `DialogBox.test.jsx` (15개 통과)
+
+### 14. InventoryWindow - 픽셀아트 아이템 창 (2026-02-17 완료)
+- **목표:** RPG 스타일 픽셀아트 인벤토리 UI
+- **위치:** `frontend/src/components/InventoryWindow.jsx`
+- **스타일:** 픽셀아트 레트로 스타일
+- **주요 기능:**
+  - 아이템 그리드 레이아웃 (자동 반응형)
+  - 아이템 선택 및 상세 정보
+  - 수량 표시 (+ 아이콘)
+  - 닫기 버튼 (오른쪽 상단)
+  - 빈 상태 메시지
+- **Props:**
+  - `visible` (boolean): 표시 여부
+  - `items` (array): 아이템 목록
+    ```javascript
+    [{ id, name, icon, description, quantity }]
+    ```
+  - `onItemSelect` (func): 아이템 선택 핸들러
+  - `onClose` (func): 닫기 핸들러
+  - `title` (string): 창 제목 (기본: "인벤토리")
+- **CSS:** `InventoryWindow.css`
+  - windowAppear 애니메이션 (300ms)
+  - 오버레이 배경 (rgba(0, 0, 0, 0.7))
+  - 아이템 셀 돌출 효과 (box-shadow)
+  - 선택된 아이템 하이라이트 (골드 보더)
+- **테스트:** `InventoryWindow.test.jsx` (25개 통과)
+
+### 15. CharacterProfile - 캐릭터 프로필 카드 UI (2026-02-17 완료)
 - **목표:** 캐릭터 클릭 시 상세 프로필 카드 표시
 - **위치:** `frontend/src/components/CharacterProfile.jsx`
 - **스타일:** 픽셀아트 레트로 스타일
@@ -1211,3 +1258,134 @@ export default defineConfig({
 - 스마트폰 대응 (터치 이동 지원)
 - 모든 시나리오 모바일 호환성 고려
 - 콘솔 에러 감지로 배포 전 품질 보장
+
+---
+
+## 건물 인테리어 렌더링 (2026-02-18 추가)
+
+### 개요
+건물 클릭 시 내부로 진입하여 인테리어를 렌더링합니다.
+
+### 데이터 구조
+
+**인테리어 데이터 (`frontend/src/data/buildings_interior.json`):**
+```json
+{
+  "shop": {
+    "type": "shop",
+    "name": "상점",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#8B4513",
+        "floorColor": "#DEB887"
+      },
+      "npcs": [
+        {
+          "id": "shopkeeper",
+          "name": "상점 주인",
+          "x": 300,
+          "y": 250,
+          "sprite": "npc_shopkeeper",
+          "color": "#FFD700",
+          "isAi": true,
+          "dialogue": ["어서 오세요!", "무엇을 도와드릴까요?"]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_health_potion",
+          "name": "체력 포션",
+          "x": 150,
+          "y": 150,
+          "sprite": "item_health",
+          "emoji": "🧪",
+          "description": "체력을 회복합니다"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "shelf_main",
+          "name": "메인 선반",
+          "x": 100,
+          "y": 180,
+          "width": 300,
+          "height": 60,
+          "sprite": "furniture_shelf",
+          "color": "#654321"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  }
+}
+```
+
+### 구현된 함수
+
+| 함수 | 설명 | 파일 |
+|------|------|------|
+| `renderInteriorBackground()` | 인테리어 배경 렌더링 | `BuildingRenderer.js` |
+| `renderInteriorFurniture()` | 가구 렌더링 | `BuildingRenderer.js` |
+| `renderInteriorItems()` | 아이템 렌더링 | `BuildingRenderer.js` |
+| `renderInteriorNPCs()` | NPC 렌더링 | `BuildingRenderer.js` |
+| `renderInteriorExitButton()` | 퇴장 버튼 렌더링 | `BuildingRenderer.js` |
+| `renderInteriorHeader()` | 상단 헤더 렌더링 | `BuildingRenderer.js` |
+| `renderInterior()` | 전체 인테리어 렌더링 | `BuildingRenderer.js` |
+| `isExitButtonClicked()` | 퇴장 버튼 클릭 확인 | `BuildingRenderer.js` |
+
+### 인테리어 진입/퇴장 로직
+
+**GameCanvas.jsx state:**
+- `inInterior`: 인테리어에 있는지 여부
+- `currentInterior`: 현재 인테리어 데이터
+- `exitButtonAreaRef`: 퇴장 버튼 영역 ref
+
+**인테리어 진입:**
+1. 건물 클릭 감지 (`handleCanvasClick`)
+2. `buildings_interior.json`에서 데이터 로드
+3. `setInInterior(true)` + `setCurrentInterior(interior)`
+4. `onBuildingClick({ type: 'enter', building, interior })` 호출
+
+**인테리어 퇴장:**
+1. EXIT 버튼 클릭 감지 (`handleCanvasClick`)
+2. `setInInterior(false)` + `setCurrentInterior(null)`
+3. `exitButtonAreaRef.current = null`
+4. `onBuildingClick({ type: 'exit', building: currentInterior })` 호출
+
+### 구현 상태 (2026-02-18)
+
+| 기능 | 상태 |
+|------|------|
+| 인테리어 데이터 구조 (buildings_interior.json) | ✅ 완료 |
+| 인테리어 렌더링 함수 (BuildingRenderer.js) | ✅ 완료 |
+| GameCanvas 인테리어 전환 로직 | ✅ 완료 |
+| 인테리어 모드 렌더링 (render 함수) | ✅ 완료 |
+| 퇴장 버튼 (EXIT 버튼) | ✅ 완료 |
+| 5개 건물 인테리어 데이터 (shop, cafe, library, park, gym) | ✅ 완료 |
+
+### 테스트 (완료)
+
+**테스트 파일:** `tests/BuildingInteriorRenderer.test.js`
+**테스트 결과:** 34 passed (34)
+**테스트 항목:**
+- ✅ `renderInteriorBackground` (4개 테스트)
+- ✅ `renderInteriorFurniture` (6개 테스트)
+- ✅ `renderInteriorItems` (6개 테스트)
+- ✅ `renderInteriorNPCs` (6개 테스트)
+- ✅ `renderInteriorExitButton` (3개 테스트)
+- ✅ `renderInteriorHeader` (3개 테스트)
+- ✅ `renderInterior` (4개 테스트)
+- ✅ `isExitButtonClicked` (5개 테스트)
+
+### GitHub Issue
+- **#71:** [feat] 건물 상세 스프라이트 렌더링 - 인테리어 시각화 ✅ 완료 (2026-02-18)
+
+### 향후 개선
+- ⏳ 건물 스프라이트 이미지 추가 (현재 fallback 색상 사용)
+- ⏳ NPC 대화 시스템 통합
+- ⏳ 아이템 획득/사용 로직
+- ⏳ 인테리어 애니메이션 (fade-in/fade-out)
+- ⏳ 배경 음악 연동

@@ -353,7 +353,7 @@ function calculateDirection(prevX, prevY, currX, currY) {
 
 ---
 
-## 🚶 이동 시스템 (Movement System) - 2026-02-16 PM 업데이트
+## 🚶 이동 시스템 (Movement System) - 2026-02-16 PM 업데이트 / 2026-02-17 키보드 입력 추가
 
 ### 캐릭터 이동 속성
 
@@ -363,6 +363,183 @@ function calculateDirection(prevX, prevY, currX, currY) {
 | `isMoving` | 이동 중인지 여부 | true / false |
 | `targetX`, `targetY` | 이동 목표 좌표 | 0 ~ mapWidth/Height |
 | `isConversing` | 대화 중인지 여부 (2026-02-16 PM) | true / false - 대화 중에는 이동 불가 |
+
+---
+
+### ⌨️ 키보드 입력 시스템 (Keyboard Input System) - 2026-02-17 추가
+
+**관련 GitHub Issue:** #61 [feat] Phase 3: 캐릭터 시스템 구현 - 픽셀아트 캐릭터 이동 및 렌더링
+
+#### 입력 유틸리티 (inputHandler.js)
+
+**위치:** `frontend/src/utils/inputHandler.js`
+
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `initializeInputHandler(callbacks)` | 키보드 입력 초기화 | cleanup 함수 |
+| `isKeyPressed(key)` | 키가 눌려 있는지 확인 | boolean |
+| `getMovementDirection()` | 현재 이동 방향 계산 | { x, y } (정규화됨) |
+| `isMoving()` | 키보드로 이동 중인지 확인 | boolean |
+| `resetKeyStates()` | 모든 키 상태 초기화 | void |
+| `getPressedKeys()` | 현재 눌린 키 목록 | string[] |
+| `cleanupAllInputHandlers()` | 모든 입력 핸들러 정리 | void |
+
+#### 지원하는 키 (Supported Keys)
+
+| 키 | 설명 |
+|----|------|
+| `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight` | 방향키 |
+| `w`, `a`, `s`, `d` | WASD (소문자) |
+| `W`, `A`, `S`, `D` | WASD (대문자) |
+
+#### 키 방향 매핑 (Key Direction Mapping)
+
+| 키 | 방향 벡터 { x, y } |
+|----|-------------------|
+| `ArrowUp`, `w`, `W` | { x: 0, y: -1 } |
+| `ArrowDown`, `s`, `S` | { x: 0, y: 1 } |
+| `ArrowLeft`, `a`, `A` | { x: -1, y: 0 } |
+| `ArrowRight`, `d`, `D` | { x: 1, y: 0 } |
+
+#### 대각선 이동 정규화 (Diagonal Movement Normalization)
+
+두 방향 키가 동시에 눌린 경우, 대각선 방향 벡터의 길이가 1이 되도록 정규화:
+
+```javascript
+// 대각선 이동 정규화
+if (x !== 0 && y !== 0) {
+  const length = Math.sqrt(x * x + y * y)
+  x = x / length
+  y = y / length
+}
+```
+
+**결과:** 모든 방향에서 동일한 속도로 이동
+
+#### 충돌 처리 (Collision Handling)
+
+키보드 기반 이동 시 다음 충돌 감지/회피 적용:
+
+1. **맵 경계 체크** (`checkMapBounds`)
+   - 맵 영역 밖으로 이동 방지
+   - `clampedX`, `clampedY`로 경계 내 위치 계산
+
+2. **건물 충돌 체크** (`checkBuildingCollision`)
+   - 건물 영역 내로 이동 방지
+   - 충돌 시 이동 무시
+
+3. **캐릭터 충돌 체크** (`checkCollision`)
+   - 다른 캐릭터와 겹침 방지
+   - 최소 거리 유지
+
+#### GameCanvas 통합 (GameCanvas Integration)
+
+**Props:**
+```javascript
+{
+  onMove: (character) => void  // 캐릭터 이동 시 콜백
+}
+```
+
+**구현:**
+
+```javascript
+// 1. 키보드 입력 초기화
+useEffect(() => {
+  const cleanup = initializeInputHandler({
+    onKeyDown: (key) => {
+      const direction = getMovementDirection()
+      setKeyboardMovement({ x: direction.x, y: direction.y })
+    },
+    onKeyUp: (key) => {
+      const direction = getMovementDirection()
+      setKeyboardMovement({ x: direction.x, y: direction.y })
+    }
+  })
+
+  inputCleanupRef.current = cleanup
+
+  return () => {
+    if (inputCleanupRef.current) {
+      inputCleanupRef.current()
+    }
+  }
+}, [])
+
+// 2. updateCharacterAnimation에서 키보드 이동 처리
+if (keyboardMovement.x !== 0 || keyboardMovement.y !== 0) {
+  const speed = getCharacterSpeed(myCharacter)
+  const moveDistance = speed * deltaTime
+
+  // 새로운 위치 계산
+  const newX = myPrevX + keyboardMovement.x * moveDistance
+  const newY = myPrevY + keyboardMovement.y * moveDistance
+
+  // 맵 경계 체크
+  const bounds = checkMapBounds(newX, newY)
+  const clampedX = bounds.clampedX
+  const clampedY = bounds.clampedY
+
+  // 건물 충돌 체크
+  const buildingCollision = checkBuildingCollision(clampedX, clampedY, buildings)
+
+  // 충돌이 없으면 이동
+  if (!buildingCollision) {
+    updated[myCharacter.id].x = clampedX
+    updated[myCharacter.id].y = clampedY
+
+    // 서버에 새 위치 전송
+    if (onMove) {
+      onMove({
+        id: myCharacter.id,
+        x: clampedX,
+        y: clampedY
+      })
+    }
+  }
+}
+```
+
+#### App.jsx 통합 (App.jsx Integration)
+
+**handleMove 함수:**
+```javascript
+const handleMove = (character) => {
+  setMyCharacter(prev => ({ ...prev, x: character.x, y: character.y }))
+  socket.emit('move', character)
+}
+```
+
+**GameCanvas prop:**
+```javascript
+<GameCanvas
+  onMove={handleMove}
+  // ... other props
+/>
+```
+
+#### 테스트 커버리지 (Test Coverage)
+
+| 파일 | 테스트 개수 | 상태 |
+|------|-------------|------|
+| `frontend/src/utils/__tests__/inputHandler.test.js` | 24 | ✅ 100% 통과 |
+
+**테스트 항목:**
+- `initializeInputHandler` (3): 초기화, 콜백 호출, 지원하지 않는 키 무시
+- `isKeyPressed` (3): 기본 상태, 키 다운 후 true, 키 업 후 false
+- `getMovementDirection` (8): 기본, 상하좌우, WASD, 대각선 정규화, 충돌 키 처리
+- `isMoving` (2): 기본 false, 키 입력 후 true
+- `resetKeyStates` (1): 모든 키 리셋
+- `getPressedKeys` (2): 기본 빈 배열, 눌린 키 목록
+- `cleanupAllInputHandlers` (1): 모든 핸들러 정리
+
+#### 향후 개선 (Future Improvements)
+
+1. **터치 컨트롤** - 모바일용 가상 조이스틱
+2. **컨트롤러 지원** - 게임패드 연동
+3. **키 커스터마이징** - 사용자 별 키 설정
+4. **더블 클릭 이동** - 빠른 이동 단축키
+5. **이동 경로 표시** - 클릭/키보드 이동 경로 시각화
 
 ### 이동 시스템 기능
 
@@ -1190,3 +1367,328 @@ if (accessoryEmoji) {
 - characterCustomization 테스트: 29개 ✅
 - GameCanvas 커스터마이징 기능 테스트: 19개 ✅
 - 총: 48개 테스트 전부 통과
+
+---
+
+## 🎬 캐릭터 스프라이트 애니메이션 시스템 Phase 3 - 2026-02-18
+
+### GitHub Issue
+- **#66:** [feat] 캐릭터 스프라이트 애니메이션 시스템 - Phase 3 ✅ 완료 (2026-02-18)
+
+### 구현된 컴포넌트
+
+#### 1. AnimationController.js
+**위치:** `frontend/src/utils/AnimationController.js`
+
+**기능:**
+- 애니메이션 상태 전환 (idle, walk)
+- 방향 관리 (up, down, left, right)
+- 프레임 계산 및 업데이트 (4프레임 루프)
+- 이동 상태 자동 관리 (isMoving → state 전환)
+
+**API 메서드:**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `constructor(characterId)` | AnimationController 생성 | AnimationController |
+| `setState(state)` | 애니메이션 상태 설정 | void |
+| `setDirection(direction)` | 이동 방향 설정 | void |
+| `setMoving(isMoving)` | 이동 상태 설정 | void |
+| `updateFrame(timestamp)` | 프레임 업데이트 | void |
+| `resetAnimation()` | 애니메이션 리셋 | void |
+| `setAnimationSpeed(speed)` | 애니메이션 속도 설정 (ms/frame) | void |
+| `getCurrentState()` | 현재 상태 반환 | { state, direction, currentFrame } |
+| `getCharacterId()` | 캐릭터 ID 반환 | string |
+| `cleanup()` | 정리 | void |
+
+**특징:**
+- walk 상태: 4프레임 루프 (animationSpeed 기본값 200ms)
+- idle 상태: 항상 프레임 0
+- 이동 시작/중지 시 자동 상태 전환
+
+#### 2. CharacterSpriteRenderer.js
+**위치:** `frontend/src/utils/characterSpriteRenderer.js`
+
+**기능:**
+- 4방향 스프라이트 애니메이션 렌더링
+- AnimationController 통합 (캐릭터별)
+- 스프라이트 시트 로드 (spriteLoader 사용)
+- 폴백 렌더링 (프로그래매틱, 스프라이트 없을 때)
+- 캐릭터별 애니메이션 컨트롤러 관리
+
+**API 메서드:**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `constructor()` | CharacterSpriteRenderer 생성 | CharacterSpriteRenderer |
+| `loadSpriteSheet()` | 스프라이트 시트 로드 | Promise<void> |
+| `createController(characterId)` | 캐릭터 애니메이션 컨트롤러 생성 (async) | Promise<AnimationController> |
+| `render(ctx, characterId, x, y, size, isMoving, direction, timestamp)` | 캐릭터 렌더링 | void |
+| `renderSpriteFrame(ctx, x, y, size, state)` | 스프라이트 프레임 렌더링 | void |
+| `renderFallback(ctx, x, y, size, state)` | 폴백 렌더링 (프로그래매틱) | void |
+| `removeController(characterId)` | 캐릭터 컨트롤러 삭제 | void |
+| `cleanup()` | 모든 컨트롤러 정리 | void |
+| `isLoaded()` | 스프라이트 로드 여부 확인 | boolean |
+
+**스프라이트 프레임 정의:**
+- SPRITE_SIZE: 32 픽셀
+- 방향별 행: down (0), up (1), left (2), right (3)
+- 프레임: 4프레임 × 방향 (32×128 시트 구조)
+
+**폴백 렌더링:**
+- 스프라이트 시트가 없을 때 프로그래매틱으로 캐릭터 렌더링
+- 몸통: 사각형 (#4CAF50)
+- 눈: 흰색 원 + 검은 눈동자
+- bounce 애니메이션: 걷을 때 수직 이동
+
+#### 3. characterSprites.json
+**위치:** `frontend/src/data/characterSprites.json`
+
+**구조:**
+```json
+{
+  "spriteSheet": "sprites/characters.png",
+  "spriteSize": 32,
+  "framesPerAnimation": 4,
+  "directions": {
+    "down": 0,
+    "up": 1,
+    "left": 2,
+    "right": 3
+  },
+  "animations": {
+    "idle": { "frameCount": 1, "frameDuration": 0, "loop": false },
+    "walk": { "frameCount": 4, "frameDuration": 200, "loop": true }
+  },
+  "frames": {
+    "down": [{ "x": 0, "y": 0, "width": 32, "height": 32 }, ...],
+    "up": [{ "x": 0, "y": 32, "width": 32, "height": 32 }, ...],
+    "left": [{ "x": 0, "y": 64, "width": 32, "height": 32 }, ...],
+    "right": [{ "x": 0, "y": 96, "width": 32, "height": 32 }, ...]
+  }
+}
+```
+
+**특징:**
+- 4방향 × 4프레임 = 16개 프레임 정의
+- 프레임 좌표: x (0, 32, 64, 96), y (방향별 0, 32, 64, 96)
+- walk 애니메이션: 4프레임 × 200ms = 800ms 루프
+
+#### 4. Character.jsx 통합
+**위치:** `frontend/src/components/Character.jsx`
+
+**변경 사항:**
+- 이동 감지: useEffect로 x, y 변경 감지
+- 방향 결정: dx, dy 기준 방향 계산 (absX > absY 수직, else 수평)
+- 이동 상태 관리: setIsMoving (dx !== 0 \|\| dy !== 0)
+- 스프라이트 시트 초기 로드 (loadSpriteSheet)
+- 하위 호환성: SVG 기반 캐릭터 폴백 유지
+
+**내보내기 함수:**
+```javascript
+export function renderCharacterSprite(canvas, char, scale, timestamp) {
+  // GameCanvas에서 호출하여 Canvas에 스프라이트 렌더링
+}
+```
+
+### 테스트 커버리지
+
+| 파일 | 테스트 개수 | 상태 |
+|------|-------------|------|
+| `frontend/tests/CharacterSpriteRenderer.test.js` | AnimationController: 16 | ✅ 통과 |
+| `frontend/tests/CharacterSpriteRenderer.test.js` | characterSprites.json: 14 | ✅ 통과 |
+| **총계** | **30** | **✅ 100% 통과** |
+
+**테스트 항목 (AnimationController):**
+- 생성 및 초기화: 4개
+- 애니메이션 상태 전환: 4개
+- 이동 상태 관리: 3개
+- 프레임 업데이트: 4개
+- 애니메이션 속도 설정: 2개
+- 정리: 1개
+
+**테스트 항목 (characterSprites.json):**
+- 전체 구조: 4개
+- 애니메이션 데이터: 4개
+- 프레임 데이터: 6개
+
+### 향후 작업
+
+1. **GameCanvas.jsx 완전 통합** - renderCharacterSprite 함수로 Canvas 기반 스프라이트 렌더링
+2. **스프라이트 시트 에셋 준비** - `public/images/sprites/characters.png` 파일 생성
+3. **E2E 브라우저 테스트** - 실제 브라우저에서 애니메이션 확인
+4. **캐릭터별 이동 히스토리** - 방향 결정 개선 (현재 단순 비교)
+
+### 관련 파일
+
+| 파일 | 설명 | 크기 |
+|------|------|------|
+| `frontend/src/utils/AnimationController.js` | 애니메이션 컨트롤러 | 2273 bytes |
+| `frontend/src/utils/characterSpriteRenderer.js` | 스프라이트 렌더러 | 5473 bytes |
+| `frontend/src/data/characterSprites.json` | 스프라이트 좌표 데이터 | 1345 bytes |
+| `frontend/src/components/Character.jsx` | 캐릭터 컴포넌트 (수정) | 5288 bytes |
+| `frontend/tests/CharacterSpriteRenderer.test.js` | 테스트 파일 | 12280 bytes |
+
+---
+
+## 📊 캐릭터 이동 히스토리 시스템 (Movement History System) - 2026-02-18
+
+### GitHub Issue
+- **#67:** [feat] 캐릭터 이동 히스토리 시스템 - 방향 결정 개선 ✅ 완료 (2026-02-18)
+
+### 목표
+캐릭터 이동 히스토리를 추적하여 현재 이동 방향을 정확하게 결정하는 시스템 구현
+
+### 문제
+- 기존 코드에서 단순히 prevX/prevY와 현재 x/y 비교로 방향 결정
+- 단순 비교로 인해 방향 전환이 부정확할 수 있음
+- 이동 노이즈 제거 기능 없음
+
+### 해결: MovementHistory.js 구현
+
+### MovementHistory 클래스
+
+이동 히스토리 추적 및 방향 결정 유틸리티
+
+**데이터 구조:**
+```javascript
+{
+  characterId: string,
+  positions: [{ x, y, timestamp }],  // 최근 N개 위치 기록
+  maxHistory: 100,                   // 최대 기록 개수
+}
+```
+
+**설정값:**
+| 상수 | 설명 | 값 |
+|------|------|-----|
+| DEFAULT_MAX_HISTORY | 최대 히스토리 크기 | 50 |
+| MOVEMENT_THRESHOLD | 이동 임계값 (px) | 0.5 |
+| DIRECTION_HISTORY_SIZE | 방향 결정에 사용할 최근 이동 개수 | 3 |
+
+**메서드:**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| constructor(characterId, maxHistory) | MovementHistory 생성 | MovementHistory |
+| addPosition(x, y, timestamp) | 위치 추가 (임계값 이상 이동 시) | void |
+| getRecentPositions(n) | 최근 N개 위치 반환 | Array |
+| getCurrentPosition() | 현재 위치 반환 | { x, y, timestamp } \| null |
+| getPreviousPosition() | 이전 위치 반환 | { x, y, timestamp } \| null |
+| isMoving(n) | 이동 중 여부 (최근 N개 위치 평균) | boolean |
+| calculateMovementVector(n) | 이동 벡터 계산 (정규화 포함) | { dx, dy, normalized } |
+| getDirection() | 방향 결정 (up/down/left/right/idle) | string |
+| getDetailedDirection() | 상세 방향 (8방향 + 대각선) | string |
+| calculateSpeed(n) | 속도 계산 (px/ms) | number |
+| clear() | 히스토리 초기화 | void |
+| size() | 히스토리 크기 반환 | number |
+| getStatus() | 상태 요약 | Object |
+
+**주요 기능:**
+1. **이동 임계값 무시** (노이즈 제거): 0.5px 미만 이동은 무시
+2. **최근 위치 기반 방향 결정**: 최근 3개 위치 평균으로 정확한 방향 결정
+3. **대각선 이동 정규화**: 벡터 크기 1로 정규화 (cos 45° ≈ 0.707)
+4. **속도 계산**: px/ms 단위 속도 계산
+
+**방향 결정 알고리즘:**
+| 방향 | 설명 |
+|------|------|
+| idle | 정지 (이동 없음) |
+| up, down, left, right | 4방향 (절대값이 큰 축 선택) |
+| up-left, up-right, down-left, down-right | 8방향 (상세, 대각선 판정 임계값: 0.6) |
+
+### MovementHistoryManager 클래스
+
+다중 캐릭터 히스토리 관리 시스템
+
+**메서드:**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| constructor(defaultMaxHistory) | MovementHistoryManager 생성 | MovementHistoryManager |
+| getHistory(characterId) | 캐릭터 히스토리 반환 (없으면 생성) | MovementHistory |
+| addPosition(characterId, x, y, timestamp) | 캐릭터 위치 등록 | void |
+| isMoving(characterId) | 캐릭터 이동 중 여부 | boolean |
+| getDirection(characterId) | 캐릭터 방향 반환 | string |
+| getDetailedDirection(characterId) | 캐릭터 상세 방향 반환 | string |
+| calculateMovementVector(characterId) | 캐릭터 이동 벡터 반환 | { dx, dy, normalized } |
+| calculateSpeed(characterId) | 캐릭터 속도 반환 | number |
+| getStatus(characterId) | 캐릭터 상태 요약 반환 | Object |
+| clear(characterId) | 캐릭터 히스토리 초기화 | void |
+| remove(characterId) | 캐릭터 히스토리 제거 | void |
+| clearAll() | 모든 히스토리 초기화 | void |
+| getCharacterIds() | 관리 중인 캐릭터 목록 반환 | string[] |
+| size() | 캐릭터 수 반환 | number |
+
+**전역 인스턴스:** globalMovementHistoryManager
+
+### Character.jsx 통합
+
+**변경 사항:**
+```javascript
+// MovementHistory import
+import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
+
+// 이동 상태 추적 (MovementHistory 사용)
+const [isMoving, setIsMoving] = useState(false)
+const [direction, setDirection] = useState('down')
+const movementInitializedRef = useRef(false)
+
+// MovementHistory로 위치 등록
+useEffect(() => {
+  if (!movementInitializedRef.current) {
+    globalMovementHistoryManager.addPosition(id, x, y)
+    movementInitializedRef.current = true
+  }
+
+  globalMovementHistoryManager.addPosition(id, x, y)
+
+  const history = globalMovementHistoryManager.getHistory(id)
+  setIsMoving(history.isMoving())
+  setDirection(history.getDirection())
+
+  return () => {
+    globalMovementHistoryManager.remove(id)
+  }
+}, [x, y, id])
+```
+
+### GameCanvas.jsx 수정
+
+**변경 사항:**
+```javascript
+// MovementHistory import
+import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
+
+// calculateDirection 함수 수정 (MovementHistory 기반)
+export function calculateDirection(characterId) {
+  const history = globalMovementHistoryManager.getHistory(characterId)
+  if (!history) return 'idle'
+  return history.getDirection()
+}
+```
+
+### 테스트 커버리지
+
+**테스트 개수:** 31개 (모두 통과 ✅)
+**테스트 항목:**
+1. 위치 추가 및 히스토리 관리 (4개)
+2. 이동 임계값 무시 (2개)
+3. 이동 감지 (3개)
+4. 이동 벡터 계산 (4개)
+5. 방향 결정 (4개)
+6. 상세 방향 결정 (4개)
+7. 속도 계산 (1개)
+8. MovementHistoryManager (7개)
+9. 캐릭터 제거 (2개)
+10. 전역 인스턴스 (1개)
+
+### 관련 파일
+
+| 파일 | 설명 | 크기 |
+|------|------|------|
+| frontend/src/utils/MovementHistory.js | 이동 히스토리 유틸리티 | ~9.5 KB |
+| frontend/src/components/Character.jsx | 캐릭터 컴포넌트 (수정) | ~5.6 KB |
+| frontend/src/components/GameCanvas.jsx | GameCanvas 컴포넌트 (수정) | ~XX KB |
+| frontend/tests/MovementHistory.test.js | Jest 테스트 파일 | ~12 KB |
+| frontend/test-movement-history.mjs | 테스트 스크립트 | ~5.3 KB |
+
+---
+
+*마지막 업데이트: 2026-02-18 (MovementHistory 시스템 추가)*

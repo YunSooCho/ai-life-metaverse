@@ -1,4 +1,8 @@
+// 캐릭터 컴포넌트 - 픽셀 아트 스프라이트 애니메이션 지원
 import PropTypes from 'prop-types'
+import { useState, useEffect, useRef } from 'react'
+import characterSpriteRenderer from '../utils/characterSpriteRenderer.js'
+import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
 
 const CHARACTER_SIZE = 40
 
@@ -15,8 +19,58 @@ export default function Character({ char, myCharacterId, affinities, chatMessage
   const CHARACTER_SIZE_SCALED = CHARACTER_SIZE * scale
   const displayName = name || '익명'  // Fallback: name이 undefined이면 '익명' 표시
 
+  // 이동 상태 추적 (MovementHistory 사용)
+  const [isMoving, setIsMoving] = useState(false)
+  const [direction, setDirection] = useState('down')
+
+  // MovementHistory ref 초기화
+  const movementInitializedRef = useRef(false)
+
+  // MovementHistory로 위치 등록
+  useEffect(() => {
+    // 첫 위치 등록
+    if (!movementInitializedRef.current) {
+      globalMovementHistoryManager.addPosition(id, x, y)
+      movementInitializedRef.current = true
+    }
+
+    // 현재 위치 등록
+    globalMovementHistoryManager.addPosition(id, x, y)
+
+    // MovementHistory에서 이동 상태 및 방향 계산
+    const history = globalMovementHistoryManager.getHistory(id)
+    setIsMoving(history.isMoving())
+    setDirection(history.getDirection())
+
+    // Cleanup: 캐릭터가 사라지면 히스토리 제거
+    return () => {
+      globalMovementHistoryManager.remove(id)
+    }
+  }, [x, y, id])
+
+  // 스플라이트 시트 초기 로드
+  useEffect(() => {
+    const loadSprites = async () => {
+      await characterSpriteRenderer.loadSpriteSheet()
+    }
+    loadSprites()
+
+    // cleanup
+    return () => {
+      characterSpriteRenderer.removeController(id)
+    }
+  }, [id])
+
+  // Canvas에서 스프라이트 렌더링을 위한 ref
+  // (현재는 JSX 기반으로 표시, 추후 Canvas 통합 시 필요)
+
   return (
     <>
+      {/* 캐릭터 스프라이트 렌더링 (Canvas 기반) */}
+      {/* Note: GameCanvas.jsx에서 실제 Canvas 렌더링을 수행 */}
+
+      {/* 하위 호환성: 기존 SVG 기반 캐릭터 표시 */}
+      {/* 스프라이트가 로드되지 않았거나 Canvas 통합 전까지 사용 */}
       <circle
         cx={scaledX}
         cy={scaledY}
@@ -95,6 +149,26 @@ export default function Character({ char, myCharacterId, affinities, chatMessage
       )}
     </>
   )
+}
+
+// 스프라이트 렌더링을 위한 헬퍼 함수 (GameCanvas에서 사용)
+// MovementHistory를 사용하여 이동 상태 및 방향 결정
+export function renderCharacterSprite(canvas, char, scale, timestamp) {
+  const ctx = canvas.getContext('2d')
+  const { x, y, id } = char
+  const scaledX = x * scale
+  const scaledY = y * scale
+  const size = CHARACTER_SIZE * scale
+
+  // MovementHistory에서 이동 상태 및 방향 결정
+  const history = globalMovementHistoryManager.getHistory(id)
+  const isMoving = history ? history.isMoving() : false
+  const direction = history ? history.getDirection() : 'down'
+
+  // 스프라이트 렌더링
+  characterSpriteRenderer.render(ctx, id, scaledX, scaledY, size, isMoving, direction, timestamp)
+
+  return { isMoving, direction }
 }
 
 Character.propTypes = {

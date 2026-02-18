@@ -25,8 +25,6 @@ import CharacterProfile from './CharacterProfile'
 import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
 import tileRenderer from '../utils/TileRenderer'
-import { renderBuilding, isBuildingHighlighted, renderInterior, isExitButtonClicked } from '../utils/BuildingRenderer'
-import buildingsInteriorData from '../data/buildings_interior.json'
 import tilemapData from '../data/tilemap.json'
 import {
   renderEmotionEmoji,
@@ -72,7 +70,6 @@ import {
   resetKeyStates,
   cleanupAllInputHandlers
 } from '../utils/inputHandler'
-import { globalMovementHistoryManager } from '../utils/MovementHistory.js'
 
 export const MAP_SIZE = { width: 1000, height: 700 }
 export const CHARACTER_SIZE = 64
@@ -132,16 +129,7 @@ export function getCharacterSpeed(character) {
   return character.speed || DEFAULT_SPEED
 }
 
-// 방향 계산 함수 - MovementHistory 기반으로 개선
-export function calculateDirection(characterId) {
-  const history = globalMovementHistoryManager.getHistory(characterId)
-  if (!history) return 'idle'
-
-  return history.getDirection()
-}
-
-// 기존 호환성을 위해 prevX, prevY 기반 방향 계산도 유지
-export function calculateDirectionFromPositions(prevX, prevY, currX, currY) {
+export function calculateDirection(prevX, prevY, currX, currY) {
   const dx = currX - prevX
   const dy = currY - prevY
 
@@ -181,11 +169,6 @@ function GameCanvas({
   const [selectedCharacter, setSelectedCharacter] = useState(null)
   const [keyboardMovement, setKeyboardMovement] = useState({ x: 0, y: 0 })
 
-  // 인테리어 상태 (Issue #71)
-  const [inInterior, setInInterior] = useState(false)
-  const [currentInterior, setCurrentInterior] = useState(null)
-  const exitButtonAreaRef = useRef(null)
-
   // Refs for mutable state (avoids triggering useEffect)
   const animationRef = useRef(null)
   const lastTimeRef = useRef(0)
@@ -209,8 +192,6 @@ function GameCanvas({
   const weatherRef = useRef(weather)
   const animatedCharactersRef = useRef(animatedCharacters)
   const renderLoopIdRef = useRef(null)
-  const inInteriorRef = useRef(false)
-  const currentInteriorRef = useRef(null)
 
   // Update refs when state changes (sync refs with props)
   useEffect(() => {
@@ -228,12 +209,6 @@ function GameCanvas({
   useEffect(() => {
     animatedCharactersRef.current = animatedCharacters
   }, [animatedCharacters])
-
-  // Sync interior refs
-  useEffect(() => {
-    inInteriorRef.current = inInterior
-    currentInteriorRef.current = currentInterior
-  }, [inInterior, currentInterior])
 
   // 감정 시스템 및 FX 시스템 refs
   const emotionSystemRef = useRef(new EmotionSystem())
@@ -355,10 +330,54 @@ function GameCanvas({
 
   /**
    * 건물 스프라이트 렌더링 함수 - stable reference
-   * Phase 2 마무리: BuildingRenderer를 통한 리팩토링
    */
   const renderBuildingSprite = useCallback((ctx, building, scale, isHighlighted) => {
-    renderBuilding(ctx, building, scale, spriteSheets, tileRenderer.renderEntranceHighlight, isHighlighted)
+    const bx = building.x * scale
+    const by = building.y * scale
+    const bw = building.width * scale
+    const bh = building.height * scale
+
+    // 건물 소스 좌표 (buildings.svg SVG viewBox 0 0 800 200)
+    const buildingSources = {
+      shop: { x: 0, y: 0, width: 128, height: 128 },
+      cafe: { x: 128, y: 0, width: 128, height: 128 },
+      park: { x: 256, y: 0, width: 200, height: 160 },
+      library: { x: 464, y: 0, width: 150, height: 140 },
+      gym: { x: 620, y: 0, width: 160, height: 140 }
+    }
+
+    // 스프라이트 있는지 확인
+    const buildingSprite = spriteSheets.buildings
+    if (buildingSprite && buildingSprite instanceof Image && buildingSources[building.sprite]) {
+      // 스프라이트 렌더링 (소스 좌표 사용)
+      const source = buildingSources[building.sprite]
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(
+        buildingSprite,
+        source.x, source.y, source.width, source.height, // 소스 좌표
+        bx, by, bw, bh // 목표 좌표
+      )
+    } else {
+      // Fallback: 기본 색상 건물 렌더링
+      ctx.imageSmoothingEnabled = false
+      ctx.fillStyle = building.color
+      ctx.fillRect(bx, by, bw, bh)
+    }
+
+    // 입장 하이라이트 - TileRenderer 사용
+    if (isHighlighted) {
+      tileRenderer.renderEntranceHighlight(ctx, building.entrance, scale)
+    }
+
+    // 건물 이름 (레트로 폰트 스타일)
+    ctx.font = `${12 * scale}px 'Courier New', monospace`
+    ctx.fillStyle = '#ffffff'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.shadowColor = '#000000'
+    ctx.shadowBlur = 2
+    ctx.fillText(building.name, bx + bw / 2, by + bh / 2)
+    ctx.shadowBlur = 0
   }, [spriteSheets])
 
   /**
@@ -405,20 +424,13 @@ function GameCanvas({
           updated[char.id].x += moveX
           updated[char.id].y += moveY
 
-          // MovementHistory에 위치 등록
-          globalMovementHistoryManager.addPosition(char.id, char.x, char.y)
-
-          // 방향 계산 및 업데이트 (MovementHistory 기반)
-          const direction = calculateDirection(char.id)
+          // 방향 계산 및 업데이트
+          const direction = calculateDirection(prevX, prevY, char.x, char.y)
           directions[char.id] = direction
           spriteRenderer.setAnimationState(char.id, distance > 0.5 ? 'walk' : 'idle')
         } else {
           updated[char.id].x = char.x
           updated[char.id].y = char.y
-
-          // MovementHistory에 위치 등록
-          globalMovementHistoryManager.addPosition(char.id, char.x, char.y)
-
           directions[char.id] = 'idle'
           spriteRenderer.setAnimationState(char.id, 'idle')
         }
@@ -526,24 +538,6 @@ function GameCanvas({
       ctx.fillStyle = '#1a1a2e'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // 인테리어 렌더링 (Issue #71)
-      const isInside = inInteriorRef.current
-      const interiorData = currentInteriorRef.current
-
-      if (isInside && interiorData) {
-        // 인테리어 모드: 인테리어 렌더링
-        const exitButton = renderInterior(
-          ctx,
-          interiorData,
-          canvas.width,
-          canvas.height,
-          currentScale,
-          drawCharacter
-        )
-        exitButtonAreaRef.current = exitButton
-      } else {
-        // 맵 모드: 기존 렌더링
-
       // 타일맵 배경 렌더링
       renderTilemap(ctx, currentScale, canvasWidth, canvasHeight)
 
@@ -590,23 +584,6 @@ function GameCanvas({
       })
 
       // 픽셀 아트 그리드 렌더링
-      ctx.strokeStyle = 'rgba(42, 42, 78, 0.3)'
-      ctx.lineWidth = 1
-      ctx.imageSmoothingEnabled = false
-      for (let x = 0; x < canvas.width; x += CELL_SIZE_SCALED) {
-        ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, canvas.height)
-        ctx.stroke()
-      }
-      for (let y = 0; y < canvas.height; y += CELL_SIZE_SCALED) {
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(canvas.width, y)
-        ctx.stroke()
-      }
-
-      } // END: 맵 모드 (else 블록)
       ctx.strokeStyle = 'rgba(42, 42, 78, 0.3)'
       ctx.lineWidth = 1
       ctx.imageSmoothingEnabled = false
@@ -952,39 +929,6 @@ function GameCanvas({
     const containerHeight = container.clientHeight
     const scale = Math.min(containerWidth / MAP_SIZE.width, containerHeight / MAP_SIZE.height)
 
-    // 인테리어에 있을 때: 퇴장 버튼 클릭 확인 (Issue #71)
-    if (inInterior && exitButtonAreaRef.current) {
-      if (isExitButtonClicked(clickX, clickY, exitButtonAreaRef.current)) {
-        setInInterior(false)
-        setCurrentInterior(null)
-        exitButtonAreaRef.current = null
-        // 인테리어 퇴장 시 이벤트 처리
-        if (onBuildingClick) {
-          onBuildingClick({ type: 'exit', building: currentInterior })
-        }
-        return
-      }
-    }
-
-    // 인테리어가 아닐 때: 건물 클릭 확인 (Issue #71)
-    if (!inInterior) {
-      for (const building of buildingsRef.current) {
-        if (isBuildingHighlighted(clickX, clickY, building, scale)) {
-          // 건물 클릭 시 인테리어 진입
-          const interiorData = buildingsInteriorData[building.type]
-          if (interiorData && interiorData.interior) {
-            setInInterior(true)
-            setCurrentInterior(interiorData.interior)
-            // 인테리어 진입 이벤트 처리
-            if (onBuildingClick) {
-              onBuildingClick({ type: 'enter', building, interior: interiorData.interior })
-            }
-          }
-          return
-        }
-      }
-    }
-
     // 클릭 좌표를 맵 좌표로 변환
     const mapX = clickX / scale
     const mapY = clickY / scale
@@ -1015,7 +959,7 @@ function GameCanvas({
     } else {
       setSelectedCharacter(null)
     }
-  }, [canvasRef, characters, myCharacter, onClick, onBuildingClick, inInterior, currentInterior])
+  }, [canvasRef, characters, myCharacter, onClick])
 
   // 프로필 닫기 핸들러
   const handleCloseProfile = useCallback(() => {

@@ -38,7 +38,7 @@
 - **포트:** 3000
 - **주요 컴포넌트:**
   - `App.jsx` - 메인 앱 (상태 관리, Socket 연결)
-  - `GameCanvas.jsx` - 2D Canvas 렌더링 (캐릭터, 건물, 맵)
+  - `GameCanvas.jsx` - 2D Canvas 렌더링 (캐릭터, 건물, 맵, 2026-02-17 최적화: useRef + useEffect 의존성 최소화로 렌더 루프 개선)
   - `Character.jsx` - 캐릭터 렌더링
   - `ChatBubble.jsx` - Speech bubble UI
   - `ChatInput.jsx` - 채팅 입력창 (textarea, Enter 전송)
@@ -58,6 +58,7 @@
 - **Utilities:**
   - `characterUtils.js` - 캐릭터 유틸리티 함수
   - `socket.js` - Socket.io 클라이언트 설정
+  - `BuildingRenderer.js` - 건물 스프라이트 렌더링 (2026-02-18 추가: 건물 스프라이트 리팩토링)
 
 ### 2. Backend (Node.js + Express + Socket.io)
 - **위치:** `backend/`
