@@ -5,8 +5,11 @@ import GameCanvas, {
   checkBuildingCollision,
   checkMapBounds,
   canMove,
-  getCharacterSpeed
+  getCharacterSpeed,
+  calculateDirection,
+  calculateDirectionFromPositions
 } from '../GameCanvas'
+import { globalMovementHistoryManager } from '../../utils/MovementHistory'
 
 // 모의 캔버스 ref
 const mockCanvasRef = {
@@ -304,6 +307,122 @@ describe('GameCanvas - 유틸리티 함수', () => {
     it('커스텀 속도를 반환한다', () => {
       const character = { speed: 5 }
       expect(getCharacterSpeed(character)).toBe(5)
+    })
+  })
+})
+
+describe('GameCanvas - 캐릭터 이동 방향 (버그 수정 #86)', () => {
+  beforeEach(() => {
+    // MovementHistory 초기화
+    globalMovementHistoryManager.clearAll()
+  })
+
+  describe('calculateDirection', () => {
+    it('캐릭터가 이동하지 않을 때 idle을 반환한다', () => {
+      const characterId = 'test-char'
+      const direction = calculateDirection(characterId)
+      expect(direction).toBe('idle')
+    })
+
+    it('MovementHistory에서 방향을 가져와서 walk_* 형식으로 변환한다', () => {
+      const characterId = 'test-char'
+
+      // 오른쪽 이동
+      globalMovementHistoryManager.addPosition(characterId, 100, 100, Date.now())
+      globalMovementHistoryManager.addPosition(characterId, 110, 100, Date.now() + 100)
+      globalMovementHistoryManager.addPosition(characterId, 120, 100, Date.now() + 200)
+      globalMovementHistoryManager.addPosition(characterId, 130, 100, Date.now() + 300)
+
+      const direction = calculateDirection(characterId)
+      expect(direction).toBe('walk_right')
+    })
+
+    it('왼쪽 이동 시 walk_left를 반환한다', () => {
+      const characterId = 'test-char'
+
+      // 왼쪽 이동
+      globalMovementHistoryManager.addPosition(characterId, 100, 100, Date.now())
+      globalMovementHistoryManager.addPosition(characterId, 90, 100, Date.now() + 100)
+      globalMovementHistoryManager.addPosition(characterId, 80, 100, Date.now() + 200)
+
+      const direction = calculateDirection(characterId)
+      expect(direction).toBe('walk_left')
+    })
+
+    it('위쪽 이동 시 walk_up을 반환한다', () => {
+      const characterId = 'test-char'
+
+      // 위쪽 이동
+      globalMovementHistoryManager.addPosition(characterId, 100, 100, Date.now())
+      globalMovementHistoryManager.addPosition(characterId, 100, 90, Date.now() + 100)
+      globalMovementHistoryManager.addPosition(characterId, 100, 80, Date.now() + 200)
+
+      const direction = calculateDirection(characterId)
+      expect(direction).toBe('walk_up')
+    })
+
+    it('아래쪽 이동 시 walk_down을 반환한다', () => {
+      const characterId = 'test-char'
+
+      // 아래쪽 이동
+      globalMovementHistoryManager.addPosition(characterId, 100, 100, Date.now())
+      globalMovementHistoryManager.addPosition(characterId, 100, 110, Date.now() + 100)
+      globalMovementHistoryManager.addPosition(characterId, 100, 120, Date.now() + 200)
+
+      const direction = calculateDirection(characterId)
+      expect(direction).toBe('walk_down')
+    })
+  })
+
+  describe('calculateDirectionFromPositions', () => {
+    it('위치가 같을 때 idle을 반환한다', () => {
+      const direction = calculateDirectionFromPositions(100, 100, 100, 100)
+      expect(direction).toBe('idle')
+    })
+
+    it('오른쪽 이동 시 walk_right를 반환한다', () => {
+      const direction = calculateDirectionFromPositions(100, 100, 120, 100)
+      expect(direction).toBe('walk_right')
+    })
+
+    it('왼쪽 이동 시 walk_left를 반환한다', () => {
+      const direction = calculateDirectionFromPositions(100, 100, 80, 100)
+      expect(direction).toBe('walk_left')
+    })
+
+    it('위쪽 이동 시 walk_up을 반환한다', () => {
+      const direction = calculateDirectionFromPositions(100, 100, 100, 80)
+      expect(direction).toBe('walk_up')
+    })
+
+    it('아래쪽 이동 시 walk_down을 반환한다', () => {
+      const direction = calculateDirectionFromPositions(100, 100, 100, 120)
+      expect(direction).toBe('walk_down')
+    })
+
+    it('대각선 이동 시 더 큰 방향을 선택한다', () => {
+      // X축 이동이 더 큼
+      const direction1 = calculateDirectionFromPositions(100, 100, 120, 110)
+      expect(direction1).toBe('walk_right')
+
+      // Y축 이동이 더 큼
+      const direction2 = calculateDirectionFromPositions(100, 100, 110, 120)
+      expect(direction2).toBe('walk_down')
+    })
+
+    it('spriteRenderer와 호환되는 walk_* 형식을 반환한다', () => {
+      const directions = [
+        calculateDirectionFromPositions(100, 100, 120, 100),
+        calculateDirectionFromPositions(100, 100, 80, 100),
+        calculateDirectionFromPositions(100, 100, 100, 80),
+        calculateDirectionFromPositions(100, 100, 100, 120),
+        calculateDirectionFromPositions(100, 100, 100, 100)
+      ]
+
+      // 모든 방향이 올바른 형식인지 확인
+      directions.forEach(dir => {
+        expect(['walk_right', 'walk_left', 'walk_up', 'walk_down', 'idle']).toContain(dir)
+      })
     })
   })
 })

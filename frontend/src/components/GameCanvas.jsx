@@ -135,14 +135,26 @@ export function getCharacterSpeed(character) {
 }
 
 // 방향 계산 함수 - MovementHistory 기반으로 개선
+// spriteRenderer와 호환되는 방향 형식으로 변환 (walk_up, walk_down, walk_left, walk_right)
 export function calculateDirection(characterId) {
   const history = globalMovementHistoryManager.getHistory(characterId)
   if (!history) return 'idle'
 
-  return history.getDirection()
+  const direction = history.getDirection()
+
+  // MovementHistory는 'right', 'left', 'up', 'down'을 반환
+  // spriteRenderer는 'walk_right', 'walk_left', 'walk_up', 'walk_down'을 기대함
+  if (direction === 'idle') return 'idle'
+  if (direction === 'right') return 'walk_right'
+  if (direction === 'left') return 'walk_left'
+  if (direction === 'up') return 'walk_up'
+  if (direction === 'down') return 'walk_down'
+
+  return 'idle'
 }
 
 // 기존 호환성을 위해 prevX, prevY 기반 방향 계산도 유지
+// spriteRenderer와 호환되는 방향 형식으로 변환 (walk_up, walk_down, walk_left, walk_right)
 export function calculateDirectionFromPositions(prevX, prevY, currX, currY) {
   const dx = currX - prevX
   const dy = currY - prevY
