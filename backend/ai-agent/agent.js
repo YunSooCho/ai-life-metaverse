@@ -35,10 +35,12 @@ const AI_PERSONAS = {
   }
 }
 
-// 채팅 컨텍스트 관리 (캐릭터별 최근 10개 대화 저장)
+// 채팅 컨텍스트 관리 (캐릭터별 최근 10개 대화 저장 + 시간 기반 필터링)
 class ChatContextManager {
   constructor() {
     this.contexts = new Map() // characterId → Array of chat messages
+    this.CONTEXT_MAX_COUNT = 10 // 최근 10개 대화 저장
+    this.CONTEXT_TIME_LIMIT = 5 * 60 * 1000 // 5분 (밀리초)
   }
 
   // 대화 컨텍스트에 메시지 추가
@@ -51,27 +53,67 @@ class ChatContextManager {
     context.push({ role, content, timestamp: Date.now() })
 
     // 최근 10개만 유지
-    if (context.length > 10) {
+    if (context.length > this.CONTEXT_MAX_COUNT) {
       context.shift()
     }
   }
 
-  // 대화 컨텍스트 가져오기
+  // 대화 컨텍스트 가져오기 (시간 기반 필터링 포함)
   getContext(characterId) {
-    return this.contexts.get(characterId) || []
+    const allContext = this.contexts.get(characterId) || []
+    const now = Date.now()
+
+    // 최근 5분 이내의 대화만 필터링
+    const recentContext = allContext.filter(msg => {
+      return (now - msg.timestamp) < this.CONTEXT_TIME_LIMIT
+    })
+
+    return recentContext
+  }
+
+  // 대화 흐름 상태 체크 (새 대화 vs 이어지는 대화)
+  getConversationState(characterId) {
+    const context = this.contexts.get(characterId) || []
+    const now = Date.now()
+
+    if (context.length === 0) {
+      return 'new' // 새 대화
+    }
+
+    // 마지막 메시지 시간 확인
+    const lastMessage = context[context.length - 1]
+    const timeSinceLastMessage = now - lastMessage.timestamp
+
+    if (timeSinceLastMessage > this.CONTEXT_TIME_LIMIT) {
+      return 'resumed' // 이어지는 대화 (오랜만)
+    }
+
+    return 'continuing' // 계속되는 대화
   }
 
   // 컨텍스트 초기화
   clearContext(characterId) {
     this.contexts.delete(characterId)
   }
+
+  // 마지막 토픽 추출 (대화 흐름 파악용)
+  getLastTopic(characterId) {
+    const context = this.contexts.get(characterId) || []
+    if (context.length === 0) return null
+
+    // 마지막 사용자 메시지의 토픽 키워드 추출
+    const lastUserMessage = [...context].reverse().find(msg => msg.role === 'user')
+    if (!lastUserMessage) return null
+
+    return lastUserMessage.content
+  }
 }
 
 const contextManager = new ChatContextManager()
 
 // 시스템 프롬프트 생성
-function createSystemPrompt(persona) {
-  return `당신은 ${persona.name}이라는 AI 캐릭터입니다.
+function createSystemPrompt(persona, conversationState = 'continuing') {
+  let prompt = `당신은 ${persona.name}이라는 AI 캐릭터입니다.
 
 [기본 정보]
 - 이름: ${persona.name}
@@ -97,10 +139,36 @@ ${persona.dislikes.join(', ')}
 4. 필요할 때 적절한 이모티콘을 사용하세요.
 5. 존댓말을 사용하세요.
 6. 상대방의 의도를 파악하고 적절하게 반응하세요.
+`
 
+  // 대화 상태에 따른 추가 지시
+  if (conversationState === 'new') {
+    prompt += `
+[대화 시작]
+상대방과 처음 대화하는 상황입니다. 친절하게 인사하고 자신을 소개하세요.
+자연스러운 시작 문구를 사용하세요 (예: "안녕하세요!", "만나서 반가워요!").
+`
+  } else if (conversationState === 'resumed') {
+    prompt += `
+[대화 재개]
+오랜만에 상대방과 다시 대화하는 상황입니다. 자연스럽게 대화를 이어가세요.
+오랜만 인사나 상태 여부를 물어보며 자연스럽게 전환하세요 (예: "오랜만이에요!", "어떻게 지내셨어요?").
+`
+  } else {
+    prompt += `
+[대화 중]
+계속 이어지는 대화 상황입니다. 자연스럽게 이어가세요.
+이전 대화 맥락을 고려하여 일관성 있게 대화하세요.
+`
+  }
+
+  prompt += `
 [상황]
 현재 당신은 2D 메타버스 세상에서 다른 캐릭터들과 대화하고 있습니다.
-다른 캐릭터가 당신에게 말을 걸면, 친절하게 응답하세요.`
+다른 캐릭터가 당신에게 말을 걸면, 친절하게 응답하세요.
+`
+
+  return prompt
 }
 
 // GLM-4.7으로 응답 생성
@@ -112,19 +180,23 @@ async function generateChatResponse(characterId, userMessage) {
     return null
   }
 
-  // 채팅 컨텍스트 가져오기
-  const context = contextManager.getContext(characterId)
+  // 대화 상태 체크 (새 대화 vs 이어지는 대화 vs 계속되는 대화)
+  const conversationState = contextManager.getConversationState(characterId)
+  console.log(`💬 대화 상태: ${characterId} → ${conversationState}`)
 
-  // 사용자 메시지를 컨텍스트에 추가
+  // 사용자 메시지를 먼저 컨텍스트에 추가
   contextManager.addMessage(characterId, 'user', userMessage)
 
-  // 시스템 프롬프트 생성
-  const systemPrompt = createSystemPrompt(persona)
+  // 채팅 컨텍스트 가져오기 (시간 기반 필터링 포함)
+  const context = contextManager.getContext(characterId)
 
-  // 메시지 배열 생성 (시스템 프롬프트 + 컨텍스트 + 사용자 메시지)
+  // 시스템 프롬프트 생성 (대화 상태 반영)
+  const systemPrompt = createSystemPrompt(persona, conversationState)
+
+  // 메시지 배열 생성 (시스템 프롬프트 + 컨텍스트 - 마지막 메시지 제외)
   const messages = [
     { role: 'system', content: systemPrompt },
-    ...context.map(msg => ({ role: msg.role, content: msg.content }))
+    ...context.slice(0, -1).map(msg => ({ role: msg.role, content: msg.content }))
   ]
 
   try {
@@ -407,7 +479,7 @@ function initializeAgent(io, rooms, characterRooms) {
 
         // 1) Initiator가 먼저 말하기
         conversationStateManager.setConversingState(initiator.id, true)
-        const initiatorResponse = await generateChatResponse(initiator.id, `[${responder.name}에게 말 걸기] ${topic}`)
+        const initiatorResponse = await generateChatResponse(initiator.id, topic)
 
         if (initiatorResponse) {
           const chatData1 = {
