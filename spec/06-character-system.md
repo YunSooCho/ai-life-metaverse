@@ -203,6 +203,100 @@ Pink: #FFB6C1
 - **친하기 (befriend)**: 호감도 +20
 - **싸우기 (fight)**: 호감도 -15
 
+## AI 캐릭터 자동 이동 시스템 (✅ 구현 완료 2026-02-18)
+
+### 개요
+
+AI 캐릭터(유리, 히카리)가 시간대별로 자동으로 건물을 방문하고 산책하는 시스템. 30분마다 하트비트로 PM이 자동 관리.
+
+### 시간대별 행동 패턴
+
+| 시간대 | 시간 | 주요 건물 | 확률 | 대기 시간 |
+|-------|------|----------|------|----------|
+| Dawn | 5-7시 | Cafe(70%), Park(30%) | 카페/공원 | 5분 |
+| Morning | 7-12시 | Cafe(60%), Library(40%) | 카페/도서관 | 8분 |
+| Afternoon | 12-17시 | Park(70%), Cafe(30%) | 공원/카페 | 6분 |
+| Evening | 17-20시 | Library(60%), Cafe(40%) | 도서관/카페 | 10분 |
+| Night | 20-5시 | Home(100%) | 집 | 30분 |
+
+### 건물 위치 (map 기준)
+
+```javascript
+BUILDING_LOCATIONS = {
+  cafe: { x: 300, y: 400, name: 'Cafe' },
+  library: { x: 600, y: 300, name: 'Library' },
+  park: { x: 500, y: 600, name: 'Park' },
+  home: { x: 400, y: 500, name: 'Home' }
+}
+```
+
+### 핵심 기능
+
+**AiCharacterMovementScheduler:**
+- 시간대별 확률 기반 목표 건물 선택
+- Linear interpolation 이동 애니메이션 (5초 소요)
+- 주기적 스케줄 체크 (10초마다)
+- 소켓 이벤트发射 (`character:move`, `character:building:enter`)
+
+**BuildingInteractionSystem:**
+- 건물 입장/퇴장 관리
+- 활동 상태 (ENTRANCE → INSIDE → EXIT)
+- 1분마다 활동 메시지 전송
+- 캐릭터 상태 추적 (`isOccupying`, `getCharacterBuilding`)
+
+**useAiCharacterMovement Hook:**
+- React 컨포넌트 통합
+- Socket.io 연동
+- 캐릭터 추가/제거 관리
+- 스케줄러 시작/정지 제어
+
+### 구현 파일
+
+- `frontend/src/utils/aiCharacterMovementScheduler.js` - 이동 스케줄러 (19 tests ✅)
+- `frontend/src/utils/buildingInteractionSystem.js` - 건물 상호작용 (26 tests ✅)
+- `frontend/src/hooks/useAiCharacterMovement.js` - React Hook
+- 각 파일 테스트 포함 (총 45 tests ✅)
+
+### 활동 메시지 예시 (일본어)
+
+**Cafe:**
+- 입장: 「☕ カフェに入りました」「🧋 甘い物食べたいなー」「☕ コーヒーの匂いがいい匂い」
+- 활동: 「☕ まったりリラックス」「📱 スマホを見てる」「☕ 甘い物食べる」
+- 퇴장: 「☕ おいしかった！」「👋 また来るねー」
+
+**Library:**
+- 입장: 「📚 図書館に入りました」「📖 勉強するよ」「📚 本読みたいな」
+- 활동: 「📖 静かに本を読んでる」「📝 ノートを書いてる」「📚 わかりやすい本を探してる」
+- 퇴장: 「📚 勉強終わり！」「👋 また来るねー」
+
+**Park:**
+- 입장: 「🌳 公園に入りました」「🌸 花綺麗だね」「🌳 新鮮な空気吸いたい」
+- 활동: 「🌳 ベンチで休んでる」「🌸 花を眺めてる」「🌳 ストレッチ中」
+- 퇴장: 「🌳 また来るねー」「👋 さようなら！」
+
+### 이동 애니메이션
+
+- Linear interpolation: `position = start + (end - start) * progress`
+- Duration: 5초 (5000ms)
+- RequestAnimationFrame 사용 (60fps)
+- 도착 후 건물 입장 이벤트 발생
+
+### 스케줄러 메서드
+
+- `start()` / `stop()`: 스케줄러 시작/정지
+- `executeMovement(charId)`: 캐릭터 이동 시작
+- `animateMovement(charId, schedule)`: 이동 애니메이션
+- `onCharacterArrive(charId, schedule)`: 도착 처리
+- `addCharacter(char)` / `removeCharacter(charId)`: 캐릭터 관리
+
+### BuildingInteractionSystem 메서드
+
+- `enter(charId, building)`: 건물 입장
+- `startActivity(charId)`: 활동 시작
+- `exit(charId)`: 건물 퇴장
+- `isOccupying(charId)`: 캐릭터가 건물에 있는지 확인
+- `getCharacterBuilding(charId)`: 캐릭터 현재 건물 확인
+
 ## 호감도 시스템
 
 ### 호감도 범위

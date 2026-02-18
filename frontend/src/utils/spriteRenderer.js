@@ -175,6 +175,187 @@ class SpriteRenderer {
     this.currentFrame.clear();
     this.frameTimer.clear();
   }
+
+  /**
+   * FX 스프라이트 렌더링
+   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+   * @param {string} fxType - FX 타입 (jump, heart, dead, loading)
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {number} size - 크기
+   * @param {number} progress - 진행률 (0~1)
+   * @param {Object} options - 추가 옵션
+   */
+  renderFX(ctx, fxType, x, y, size, progress, options = {}) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+
+    switch (fxType) {
+      case 'jump':
+        this.renderJumpFX(ctx, x, y, size, progress, options);
+        break;
+      case 'heart':
+        this.renderHeartFX(ctx, x, y, size, progress, options);
+        break;
+      case 'dead':
+        this.renderDeadFX(ctx, x, y, size, progress, options);
+        break;
+      case 'loading':
+        this.renderLoadingFX(ctx, x, y, size, progress, options);
+        break;
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * 점프 FX 렌더링
+   */
+  renderJumpFX(ctx, x, y, size, progress, options = {}) {
+    // 점프 궤적 효과
+    const { direction = 'left', color = '#FFD700' } = options;
+    const numParticles = 5;
+
+    for (let i = 0; i < numParticles; i++) {
+      const particleProgress = (progress + i / numParticles) % 1;
+      const particleX = x + (direction === 'left' ? -particleProgress * size : particleProgress * size);
+      const particleY = y + particleProgress * size * 0.5 + Math.sin(particleProgress * Math.PI) * size * 0.3;
+      const particleSize = size * 0.2 * (1 - particleProgress);
+
+      const gradient = ctx.createRadialGradient(particleX, particleY, 0, particleX, particleY, particleSize);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(1, 'transparent');
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /**
+   * 하트 FX 렌더링
+   */
+  renderHeartFX(ctx, x, y, size, progress, options = {}) {
+    const { color = '#FF6B6B', targetY = y - size * 2 } = options;
+
+    // 페이드 효과
+    const alpha = 1 - progress;
+    ctx.globalAlpha = alpha;
+
+    // 하트 이동
+    const currentX = x + Math.sin(progress * Math.PI * 2) * size * 0.2;
+    const currentY = y - progress * (y - targetY);
+    const currentSize = size * (1 + progress * 0.5);
+
+    // 하트 그리기
+    ctx.fillStyle = color;
+    ctx.translate(currentX, currentY);
+
+    const heartSize = currentSize;
+    ctx.beginPath();
+    ctx.moveTo(0, -heartSize * 0.3);
+    ctx.bezierCurveTo(heartSize * 0.5, -heartSize * 0.6, heartSize * 0.8, -heartSize * 0.1, 0, heartSize * 0.5);
+    ctx.bezierCurveTo(-heartSize * 0.8, -heartSize * 0.1, -heartSize * 0.5, -heartSize * 0.6, 0, -heartSize * 0.3);
+    ctx.fill();
+
+    // 반짝이 효과
+    if (progress > 0.7) {
+      const sparkleAlpha = (progress - 0.7) / 0.3;
+      ctx.globalAlpha = sparkleAlpha * alpha;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(heartSize * 0.3, -heartSize * 0.2, heartSize * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /**
+   * 데드 FX 렌더링
+   */
+  renderDeadFX(ctx, x, y, size, progress, options = {}) {
+    const { color = '#FF0000', direction = 'up' } = options;
+
+    // 흔들림 효과
+    const shake = progress < 0.5 ? (progress * 10) % 2 - 1 : 0;
+    const offsetX = shake * size * 0.1;
+
+    // 축소 효과
+    const scale = 1 - progress * 0.5;
+    ctx.translate(x + offsetX, y);
+    ctx.scale(scale, scale);
+
+    // 데드 아이콘 그리기 (X 표시)
+    const iconSize = size;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = iconSize * 0.1;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(-iconSize * 0.3, -iconSize * 0.3);
+    ctx.lineTo(iconSize * 0.3, iconSize * 0.3);
+    ctx.moveTo(iconSize * 0.3, -iconSize * 0.3);
+    ctx.lineTo(-iconSize * 0.3, iconSize * 0.3);
+    ctx.stroke();
+
+    // 원형 배경
+    ctx.strokeStyle = color;
+    ctx.lineWidth = iconSize * 0.08;
+    ctx.beginPath();
+    ctx.arc(0, 0, iconSize * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 희미티 효과
+    if (progress > 0.3) {
+      const fadeAlpha = (progress - 0.3) / 0.7;
+      ctx.globalAlpha = fadeAlpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, 0, iconSize * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /**
+   * 로딩 FX 렌더링
+   */
+  renderLoadingFX(ctx, x, y, size, progress, options = {}) {
+    const { color = '#4CAF50', segments = 8 } = options;
+
+    // 회전
+    const rotation = progress * Math.PI * 2;
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+
+    // 원형 인디케이터
+    const segmentAngle = (Math.PI * 2) / segments;
+    const arcSize = size * 0.4;
+
+    for (let i = 0; i < segments; i++) {
+      const startAngle = i * segmentAngle;
+      const endAngle = startAngle + segmentAngle * 0.7;
+
+      // 그라데이션 효과
+      const segmentProgress = i / segments;
+      const alpha = 0.3 + segmentProgress * 0.7;
+
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = size * 0.08;
+      ctx.lineCap = 'round';
+
+      ctx.beginPath();
+      ctx.arc(0, 0, arcSize, startAngle, endAngle);
+      ctx.stroke();
+    }
+
+    // 중앙 점
+    ctx.globalAlpha = progress % 0.5 < 0.25 ? 1 : 0.5;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 // 싱글톤 인스턴스
