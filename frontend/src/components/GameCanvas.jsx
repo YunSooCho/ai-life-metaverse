@@ -59,13 +59,13 @@ import {
   getGameHour,
   getGameMinute,
   generateRandomWeather,
-  createWeatherParticles,
-  updateWeatherParticles,
-  renderWeatherParticles,
   renderTimeOverlay,
   renderWeatherTimeHUD,
+  WeatherState,
+  renderWeatherTransition,
   WEATHER_TYPES
 } from '../utils/weatherTimeSystem'
+import { soundManager } from '../utils/soundManager'
 import { drawPixelCharacter } from '../utils/pixelArtRenderer'
 import {
   initializeInputHandler,
@@ -213,6 +213,9 @@ function GameCanvas({
   const prevAffinitiesRef = useRef({})
   const inputCleanupRef = useRef(null)
 
+  // WeatherState for smooth weather transition
+  const weatherStateRef = useRef(new WeatherState(weather))
+
   // NEW: Refs for state that changes frequently
   const scaleRef = useRef(1)
   const myCharacterRef = useRef(myCharacter)
@@ -265,8 +268,13 @@ function GameCanvas({
   useEffect(() => {
     const weatherInterval = setInterval(() => {
       const newWeather = generateRandomWeather()
+      weatherStateRef.current.transitionTo(newWeather)
       weatherRef.current = newWeather
       setWeather(newWeather)
+
+      // 날씨 사운드 재생
+      soundManager.playWeatherSound(newWeather, 3000) // 3초 페이드 인
+
       lastWeatherChange.current = Date.now()
     }, 5 * 60 * 1000)
     return () => clearInterval(weatherInterval)
@@ -1031,14 +1039,8 @@ function GameCanvas({
       const gameMinute = getGameMinute(gameStartTime.current)
       renderTimeOverlay(ctx, gameHour, canvasWidth, canvasHeight)
 
-      // 날씨 파티클
-      if (weatherParticlesRef.current.length === 0 && (wthr === WEATHER_TYPES.RAIN || wthr === WEATHER_TYPES.SNOW)) {
-        weatherParticlesRef.current = createWeatherParticles(wthr, canvasWidth, canvasHeight)
-      } else if (wthr !== WEATHER_TYPES.RAIN && wthr !== WEATHER_TYPES.SNOW) {
-        weatherParticlesRef.current = []
-      }
-      weatherParticlesRef.current = updateWeatherParticles(weatherParticlesRef.current, wthr, canvasWidth, canvasHeight)
-      renderWeatherParticles(ctx, weatherParticlesRef.current, wthr)
+      // 날씨 파티클 (WeatherTransition - smooth fade)
+      renderWeatherTransition(ctx, weatherStateRef.current, canvasWidth, canvasHeight)
 
       // 시간/날씨 HUD
       renderWeatherTimeHUD(ctx, gameHour, gameMinute, wthr, currentScale)
