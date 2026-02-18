@@ -416,5 +416,218 @@ if (character.isConversing) {
 
 ---
 
-*마지막 업데이트: 2026-02-18*
-*GitHub Issue #81 완료: 대화 시스템 개선 - 문맥 유지 및 자연스러운 전환*
+## Phase 6: 캐릭터 관계 시스템 (✅ 구현 완료 2026-02-19)
+
+### 개요
+Phase 6는 캐릭터 간의 관계를 관리하는 시스템입니다. 친밀도, 관계 레벨, 대화 스타일, 리액션 시스템을 포함합니다.
+
+### 관계 시스템 (Relationship System)
+
+**파일:** `backend/ai-agent/relationship-manager.js`
+
+**기능:**
+- 캐릭터 간 친밀도 추적 (0~100)
+- 관계 레벨 관리 (낯선 사람 → 지인 → 친구 → 좋은 친구 → 베프)
+- 친밀도 변화 기록
+- 관계 레벨별 대화 스타일 제공
+
+**관계 레벨:**
+| 레벨 | 이름 | 친밀도 범위 | 색상 |
+|------|------|------------|------|
+| STRANGER | 낯선 사람 | 0~19 | #9E9E9E |
+| ACQUAINTANCE | 지인 | 20~39 | #2196F3 |
+| FRIEND | 친구 | 40~59 | #4CAF50 |
+| GOOD_FRIEND | 좋은 친구 | 60~79 | #FFC107 |
+| BEST_FRIEND | 베프 | 80~100 | #F44336 |
+
+**대화 스타일 (관계 레벨별):**
+| 레벨 | 스타일 |
+|------|------|
+| STRANGER | 존댓말을 사용하고 정중하지만 약간 긴장감이 느껴지는 말투 |
+| ACQUAINTANCE | 상쾌하게 존댓말을 사용하고 가볍게 대화 |
+| FRIEND | 편안한 존댓말과 반말을 섞어서 사용하고 친근하게 대화 |
+| GOOD_FRIEND | 주로 반말을 사용하고 장난스러운 말투를 섞음 |
+| BEST_FRIEND | 자연스럽게 반말을 사용하고 마치 가족처럼 친밀하게 대화 |
+
+**API (RelationshipManager):**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `getAffinity(charA, charB)` | 친밀도 가져오기 | number (0~100) |
+| `setAffinity(charA, charB, affinity)` | 친밀도 설정하기 | relationship object |
+| `changeAffinity(charA, charB, delta)` | 친밀도 증감 | number |
+| `getRelationshipLevel(charA, charB)` | 관계 레벨 가져오기 | { key, name, min, max, color } |
+| `getConversationStyle(charA, charB)` | 대화 스타일 가져오기 | string |
+| `incrementInteraction(charA, charB)` | 상호작용 횟수 증가 | relationship object |
+| `getInteractionCount(charA, charB)` | 상호작용 횟수 가져오기 | number |
+| `getLastInteraction(charA, charB)` | 마지막 상호작용 시간 | timestamp |
+| `getRelationshipData(charA, charB)` | 관계 데이터 가져오기 | object |
+| `getAllRelationships()` | 모든 관계 가져오기 | array |
+| `getCharacterRelationships(characterId)` | 캐릭터의 모든 관계 가져오기 | array |
+| `resetRelationship(charA, charB)` | 관계 초기화 | void |
+| `resetAll()` | 모든 관계 초기화 | void |
+
+**초기 친밀도:**
+- AI 캐릭터 간: 30 (지인)
+- AI 캐릭터 ↔ 플레이어: 30 (지인)
+- 플레이어 간: 0 (낯선 사람)
+
+### 리액션 시스템 (Reaction System)
+
+**파일:** `backend/ai-agent/reaction-system.js`
+
+**기능:**
+- 시간대별 반응 (아침, 점심, 저녁, 밤)
+- 선물 기여 시 반응 (COMMON/RARE/EPIC)
+- 퀘스트 완료 시 반응 (EASY/NORMAL/HARD/LEGENDARY)
+- 특별 이벤트 반응 (LEVEL_UP, NEW_RECORD, ACHIEVEMENT)
+- 관계 기반 커스텀 리액션
+
+**시간대:**
+| 시간대 | 시간 | 아이콘 |
+|--------|------|-------|
+| DAWN | 5~7시 | 🌅 |
+| MORNING | 7~12시 | ☀️ |
+| LUNCH | 12~14시 | 🍽️ |
+| AFTERNOON | 14~17시 | 🌤️ |
+| EVENING | 17~20시 | 🌆 |
+| NIGHT | 20~5시 | 🌙 |
+
+**리액션 유형:**
+
+**1. 시간대별 인사 리액션:**
+- 새벽: "일찍 일어나셨네요~ 🌅"
+- 아침: "좋은 아침입니다! 🌞"
+- 점심: "밥 먹었어요? 🍽️"
+- 오후: "오후라 좀 피곤한데 기운 내요! ☕"
+- 저녁: "저녁입니다~ 하루 잘 보내셨나요? 🌆"
+- 밤: "늦게까지 있으시네요~ 밤새지 않도록 주의! 🌙"
+
+**2. 선물 기여 반응:**
+- COMMON: "와, 선물 주셨네요! 감사합니다! 🎁"
+- RARE: "우와! 이거 진짜 좋은 거네요~ 😍 감사합니다!"
+- EPIC: "설마... 이런 걸 받다니?! 😱 너무 감동했어요! 😭"
+
+**3. 퀘스트 완료 반응:**
+- EASY: "퀘스트 완료 축하해요! 🎉"
+- NORMAL: "좋아요! 퀘스트 완료! 🎊"
+- HARD: "와, 어려운 퀘스트 완료?! 대단해요! 🏆"
+- LEGENDARY: "전설급?! 이건 미친 거 아냐?! 🤯"
+
+**친밀도 기반 리액션:**
+- 베프 (80~100): "나 가장 좋아하는 친구예요~ 💖"
+- 좋은 친구 (60~79): "너랑 있으면 항상 재미있어! 😄"
+- 친구 (40~59): "친구라서 좋네요~ 😊"
+- 지인/낯선 사람 (0~39): "안녕하세요~"
+
+**API (ReactionSystem):**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `getTimeOfDayGreeting(characterId)` | 시간대별 인사 리액션 | { timeOfDay, greeting, icon } |
+| `getTimeOfDayConversation(characterId)` | 시간대별 대화 리액션 | { timeOfDay, conversation, icon } |
+| `getGiftReaction(characterId, rarity)` | 선물 기여 반응 | { type, rarity, reaction } |
+| `getQuestCompletionReaction(characterId, difficulty)` | 퀘스트 완료 반응 | { type, difficulty, reaction } |
+| `getSpecialEventReaction(characterId, eventType)` | 특별 이벤트 반응 | { type, eventType, reaction } |
+| `getRelationshipReaction(characterId, otherCharacterId, affinity)` | 관계 기반 리액션 | string |
+| `addReactionToHistory(characterId, reaction)` | 리액션 히스토리에 추가 | void |
+| `getReactionHistory(characterId)` | 리액션 히스토리 가져오기 | array |
+| `clearReactionHistory(characterId)` | 리액션 히스토리 초기화 | void |
+
+### Phase 6 통합
+
+**시스템 프롬프트 개선:**
+```javascript
+function createSystemPrompt(persona, conversationState = 'continuing', relationshipStyle = null) {
+  // ... 기본 프롬프트 ...
+
+  // Phase 6: 관계 기반 대화 스타일 추가
+  if (relationshipStyle) {
+    prompt += `
+[관계 기반 대화 스타일]
+${relationshipStyle}
+`
+  }
+
+  // ... 대화 규칙 ...
+}
+```
+
+**대화 응답 생성 개선:**
+```javascript
+async function generateChatResponse(characterId, userMessage, otherCharacterId = null) {
+  // ... persona 가져오기 ...
+
+  // Phase 6: 관계 기반 대화 스타일 가져오기
+  let relationshipStyle = null
+  if (otherCharacterId && relationshipManager) {
+    relationshipStyle = relationshipManager.getConversationStyle(characterId, otherCharacterId)
+    console.log(`💕 관계 스타일: ${characterId} ↔ ${otherCharacterId} → ${relationshipStyle}`)
+  }
+
+  // ... 친밀도 증가, 상호작용 횟수 증가 ...
+
+  // 시스템 프롬프트 생성 (관계 스타일 반영)
+  const systemPrompt = createSystemPrompt(persona, conversationState, relationshipStyle)
+  // ...
+}
+```
+
+**Socket.io 이벤트 (Phase 6 추가):**
+| 이벤트 | 방향 | 파라미터 | 설명 |
+|--------|------|----------|------|
+| `giftGive` | Client→Server | `{ giftFromCharacterId, giftToCharacterId, rarity }` | 선물 기여 |
+| `characterReaction` | Server→Client | `{ characterId, reaction, timestamp, roomId }` | 캐릭터 반응 브로드캐스트 |
+| `questComplete` | Client→Server | `{ characterId, difficulty }` | 퀘스트 완료 |
+
+**리액션 처리 함수:**
+```javascript
+// 선물 기여 시 친밀도 증가
+function handleGiftReaction(characterId, giftFromCharacterId, rarity = 'COMMON')
+
+// 퀘스트 완료 시 반응
+function handleQuestCompletionReaction(characterId, difficulty = 'EASY')
+
+// 시간대별 반응
+function getTimeOfDayReaction(characterId, type = 'greeting')
+```
+
+### 테스트 코드
+
+**RelationshipManager 테스트 (backend/tests/relationship-manager.test.js):**
+- 관계 ID 생성
+- 친밀도 관리 (초기화, 변경, 증감, 범위 제한)
+- 관계 레벨 (5개 레벨)
+- 대화 스타일
+- 상호작용 (횟수, 시간)
+- 관계 데이터 (가져오기, 모든 관계 캐릭터의 관계)
+- 관계 초기화
+
+**테스트 결과:** 25/25 ✅
+
+**ReactionSystem 테스트 (backend/tests/reaction-system.test.js):**
+- 시간대별 인사
+- 시간대별 대화
+- 선물 기여 반응 (COMMON/RARE/EPIC)
+- 퀘스트 완료 반응 (EASY/NORMAL/HARD/LEGENDARY)
+- 특별 이벤트 반응 (LEVEL_UP/NEW_RECORD/ACHIEVEMENT)
+- 관계 기반 커스텀 리액션
+- 리액션 히스토리
+
+**테스트 결과:** 34/34 ✅
+
+**총 테스트 결과:** 59/59 ✅
+
+### 추가 파일
+
+**Integration:**
+- `backend/ai-agent/relationship-manager.js` - 관계 시스템
+- `backend/ai-agent/reaction-system.js` - 리액션 시스템
+- `backend/ai-agent/agent-with-relationship.js` - Phase 6 통합 버전
+
+**Tests:**
+- `backend/tests/relationship-manager.test.js` - RelationshipManager 테스트 (25 tests)
+- `backend/tests/reaction-system.test.js` - ReactionSystem 테스트 (34 tests)
+
+---
+
+*마지막 업데이트: 2026-02-19*
+*GitHub Issue #95 완료: Phase 6 - AI 캐릭터 관계 시스템 (친밀도, 대화, 반응)*
