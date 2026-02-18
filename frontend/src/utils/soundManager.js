@@ -12,11 +12,34 @@
 import { useState, useEffect } from 'react'
 import { WEATHER_TYPES } from './weatherTimeSystem'
 
+/**
+ * 사운드 URL 상수
+ */
+export const BGM_URLS = {
+  MAIN: '/audio/bgm/main_theme.mp3',
+  DAY: '/audio/bgm/day_theme.mp3',
+  NIGHT: '/audio/bgm/night_theme.mp3'
+}
+
+export const SFX_URLS = {
+  BUTTON_CLICK: '/audio/sfx/button_click.wav',
+  MOVE: '/audio/sfx/move.wav',
+  NOTIFICATION: '/audio/sfx/notification.wav',
+  QUEST_COMPLETE: '/audio/sfx/quest_complete.wav',
+  ITEM_PICKUP: '/audio/sfx/item_pickup.wav',
+  DOOR_OPEN: '/audio/sfx/door_open.wav'
+}
+
+export const WEATHER_URLS = {
+  RAIN: '/audio/weather/rain_ambient.mp3',
+  SNOW: '/audio/weather/snow_ambient.mp3'
+}
+
 class SoundManager {
   constructor() {
     this.sounds = {}
     this.bgmAudio = null
-    this.weatherAudio =null
+    this.weatherAudio = null
     this.isMuted = false
     this.masterVolume = 0.7
     this.bgmVolume = 0.5
@@ -264,21 +287,21 @@ class SoundManager {
    */
   async initialize() {
     // BGM
-    await this.loadSound('main_theme', '/audio/bgm/main_theme.mp3', 'bgm')
-    await this.loadSound('day_theme', '/audio/bgm/day_theme.mp3', 'bgm')
-    await this.loadSound('night_theme', '/audio/bgm/night_theme.mp3', 'bgm')
+    await this.loadSound('main_theme', BGM_URLS.MAIN, 'bgm')
+    await this.loadSound('day_theme', BGM_URLS.DAY, 'bgm')
+    await this.loadSound('night_theme', BGM_URLS.NIGHT, 'bgm')
 
     // 효과음
-    await this.loadSound('button_click', '/audio/sfx/button_click.wav', 'sfx')
-    await this.loadSound('move', '/audio/sfx/move.wav', 'sfx')
-    await this.loadSound('notification', '/audio/sfx/notification.wav', 'sfx')
-    await this.loadSound('quest_complete', '/audio/sfx/quest_complete.wav', 'sfx')
-    await this.loadSound('item_pickup', '/audio/sfx/item_pickup.wav', 'sfx')
-    await this.loadSound('door_open', '/audio/sfx/door_open.wav', 'sfx')
+    await this.loadSound('button_click', SFX_URLS.BUTTON_CLICK, 'sfx')
+    await this.loadSound('move', SFX_URLS.MOVE, 'sfx')
+    await this.loadSound('notification', SFX_URLS.NOTIFICATION, 'sfx')
+    await this.loadSound('quest_complete', SFX_URLS.QUEST_COMPLETE, 'sfx')
+    await this.loadSound('item_pickup', SFX_URLS.ITEM_PICKUP, 'sfx')
+    await this.loadSound('door_open', SFX_URLS.DOOR_OPEN, 'sfx')
 
     // 날씨 사운드
-    await this.loadSound('rain_ambient', '/audio/weather/rain_ambient.mp3', 'weather')
-    await this.loadSound('snow_ambient', '/audio/weather/snow_ambient.mp3', 'weather')
+    await this.loadSound('rain_ambient', WEATHER_URLS.RAIN, 'weather')
+    await this.loadSound('snow_ambient', WEATHER_URLS.SNOW, 'weather')
 
     console.log('SoundManager initialized successfully')
   }

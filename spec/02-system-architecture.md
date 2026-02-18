@@ -36,6 +36,32 @@
 
 - **useSocketEvent**: Socket.io 이벤트 핸들러
 
+### 유틸리티 (Phase 3: 픽셀아트 시스템)
+
+- **pixelArtRenderer.js**: 픽셀아트 캐릭터 & 타일 렌더링
+  - `Tile`: 타일 클래스 (id, type, properties, style)
+  - `Tilemap`: 타일맵 클래스 (width, height, tiles, layers)
+  - `drawTile`: 단일 타일 렌더링 (grass, water, tree, path)
+  - `drawTilemap`: 타일맵 렌더링
+  - `worldToTile`: 월드 좌표 → 타일 좌표 변환
+  - `tileToWorld`: 타일 좌표 → 월드 좌표 변환
+  - `calculateTileSpacing`: 타일 간격 계산
+  - `drawPixelCharacter`: 픽셀아트 캐릭터 렌더링
+  - `validateCustomizationOptions`: 커스터마이징 옵션 유효성 검사
+
+- **TileRenderer.js**: 타일맵 레벨 렌더러
+  - `renderGroundLayer`: Ground 레이어 렌더링
+  - `renderDecorationLayer`: Decoration 레이어 렌더링
+  - `renderEntranceHighlight`: 건물 입장 하이라이트
+
+**Phase 3 완료 (2026-02-18)**
+- ✅ 배경 픽셀아트 타일 시스템 완성
+- ✅ Tile, Tilemap 클래스 추가
+- ✅ 타일 패턴 (grass, water, tree, path)
+- ✅ 타일 렌더링 함수
+- ✅ 좌표 변환 함수
+- ✅ 테스트 코드 (25 passed, 11 skipped)
+
 ## Backend 구조
 
 ### 핵심 모듈
