@@ -1,6 +1,10 @@
 import { describe, test, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ChatInput from '../ChatInput'
+import { I18nProvider } from '../../i18n/I18nContext'
+
+const originalRender = render
+const renderWithI18n = (ui, options) => originalRender(<I18nProvider>{ui}</I18nProvider>, options)
 
 describe('ChatInput Component', () => {
   const defaultProps = {
@@ -11,7 +15,7 @@ describe('ChatInput Component', () => {
   }
 
   test('renders chat input with placeholder', () => {
-    render(<ChatInput {...defaultProps} />)
+    renderWithI18n(<ChatInput {...defaultProps} />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(input).toBeInTheDocument()
@@ -19,7 +23,7 @@ describe('ChatInput Component', () => {
   })
 
   test('renders send button', () => {
-    render(<ChatInput {...defaultProps} />)
+    renderWithI18n(<ChatInput {...defaultProps} />)
 
     const sendButton = screen.getByText('SEND')
     expect(sendButton).toBeInTheDocument()
@@ -27,14 +31,14 @@ describe('ChatInput Component', () => {
   })
 
   test('displays current value', () => {
-    render(<ChatInput {...defaultProps} value="안녕하세요" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="안녕하세요" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(input.value).toBe('안녕하세요')
   })
 
   test('calls onChange when input value changes', () => {
-    render(<ChatInput {...defaultProps} />)
+    renderWithI18n(<ChatInput {...defaultProps} />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.change(input, { target: { value: '새 메시지' } })
@@ -43,7 +47,7 @@ describe('ChatInput Component', () => {
   })
 
   test('calls onSubmit when send button is clicked', () => {
-    render(<ChatInput {...defaultProps} value="테스트 메시지" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="테스트 메시지" />)
 
     const sendButton = screen.getByText('SEND')
     fireEvent.click(sendButton)
@@ -52,7 +56,7 @@ describe('ChatInput Component', () => {
   })
 
   test('calls onSubmit when Enter key is pressed without Shift', () => {
-    render(<ChatInput {...defaultProps} value="테스트 메시지" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="테스트 메시지" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: false })
@@ -63,7 +67,7 @@ describe('ChatInput Component', () => {
   test('does not call onSubmit when Shift+Enter is pressed', () => {
     const onChangeMock = vi.fn()
     const onSubmitMock = vi.fn()
-    render(<ChatInput {...defaultProps} onChange={onChangeMock} onSubmit={onSubmitMock} value="테스트 메시지" />)
+    renderWithI18n(<ChatInput {...defaultProps} onChange={onChangeMock} onSubmit={onSubmitMock} value="테스트 메시지" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
@@ -74,7 +78,7 @@ describe('ChatInput Component', () => {
   test('allows line break with Shift+Enter', () => {
     const onChangeMock = vi.fn()
     const onSubmitMock = vi.fn()
-    render(<ChatInput {...defaultProps} onChange={onChangeMock} onSubmit={onSubmitMock} value="첫 번째 줄" />)
+    renderWithI18n(<ChatInput {...defaultProps} onChange={onChangeMock} onSubmit={onSubmitMock} value="첫 번째 줄" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
@@ -84,21 +88,21 @@ describe('ChatInput Component', () => {
   })
 
   test('disables input when disabled prop is true', () => {
-    render(<ChatInput {...defaultProps} disabled={true} />)
+    renderWithI18n(<ChatInput {...defaultProps} disabled={true} />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(input.disabled).toBe(true)
   })
 
   test('disables send button when disabled prop is true', () => {
-    render(<ChatInput {...defaultProps} disabled={true} />)
+    renderWithI18n(<ChatInput {...defaultProps} disabled={true} />)
 
     const sendButton = screen.getByText('SEND')
     expect(sendButton.disabled).toBe(true)
   })
 
   test('handles empty input submission', () => {
-    render(<ChatInput {...defaultProps} value="" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="" />)
 
     const sendButton = screen.getByText('SEND')
     fireEvent.click(sendButton)
@@ -107,7 +111,7 @@ describe('ChatInput Component', () => {
   })
 
   test('handles multi-line input correctly', () => {
-    render(<ChatInput {...defaultProps} />)
+    renderWithI18n(<ChatInput {...defaultProps} />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.change(input, { target: { value: '첫 번째 줄\n두 번째 줄' } })
@@ -116,7 +120,7 @@ describe('ChatInput Component', () => {
   })
 
   test('submits message on Enter without creating new line', () => {
-    render(<ChatInput {...defaultProps} value="메시지" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="메시지" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: false })
@@ -125,20 +129,20 @@ describe('ChatInput Component', () => {
   })
 
   test('auto-adjusts height based on content', () => {
-    const { unmount } = render(<ChatInput {...defaultProps} value="짧은 메시지" />)
+    const { unmount } = renderWithI18n(<ChatInput {...defaultProps} value="짧은 메시지" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     const shortHeight = input.style.height
 
     unmount()
-    render(<ChatInput {...defaultProps} value="아주 긴 메시지입니다 여러 줄로 구성될 것이고 자동으로 높이가 조정될 것입니다 충분한 텍스트를 입력합니다" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="아주 긴 메시지입니다 여러 줄로 구성될 것이고 자동으로 높이가 조정될 것입니다 충분한 텍스트를 입력합니다" />)
 
     const longInput = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(longInput.style.height).toBeTruthy()
   })
 
   test('works with Arabic characters', () => {
-    render(<ChatInput {...defaultProps} value="مرحبا" />)
+    renderWithI18n(<ChatInput {...defaultProps} value="مرحبا" />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(input.value).toBe('مرحبا')
@@ -146,7 +150,7 @@ describe('ChatInput Component', () => {
 
   test('works with long messages', () => {
     const longMessage = 'A'.repeat(1000)
-    render(<ChatInput {...defaultProps} value={longMessage} />)
+    renderWithI18n(<ChatInput {...defaultProps} value={longMessage} />)
 
     const input = screen.getByPlaceholderText('메시지를 입력하세요...')
     expect(input.value).toBe(longMessage)

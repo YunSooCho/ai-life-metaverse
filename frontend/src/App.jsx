@@ -16,6 +16,8 @@ import Quest from './components/Quest'
 import LanguageSelector from './components/LanguageSelector'
 import SettingsPanel from './components/SettingsPanel'
 import CharacterCustomizationModal from './components/CharacterCustomizationModal'
+import StatusPanel from './components/StatusPanel'
+import ErrorBoundary from './components/ErrorBoundary'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
@@ -23,22 +25,46 @@ import { getOptionEmoji, getColorHex } from './utils/characterCustomization'
 import { CUSTOMIZATION_CATEGORIES } from './data/customizationOptions'
 import { I18nProvider, useI18n } from './i18n/I18nContext'
 import { soundManager, BGM_URLS, SFX_URLS } from './utils/soundManager'
+import { createNewCharacter, gainExp, getExpPotionEffect, createLevelUpMessage } from './utils/characterStatusSystem'
 
 const MAP_SIZE = { width: 1000, height: 700 }
 const CHARACTER_SIZE = 40
 const CELL_SIZE = 50
 
+/**
+ * 경험치 퍼센트 계산
+ */
+function getExpPercentage(character) {
+  if (!character || !character.maxExp || character.maxExp === 0) {
+    return 0
+  }
+  return Math.floor((character.exp / character.maxExp) * 100)
+}
+
 function AppContent() {
   const { t, language } = useI18n()
 
-  const [myCharacter, setMyCharacter] = useState({
-    id: 'player',
-    name: '플레이어',
-    x: 125,
-    y: 125,
-    color: '#4CAF50',
-    emoji: '👤',
-    isAi: false
+  const [myCharacter, setMyCharacter] = useState(() => {
+    const char = {
+      id: 'player',
+      name: t('app.player'),
+      level: 1,
+      exp: 0,
+      maxExp: 100,
+      x: 125,
+      y: 125,
+      color: '#4CAF50',
+      emoji: '👤',
+      isAi: false,
+      stats: {
+        hp: 100,
+        maxHp: 100,
+        affinity: 10,
+        charisma: 5,
+        intelligence: 5
+      }
+    }
+    return char
   })
 
   const [characters, setCharacters] = useState({})
@@ -88,6 +114,7 @@ function AppContent() {
   const [showQuest, setShowQuest] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showCustomizationModal, setShowCustomizationModal] = useState(false)
+  const [showStatus, setShowStatus] = useState(false)
   const [characterCustomization, setCharacterCustomization] = useState({
     hairStyle: 'short',
     clothingColor: 'blue',
@@ -180,7 +207,7 @@ function AppContent() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [myCharacter])
+  }, [])  // Remove myCharacter dependency to prevent infinite loop
 
   useEffect(() => {
     if (chatHistoryRef.current) {
@@ -361,7 +388,28 @@ function AppContent() {
     setInventory(data.inventory || {})
     setClaimedRewards(prev => [...prev, data.rewardId])
 
-    const message = `🎉 ${data.rewardName} 수령 완료!`
+    // 경험치 반영 (백엔드에서 전달되거나 로컬 처리)
+    const expGain = data.experience || 0
+    if (expGain > 0) {
+      const result = gainExp(myCharacter, expGain)
+      setMyCharacter(result.character)
+
+      // 레벨업 시 알림
+      if (result.levelUp) {
+        setTimeout(() => {
+          setToast({
+            show: true,
+            message: createLevelUpMessage(result.levelsGained, result.statusIncreases),
+            type: 'success'
+          })
+          setTimeout(() => {
+            setToast(prev => ({ ...prev, show: false }))
+          }, 5000)
+        }, 1000)
+      }
+    }
+
+    const message = `🎉 ${data.rewardName} 수령 완료!` + (expGain > 0 ? ` (+${expGain} EXP)` : '')
     setToast({
       show: true,
       message,
@@ -378,7 +426,29 @@ function AppContent() {
   useSocketEvent('itemUsed', (data) => {
     setInventory(data.inventory || {})
 
-    const message = `💊 ${data.itemName} 사용 완료!`
+    // 경험치 물약 처리
+    let expGain = 0
+    if (data.itemId === 'experiencePotion') {
+      expGain = getExpPotionEffect(1) // 기본 레벨 1
+      const result = gainExp(myCharacter, expGain)
+      setMyCharacter(result.character)
+
+      // 레벨업 시 알림
+      if (result.levelUp) {
+        setTimeout(() => {
+          setToast({
+            show: true,
+            message: createLevelUpMessage(result.levelsGained, result.statusIncreases),
+            type: 'success'
+          })
+          setTimeout(() => {
+            setToast(prev => ({ ...prev, show: false }))
+          }, 5000)
+        }, 1000)
+      }
+    }
+
+    const message = `💊 ${data.itemName} 사용 완료!` + (expGain > 0 ? ` (+${expGain} EXP)` : '')
     setToast({
       show: true,
       message,
@@ -492,7 +562,7 @@ function AppContent() {
         [roomId]: [
           ...(prev[roomId] || []),
           {
-            characterName: '시스템',
+            characterName: t('app.system'),
             message,
             timestamp: timestamp || Date.now(),
             isSystem: true
@@ -522,7 +592,7 @@ function AppContent() {
         [roomId]: [
           ...(prev[roomId] || []),
           {
-            characterName: '시스템',
+            characterName: t('app.system'),
             message,
             timestamp: timestamp || Date.now(),
             isSystem: true
@@ -978,7 +1048,8 @@ function AppContent() {
       <div className="header">
         <h1>{t('app.title')}</h1>
         <div className="stats">
-          <span>{t('ui.tabs.profile')}: {myCharacter.name}</span>
+          <span>{t('ui.tabs.profile')}: {myCharacter.name} <span style={{ color: '#ffcc00', marginLeft: '4px' }}>Lv.{myCharacter.level}</span></span>
+          <span>EXP: <span style={{ color: '#aaffaa' }}>{myCharacter.exp}</span>/{myCharacter.maxExp} ({getExpPercentage(myCharacter)}%)</span>
           <span>{currentRoom.name}</span>
           <span>{Object.keys(characters).length}</span>
           <span>{socket.connected ? '✅' : '❌'}</span>
@@ -1009,6 +1080,12 @@ function AppContent() {
             onClick={() => setShowInventory(prev => !prev)}
           >
             🎒 인벤토리
+          </button>
+          <button
+            className="room-button"
+            onClick={() => setShowStatus(prev => !prev)}
+          >
+            📋 스테이터스
           </button>
           <button
             className="room-button"
@@ -1179,6 +1256,12 @@ function AppContent() {
         <SettingsPanel onClose={() => setShowSettings(false)} />
       )}
 
+      <StatusPanel
+        show={showStatus}
+        onClose={() => setShowStatus(false)}
+        character={myCharacter}
+      />
+
       <CharacterCustomizationModal
         show={showCustomizationModal}
         onClose={() => setShowCustomizationModal(false)}
@@ -1192,7 +1275,9 @@ function AppContent() {
 function App() {
   return (
     <I18nProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </I18nProvider>
   )
 }

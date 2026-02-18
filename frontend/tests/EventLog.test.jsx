@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import EventLog from '../src/components/EventLog'
+import { I18nProvider } from '../src/i18n/I18nContext'
 import '@testing-library/jest-dom'
+
+const renderWithI18n = (ui) => render(<I18nProvider>{ui}</I18nProvider>)
 
 describe('EventLog Component', () => {
   const mockCharacterName = '테스트 캐릭터'
@@ -42,13 +45,13 @@ describe('EventLog Component', () => {
   ]
 
   it('should render empty state when no logs', () => {
-    render(<EventLog logs={emptyLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={emptyLogs} characterName={mockCharacterName} />)
     
     expect(screen.getByText('방문 기록이 없습니다')).toBeInTheDocument()
   })
 
   it('should render building logs', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     expect(screen.getByText('🏢 상점')).toBeInTheDocument()
     expect(screen.getByText('🏢 카페')).toBeInTheDocument()
@@ -56,20 +59,20 @@ describe('EventLog Component', () => {
   })
 
   it('should render correct icons for exit events', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     const runningIcons = screen.getAllByText('🏃')
     expect(runningIcons.length).toBe(3)
   })
 
   it('should render dwell time information', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     expect(screen.getAllByText(/⏱️ 체류시간:/).length).toBe(3)
   })
 
   it('should render all time information for each log', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     const entranceTimes = screen.getAllByText(/입장:/)
     const exitTimes = screen.getAllByText(/퇴장:/)
@@ -79,14 +82,14 @@ describe('EventLog Component', () => {
   })
 
   it('should render correct number of log items', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     const logItems = document.querySelectorAll('.event-log-item')
     expect(logItems.length).toBe(3)
   })
 
   it('should render logs in correct order', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     const logItems = document.querySelectorAll('.event-log-item')
     const firstLog = logItems[0]
@@ -110,7 +113,7 @@ describe('EventLog Component', () => {
       }
     ]
 
-    render(<EventLog logs={zeroDwellLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={zeroDwellLogs} characterName={mockCharacterName} />)
     
     expect(screen.getByText('🏢 상점')).toBeInTheDocument()
     expect(screen.getByText(/⏱️ 체류시간:/)).toBeInTheDocument()
@@ -130,14 +133,14 @@ describe('EventLog Component', () => {
       }
     ]
 
-    render(<EventLog logs={longDwellLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={longDwellLogs} characterName={mockCharacterName} />)
     
     expect(screen.getByText('🏢 상점')).toBeInTheDocument()
     expect(screen.getByText(/⏱️ 체류시간:/)).toBeInTheDocument()
   })
 
   it('should render all required information for each log item', () => {
-    render(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
+    renderWithI18n(<EventLog logs={mockLogs} characterName={mockCharacterName} />)
     
     const logItems = document.querySelectorAll('.event-log-item')
     
@@ -164,7 +167,7 @@ describe('EventLog Time Formatting', () => {
       }
     ]
 
-    render(<EventLog logs={logs} characterName="테스트 캐릭터" />)
+    renderWithI18n(<EventLog logs={logs} characterName="테스트 캐릭터" />)
     
     const entranceTimeElement = screen.getByText(/입장:/)
     const exitTimeElement = screen.getByText(/퇴장:/)
@@ -189,7 +192,7 @@ describe('EventLog Edge Cases', () => {
       }
     ]
 
-    render(<EventLog logs={singleLog} characterName="테스트 캐릭터" />)
+    renderWithI18n(<EventLog logs={singleLog} characterName="테스트 캐릭터" />)
     
     expect(screen.getByText('🏢 상점')).toBeInTheDocument()
   })
@@ -206,7 +209,7 @@ describe('EventLog Edge Cases', () => {
       }
     ]
 
-    render(<EventLog logs={incompleteLogs} characterName="테스트 캐릭터" />)
+    renderWithI18n(<EventLog logs={incompleteLogs} characterName="테스트 캐릭터" />)
     
     expect(screen.getByText('🏢 상점')).toBeInTheDocument()
     expect(screen.getByText(/입장:/)).toBeInTheDocument()

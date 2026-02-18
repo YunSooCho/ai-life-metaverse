@@ -1,10 +1,13 @@
 import PropTypes from 'prop-types'
+import { getExpPercentage, getExpToNextLevel } from '../utils/characterStatusSystem'
+import { useI18n } from '../i18n/I18nContext'
 
 /**
  * 캐릭터 프로필 카드 컴포넌트
  * 캐릭터 클릭 시 나타나는 프로필 정보 표시
  */
 export default function CharacterProfile({ character, affinity, isVisible, onClose, scale = 1 }) {
+  const { t } = useI18n()
   if (!isVisible || !character) {
     return null
   }
@@ -22,15 +25,15 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
   }
 
   const getAffinityLabel = (aff) => {
-    if (aff <= 2) return '낯설음'
-    if (aff >= 3 && aff < 8) return '친근'
-    return '매우 친근'
+    if (aff <= 2) return t('ui.affinity.stranger')
+    if (aff >= 3 && aff < 8) return t('ui.affinity.friendly')
+    return t('ui.affinity.veryFriendly')
   }
 
   const getActivityText = (char) => {
-    if (char.isConversing) return '대화 중...'
-    if (char.buildingId) return '건물에 있음'
-    return '이동 중'
+    if (char.isConversing) return t('ui.profile.conversing')
+    if (char.buildingId) return t('ui.profile.inBuilding')
+    return t('ui.profile.moving')
   }
 
   return (
@@ -82,7 +85,7 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
         {character.emoji}
       </div>
 
-      {/* 이름 */}
+      {/* 이름 & 레벨 */}
       <div
         style={{
           fontSize: `${headerFontSize}px`,
@@ -90,11 +93,79 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
           fontWeight: 'bold',
           color: '#ffffff',
           textAlign: 'center',
-          marginBottom: `${12 * scale}px`
+          marginBottom: `${4 * scale}px`
         }}
       >
-        {character.name || '익명'}
+        {character.name || t('app.anonymous')}
+        {character.level && (
+          <span
+            style={{
+              marginLeft: `${8 * scale}px`,
+              color: '#ffcc00',
+              fontSize: `${(headerFontSize - 2) * scale}px`
+            }}
+          >
+            Lv.{character.level}
+          </span>
+        )}
       </div>
+
+      {/* 경험치 바 */}
+      {character.exp !== undefined && character.level !== undefined && character.level < 100 && (
+        <div
+          style={{
+            marginBottom: `${12 * scale}px`
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: `${(fontSize - 1) * scale}px`,
+              fontFamily: "'Courier New', monospace",
+              color: '#aaffaa',
+              marginBottom: `${2 * scale}px`
+            }}
+          >
+            <span>EXP</span>
+            <span>{getExpPercentage(character)}% / {getExpToNextLevel(character)}</span>
+          </div>
+          <div
+            style={{
+              width: '100%',
+              height: `${10 * scale}px`,
+              backgroundColor: '#2a2a4e',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              border: '2px solid #4a4a6a'
+            }}
+          >
+            <div
+              style={{
+                width: `${getExpPercentage(character)}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #00aaaa, #00ffaa)',
+                transition: 'width 0.5s ease'
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 최대 레벨 안내 */}
+      {character.level >= 100 && (
+        <div
+          style={{
+            fontSize: `${fontSize}px`,
+            fontFamily: "'Courier New', monospace",
+            color: '#ffcc00',
+            textAlign: 'center',
+            marginBottom: `${12 * scale}px`
+          }}
+        >
+          {t('ui.profile.maxLevel')}
+        </div>
+      )}
 
       {/* 감정 이모지 */}
       {character.emotion && (
@@ -107,7 +178,7 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
             marginBottom: `${12 * scale}px`
           }}
         >
-          감정: {character.emotion.emoji || '😐'}
+          {t('ui.profile.emotion')}: {character.emotion.emoji || '😐'}
         </div>
       )}
 
@@ -127,7 +198,7 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
             marginBottom: `${4 * scale}px`
           }}
         >
-          <span>호감도</span>
+          <span>{t('ui.affinity.label')}</span>
           <span
             style={{
               color: getAffinityColor(affinity)
@@ -180,7 +251,7 @@ export default function CharacterProfile({ character, affinity, isVisible, onClo
             textAlign: 'center'
           }}
         >
-          🤖 AI 캐릭터
+          🤖 {t('app.aiCharacter')}
         </div>
       )}
     </div>

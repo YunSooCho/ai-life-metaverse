@@ -127,7 +127,7 @@ describe('I18nContext', () => {
 
     // 번역 로드 대기
     await waitFor(() => {
-      expect(result.current.t('ui.chat.placeholder')).toBe('Enter message...')
+      expect(result.current.t('ui.chat.placeholder')).toBe('Type a message...')
     })
 
     expect(result.current.t('ui.buttons.ok')).toBe('OK')
@@ -145,7 +145,7 @@ describe('I18nContext', () => {
 
     // 번역 로드 대기
     await waitFor(() => {
-      expect(result.current.t('ui.chat.placeholder')).toBe('メッセージを入力してください...')
+      expect(result.current.t('ui.chat.placeholder')).toBe('メッセージを入力...')
     })
 
     expect(result.current.t('ui.buttons.ok')).toBe('OK')
@@ -198,7 +198,7 @@ describe('I18nContext', () => {
 
     // 영어
     await waitFor(() => {
-      expect(result.current.t('ui.chat.placeholder')).toBe('Enter message...')
+      expect(result.current.t('ui.chat.placeholder')).toBe('Type a message...')
     })
   })
 })

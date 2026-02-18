@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types'
 import { useRef, useEffect } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 
 export default function ChatInput({ value, onChange, onSubmit, disabled = false }) {
+  const { t } = useI18n()
   const textareaRef = useRef(null)
   const MAX_HEIGHT = 120
 
@@ -30,7 +32,7 @@ export default function ChatInput({ value, onChange, onSubmit, disabled = false 
       <textarea
         ref={textareaRef}
         className="chat-input chat-input-textarea pixel-input"
-        placeholder="메시지를 입력하세요..."
+        placeholder={t('ui.chat.placeholder')}
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

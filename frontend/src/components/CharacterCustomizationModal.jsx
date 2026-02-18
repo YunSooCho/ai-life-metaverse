@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 import {
   getCustomization,
   saveCustomization,
@@ -26,6 +27,7 @@ import {
  * @param {Function} props.onSave - 저장 완료 핸들러
  */
 function CharacterCustomizationModal({ show, onClose, onSave }) {
+  const { t } = useI18n()
   const [selectedCategory, setSelectedCategory] = useState(CUSTOMIZATION_CATEGORIES.HAIR_STYLES)
   const [currentCustomization, setCurrentCustomization] = useState({})
   const [tempCustomization, setTempCustomization] = useState({})
@@ -81,9 +83,9 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
    */
   const getCategoryName = (category) => {
     const names = {
-      [CUSTOMIZATION_CATEGORIES.HAIR_STYLES]: '머리 스타일',
-      [CUSTOMIZATION_CATEGORIES.CLOTHING_COLORS]: '옷 색상',
-      [CUSTOMIZATION_CATEGORIES.ACCESSORIES]: '액세서리'
+      [CUSTOMIZATION_CATEGORIES.HAIR_STYLES]: t('ui.customization.hair'),
+      [CUSTOMIZATION_CATEGORIES.CLOTHING_COLORS]: t('ui.customization.clothing'),
+      [CUSTOMIZATION_CATEGORIES.ACCESSORIES]: t('ui.customization.accessories')
     }
     return names[category] || category
   }
@@ -139,7 +141,7 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
             margin: 0,
             fontSize: '14px',
             fontWeight: 'bold'
-          }}>👤 캐릭터 커스터마이징</h2>
+          }}>👤 {t('ui.customization.title')}</h2>
           <button
             onClick={onClose}
             style={{
@@ -345,7 +347,7 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
                 flex: 1
               }}
             >
-              취소
+              {t('ui.buttons.cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -354,7 +356,7 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
                 flex: 1
               }}
             >
-              저장
+              {t('ui.buttons.save')}
             </button>
           </div>
         </div>

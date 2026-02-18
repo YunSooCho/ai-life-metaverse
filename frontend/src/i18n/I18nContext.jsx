@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { translations as allTranslations } from './translations.js'
 
-// 지원하는 언어 목록
-export const LANGUAGES = {
+// 기본 언어
+const DEFAULT_LANGUAGE = 'ko'
+
+// 지원하는 언어 목록 (내부 상수로 유지 - Vite Fast Refresh 호환성)
+const LANGUAGES = {
   ko: '한국어',
   ja: '日本語',
   en: 'English'
 }
-
-// 기본 언어
-const DEFAULT_LANGUAGE = 'ko'
 
 // Context 생성
 const I18nContext = createContext(null)
@@ -24,9 +24,17 @@ const I18nContext = createContext(null)
 export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
   // 언어 상태
   const [language, setLanguage] = useState(() => {
-    // localStorage에서 저장된 언어 확인
-    const savedLang = localStorage.getItem('app-language')
-    return savedLang && LANGUAGES[savedLang] ? savedLang : initialLanguage
+    // 브라우저 환경인지 확인 후 localStorage에서 저장된 언어 확인
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const savedLang = localStorage.getItem('app-language')
+        return savedLang && LANGUAGES[savedLang] ? savedLang : initialLanguage
+      } catch (e) {
+        console.warn('localStorage 접근 실패, 기본 언어 사용:', e)
+        return initialLanguage
+      }
+    }
+    return initialLanguage
   })
 
   // 번역 캐시 (초기 로드)
@@ -34,7 +42,13 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
 
   // 언어 변경 시 localStorage에 저장
   useEffect(() => {
-    localStorage.setItem('app-language', language)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('app-language', language)
+      } catch (e) {
+        console.warn('localStorage 저장 실패:', e)
+      }
+    }
   }, [language])
 
   /**
