@@ -1,10 +1,55 @@
 /**
  * Pixel Art Renderer
  * 픽셀아트 스타일 캐릭터 렌더링 유틸리티
+ * 애니메이션 채널 시스템 통합
  */
+
+import AnimationController from './AnimationController.js';
 
 const PIXEL_SIZE = 1; // 기본 픽셀 사이즈 (스케일링 적용)
 const CHARACTER_SIZE = 32; // 32x32 픽셀
+
+// 애니메이션 채널 관리자 (싱글톤)
+class AnimationChannelManager {
+  constructor() {
+    this.controllers = new Map();
+  }
+
+  /**
+   * 애니메이션 컨트롤러 가져오기
+   * @param {string} characterId - 캐릭터 ID
+   * @returns {AnimationController}
+   */
+  getController(characterId) {
+    if (!this.controllers.has(characterId)) {
+      this.controllers.set(characterId, new AnimationController(characterId));
+    }
+    return this.controllers.get(characterId);
+  }
+
+  /**
+   * 캐릭터 컨트롤러 제거
+   * @param {string} characterId - 캐릭터 ID
+   */
+  removeController(characterId) {
+    const controller = this.controllers.get(characterId);
+    if (controller) {
+      controller.cleanup();
+      this.controllers.delete(characterId);
+    }
+  }
+
+  /**
+   * 모든 컨트롤러 정리
+   */
+  cleanupAll() {
+    this.controllers.forEach(controller => controller.cleanup());
+    this.controllers.clear();
+  }
+}
+
+// 전체 애니메이션 채널 관리자
+const globalAnimationChannelManager = new AnimationChannelManager();
 
 // 색상 팔레트
 const COLORS = {
@@ -112,7 +157,7 @@ const ACCESSORIES = {
 };
 
 /**
- * 픽셀아트 캐릭터 그리기
+ * 픽셀아트 캐릭터 그리기 (애니메이션 지원)
  * @param {CanvasRenderingContext2D} ctx - Canvas Context
  * @param {number} x - X 좌표
  * @param {number} y - Y 좌표
@@ -121,8 +166,12 @@ const ACCESSORIES = {
  * @param {string} options.hairStyle - 머리 스타일 (short|medium|long)
  * @param {string} options.hairColor - 머리 색상 (default|brown|gold)
  * @param {string} options.clothingColor - 옷 색상 (blue|red|green|yellow|purple)
- * @param {string} options.accessory - 악세서리 (none|glasses|hat|flowers)
- * @param {string} options.emotion - 감정 (happy|sad|angry|neutral)
+ * @param {string} options.accessory - 악세사리 (none|glasses|hat|flowers)
+ * @param {string} options.emotion - 감정 (happy|sad|angry|neutral|joy|surprised)
+ * @param {string} options.characterId - 캐릭터 ID (애니메이션에 필요)
+ * @param {boolean} options.isMoving - 이동 중 여부
+ * @param {string} options.direction - 이동 방향 (up|down|left|right)
+ * @param {number} options.movementSpeed - 이동 속도 (run/walk 결정)
  */
 export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
   const {
@@ -131,7 +180,23 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
     clothingColor = 'blue',
     accessory = 'none',
     emotion = 'neutral',
+    characterId,
+    isMoving = false,
+    direction = 'down',
+    movementSpeed = 0,
   } = options;
+
+  // 애니메이션 컨트롤러 업데이트 (characterId가 있을 때만)
+  let animationState = null;
+  if (characterId) {
+    const controller = globalAnimationChannelManager.getController(characterId);
+    const timestamp = performance.now();
+    controller.setEmotion(emotion);
+    controller.setMoving(isMoving, movementSpeed);
+    controller.setDirection(direction);
+    controller.updateFrame(timestamp);
+    animationState = controller.getCurrentState();
+  }
 
   const colorMap = {
     1: COLORS.outline,
@@ -168,16 +233,28 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
     [0, 0, 0, 0, 0, 0],
   ];
 
-  // 눈 (Eyes) - 감정에 따라 변화
+  // 감정 애니메이션 프레임
+  const emotionFrame = animationState ? animationState.emotionFrame : 0;
+
+  // 눈 (Eyes) - 감정에 따라 변화 (애니메이션 지원)
   let eyePattern;
   switch (emotion) {
     case 'happy':
-      eyePattern = [
+    case 'joy':
+      // Frame 0: 웃는 눈 / Frame 1: 눈 감기는 애니메이션
+      eyePattern = emotionFrame === 0 ? [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 1, 1, 0, 0],
         [0, 0, 5, 5, 0, 0],
         [0, 1, 5, 5, 1, 0],
         [0, 0, 5, 5, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ] : [
+        [0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
       ];
       break;
@@ -192,13 +269,31 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
       ];
       break;
     case 'angry':
-      eyePattern = [
+      // Frame 0: 화난 눈 / Frame 1: 더 화난 눈
+      eyePattern = emotionFrame === 0 ? [
         [0, 0, 0, 0, 0, 0],
         [0, 1, 1, 1, 1, 0],
         [0, 0, 5, 5, 0, 0],
         [0, 1, 5, 5, 1, 0],
         [0, 0, 5, 5, 0, 0],
         [0, 1, 1, 1, 1, 0],
+      ] : [
+        [0, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 0],
+        [0, 0, 5, 5, 0, 0],
+        [0, 1, 5, 5, 1, 0],
+        [0, 0, 5, 5, 0, 0],
+        [0, 1, 1, 1, 1, 0],
+      ];
+      break;
+    case 'surprised':
+      eyePattern = [
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 1, 5, 5, 1, 0],
+        [0, 0, 5, 5, 0, 0],
+        [0, 1, 5, 5, 1, 0],
+        [0, 0, 0, 0, 0, 0],
       ];
       break;
     default: // neutral
@@ -212,17 +307,26 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
       ];
   }
 
-  // 입 (Mouth) - 감정에 따라 변화
+  // 입 (Mouth) - 감정에 따라 변화 (애니메이션 지원)
   let mouthPattern;
   switch (emotion) {
     case 'happy':
-      mouthPattern = [
+    case 'joy':
+      // Frame 0: 웃는 입 / Frame 1: 더 넓게 웃는 입
+      mouthPattern = emotionFrame === 0 ? [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 1, 6, 6, 1, 0],
         [0, 0, 6, 6, 0, 0],
+      ] : [
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 6, 6, 0, 0],
+        [0, 1, 6, 6, 1, 0],
       ];
       break;
     case 'sad':
@@ -236,12 +340,30 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
       ];
       break;
     case 'angry':
-      mouthPattern = [
+      // Frame 0: 으악 / Frame 1: 더 으악
+      mouthPattern = emotionFrame === 0 ? [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 0, 6, 6, 0, 0],
         [0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0],
+      ] : [
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 6, 6, 0, 0],
+        [0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ];
+      break;
+    case 'surprised':
+      mouthPattern = [
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 6, 6, 0, 0],
+        [0, 0, 6, 6, 0, 0],
         [0, 0, 0, 0, 0, 0],
       ];
       break;
@@ -268,26 +390,33 @@ export function drawPixelCharacter(ctx, x, y, scale = 1.25, options = {}) {
   const hairOffsetX = x - 3;
   const hairOffsetY = y - 16;
 
-  // 몸통 그리기
-  drawPattern(ctx, bodyPattern, bodyOffsetX, bodyOffsetY, scale);
+  // Bounce 애니메이션 (걷을 때 캐릭터가 위아래로 움직임)
+  let bounceY = 0;
+  if (animationState && (animationState.state === 'walk' || animationState.state === 'run')) {
+    const bounceAmplitude = animationState.state === 'run' ? 0.8 : 0.5;
+    bounceY = -Math.sin(animationState.currentFrame * Math.PI / 2) * bounceAmplitude;
+  }
 
-  // 머리 그리기
-  drawPattern(ctx, headPattern, headOffsetX, headOffsetY, scale);
+  // 몸통 그리기 (bounce 애니메이션 적용)
+  drawPattern(ctx, bodyPattern, bodyOffsetX, bodyOffsetY + bounceY, scale);
 
-  // 눈 그리기
-  drawPattern(ctx, eyePattern, eyeOffsetX, eyeOffsetY, scale);
+  // 머리 그리기 (bounce 애니메이션 적용)
+  drawPattern(ctx, headPattern, headOffsetX, headOffsetY + bounceY, scale);
 
-  // 입 그리기
-  drawPattern(ctx, mouthPattern, mouthOffsetX, mouthOffsetY, scale);
+  // 눈 그리기 (bounce 애니메이션 적용)
+  drawPattern(ctx, eyePattern, eyeOffsetX, eyeOffsetY + bounceY, scale);
 
-  // 머리카락 그리기
+  // 입 그리기 (bounce 애니메이션 적용)
+  drawPattern(ctx, mouthPattern, mouthOffsetX, mouthOffsetY + bounceY, scale);
+
+  // 머리카락 그리기 (bounce 애니메이션 적용)
   const hairPattern = HAIR_STYLES[hairStyle] || HAIR_STYLES.short;
-  drawPattern(ctx, hairPattern, hairOffsetX, hairOffsetY, scale);
+  drawPattern(ctx, hairPattern, hairOffsetX, hairOffsetY + bounceY, scale);
 
-  // 악세서리 그리기
+  // 악세사리 그리기 (bounce 애니메이션 적용)
   if (accessory !== 'none' && ACCESSORIES[accessory]) {
     const accessoryPattern = ACCESSORIES[accessory];
-    drawPattern(ctx, accessoryPattern, eyeOffsetX, eyeOffsetY, scale);
+    drawPattern(ctx, accessoryPattern, eyeOffsetX, eyeOffsetY + bounceY, scale);
   }
 }
 
@@ -322,7 +451,7 @@ export function validateCustomizationOptions(options) {
   const validHairColors = ['default', 'brown', 'gold'];
   const validClothingColors = ['blue', 'red', 'green', 'yellow', 'purple'];
   const validAccessories = ['none', 'glasses', 'hat', 'flowers'];
-  const validEmotions = ['happy', 'sad', 'angry', 'neutral'];
+  const validEmotions = ['happy', 'sad', 'angry', 'neutral', 'joy', 'surprised'];
 
   return (
     (!options.hairStyle || validHairStyles.includes(options.hairStyle)) &&
@@ -331,4 +460,28 @@ export function validateCustomizationOptions(options) {
     (!options.accessory || validAccessories.includes(options.accessory)) &&
     (!options.emotion || validEmotions.includes(options.emotion))
   );
+}
+
+/**
+ * 애니메이션 컨트롤러 가져오기 (Helper 함수)
+ * @param {string} characterId - 캐릭터 ID
+ * @returns {AnimationController}
+ */
+export function getAnimationController(characterId) {
+  return globalAnimationChannelManager.getController(characterId);
+}
+
+/**
+ * 캐릭터 애니메이션 컨트롤러 제거 (Helper 함수)
+ * @param {string} characterId - 캐릭터 ID
+ */
+export function removeAnimationController(characterId) {
+  globalAnimationChannelManager.removeController(characterId);
+}
+
+/**
+ * 모든 애니메이션 컨트롤러 정리 (Helper 함수)
+ */
+export function cleanupAllAnimationControllers() {
+  globalAnimationChannelManager.cleanupAll();
 }

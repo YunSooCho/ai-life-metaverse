@@ -35,14 +35,53 @@
 - **색상 팔레트**: 8비트 레트로 스타일
 - **애니메이션 프레임**: 2~4 프레임 / 초
 
-### 애니메이션 타입
+### 애니메이션 타입 (Issue #88: 완료 ✅ 2026-02-18)
 
-| 타입 | 프레임 수 | 설명 | 상태 |
-|------|----------|------|------|
-| idle | 2 | 정지 상태 (숨 쉬기) | TODO |
-| walk | 4 | 이동 중 | ✅ 구현 완료 (2026-02-18) |
-| emote | 3 | 감정 표현 | TODO |
-| interact | 2 | 상호작용 중 | TODO |
+| 타입 | 프레임 수 | 속도 | 루프 | 설명 | 상태 |
+|------|----------|------|------|------|------|
+| idle | 1 | 500ms | ✅ | 정지 상태 | ✅ 구현 완료 |
+| walk | 4 | 200ms | ✅ | 이동 중 (보통 속도) | ✅ 구현 완료 |
+| run | 4 | 120ms | ✅ | 이동 중 (빠른 속도) | ✅ 구현 완료 |
+| jump | 4 | 150ms | ❌ | 점프 | ✅ 구현 완료 |
+| sit | 4 | 300ms | ✅ | 앉기 | ✅ 구현 완료 |
+
+### 감정 애니메이션 시스템 (Issue #88: 완료 ✅ 2026-02-18)
+
+| 감정 | 프레임 | 속도 | 루프 | 설명 |
+|------|---------|------|------|------|
+| neutral | 2 | - | ✅ | 기본 상태 |
+| joy (happy) | 2 | 250ms | ✅ | 기쁨: 눈/입 애니메이션 |
+| sad | 2 | 300ms | ✅ | 슬픔: 아래쪽 입 모양 |
+| angry | 2 | 200ms | ✅ | 화남: 눈썹/입 애니메이션 |
+| surprised | 2 | 150ms | ❌ | 놀람: 눈/입 둥글게 (비루프) |
+
+### 애니메이션 시스템 기능
+
+**채널 기반 애니메이션 관리:**
+- `AnimationChannelManager`: 전체 캐릭터 애니메이션 컨트롤러 관리
+- `AnimationController`: 개별 캐릭터 애니메이션 상태 관리
+- 5개 애니메이션 채널 (idle, walk, run, jump, sit)
+- 5개 감정 채널 (neutral, joy, sad, angry, surprised)
+
+**부드러운 애니메이션 전환 (Crossfade):**
+- 애니메이션 상태 변경 시 200ms crossfade
+- `transitionProgress` (0~1) 로 부드러운 전환
+- `isTransitioning` 상태 플래그
+
+**Bounce 애니메이션 (이동 시):**
+- Walk: 0.5px 진폭
+- Run: 0.8px 진폭 (더 역동적)
+- `Math.sin(currentFrame * Math.PI / 2)` 로 자연스러운 바운스
+
+**이동 방향에 따른 애니메이션:**
+- 4방향 지원: up, down, left, right
+- Direction 기반 프레임 선택 (스프라이트 시트)
+- `setDirection()` 메서드로 방향 설정
+
+**애니메이션 속도 조절:**
+- Walk speed에 따른 frame rate 자동 조절
+- `setAnimationSpeed(speed)`: speed 1~3 → 200~110ms
+- 빠른 속도일수록 더 부드러운 애니메이션
 
 ### 이동 애니메이션 시스템 (2026-02-18 구현)
 
@@ -71,6 +110,12 @@ function determineDirection(from, to) {
 }
 ```
 
+**방향 형식 호환성 (2026-02-18 버그 수정 후):**
+- MovementHistory.getDirection(): 'right', 'left', 'up', 'down', 'idle' 반환
+- spriteRenderer.renderCharacterSprite(): 'walk_right', 'walk_left', 'walk_up', 'walk_down', 'idle' 기대
+- GameCanvas.calculateDirection(): 방향 형식 변환 ('right' -> 'walk_right')
+- **호환성 보장을 위해 calculateDirection에서 자동 변환 수행** (Issue #86)
+
 **애니메이션 완료 조건:**
 - 거리 < speed (0.2px) → 도달로 간주, 애니메이션 제거
 - 완료된 캐릭터는 `animatedCharacters` state에서 제거
@@ -88,15 +133,27 @@ Pink: #FFB6C1
 
 ### 구현된 기능
 
-- ✅ `pixelArtRenderer.js` - 픽셀아트 렌더링 유틸리티
-  - `drawPixelCharacter()` - Canvas에 캐릭터 그리기
+- ✅ `pixelArtRenderer.js` - 픽셀아트 렌더링 유틸리티 (Issue #88 개선 완료 2026-02-18)
+  - `drawPixelCharacter()` - Canvas에 캐릭터 그리기 (애니메이션 지원)
   - `createPixelCharacterDataURL()` - Data URL 생성 (브라우저 전용)
   - `validateCustomizationOptions()` - 옵션 유효성 검사
+  - `getAnimationController()` - 애니메이션 컨트롤러 가져오기
+  - `removeAnimationController()` - 애니메이션 컨트롤러 제거
+  - `cleanupAllAnimationControllers()` - 모든 애니메이션 컨트롤러 정리
+- ✅ `AnimationController.js` - 애니메이션 컨트롤러 (Issue #88 개선 완료 2026-02-18)
+  - 5개 애니메이션 채널: idle, walk, run, jump, sit
+  - 5개 감정 채널: neutral, joy, sad, angry, surprised
+  - Crossfade 전환 (200ms)
+  - Bounce 애니메이션
+  - 애니메이션 속도 자동 조절
+- ✅ `AnimationChannelManager` - 애니메이션 채널 관리자 (Issue #88 개선 완료 2026-02-18)
+  - 개별 캐릭터별 컨트롤러 관리
+  - 컨트롤러 재사용 및 정리
 - ✅ 머리 스타일: short, medium, long
 - ✅ 머리 색상: default, brown, gold
 - ✅ 옷 색상: blue, red, green, yellow, purple
 - ✅ 악세서리: none, glasses, hat, flowers
-- ✅ 감정 표현: happy, sad, angry, neutral
+- ✅ 감정 표현: happy (joy), sad, angry, neutral, surprised
 - ✅ GameCanvas 통합 (Issue #73) - drawCharacter 함수에서 drawPixelCharacter 사용
 - ✅ myCharacter 커스터마이징 옵션 적용
 - ✅ AI 캐릭터에도 픽셀아트 적용 (기본 스타일: red/brown)
@@ -104,6 +161,7 @@ Pink: #FFB6C1
   - `pixelArtRenderer.spec.js` (11/11 통과)
   - `tests/PixelArtRenderer.test.js` (11/11 통과)
   - `tests/PixelArtRendererIntegration.test.js` (17/17 통과 - GameCanvas 통합)
+  - `pixelArtRenderer-animation.test.js` (23/23 통과 + 2 skipped - Issue #88 애니메이션 테스트)
 
 ### 파일 위치
 
