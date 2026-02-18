@@ -94,6 +94,37 @@ function AppContent() {
     accessory: 'none'
   })
   const [weather, setWeather] = useState({ type: 'CLEAR' })
+  const [animatedCharacters, setAnimatedCharacters] = useState({})
+
+  /**
+   * 이동 애니메이션 처리
+   */
+  useEffect(() => {
+    const animationInterval = setInterval(() => {
+      setAnimatedCharacters(prev => {
+        const updated = {}
+        for (const [id, animChar] of Object.entries(prev)) {
+          if (!animChar.targetX && !animChar.targetY) {
+            // 애니메이션 완료
+            continue
+          }
+          const speed = 0.2
+          const dx = animChar.targetX - animChar.x
+          const dy = animChar.targetY - animChar.y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+          if (distance < speed) {
+            // 목표 위치 도달 - 애니메이션 완료
+            continue
+          }
+          const moveX = animChar.x + (dx / distance) * speed
+          const moveY = animChar.y + (dy / distance) * speed
+          updated[id] = { ...animChar, x: moveX, y: moveY }
+        }
+        return updated
+      })
+    }, 16) // ~60 FPS
+    return () => clearInterval(animationInterval)
+  }, [])
 
   /**
    * 커스터마이징 저장 핸들러
@@ -169,12 +200,27 @@ function AppContent() {
     })
   }, [myCharacter.id])
 
-  useSocketEvent('characterUpdate', (char) => {
+  useSocketEvent('characterUpdate', (char, moveData) => {
     if (char.id !== myCharacter.id) {
       setCharacters(prev => ({
         ...prev,
         [char.id]: char
       }))
+      // 이동 애니메이션 데이터가 있으면 animatedCharacters 업데이트
+      if (moveData) {
+        setAnimatedCharacters(prev => ({
+          ...prev,
+          [char.id]: {
+            ...char,
+            x: moveData.from.x,
+            y: moveData.from.y,
+            targetX: moveData.to.x,
+            targetY: moveData.to.y,
+            direction: moveData.direction,
+            startTime: moveData.timestamp
+          }
+        }))
+      }
     }
   }, [myCharacter.id])
 
@@ -1010,6 +1056,7 @@ function AppContent() {
         onMove={handleMove}
         characterCustomization={characterCustomization}
         weather={weather?.type || 'CLEAR'}
+        animatedCharacters={animatedCharacters}
       />
       <MiniMap
         myCharacter={myCharacter}

@@ -1,174 +1,103 @@
-# 시스템 아키텍처 (System Architecture)
+# System Architecture
 
-## 전체 구조
+## 전체 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     사용자 (People)                          │
-│                   Web Frontend (React + Vite)               │
-│                   http://10.76.29.91:3000                   │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ WebSocket (Socket.io)
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 메인 서버 (Node.js + Express)                │
-│                 http://10.76.29.91:4000                     │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐           │
-│  │  Socket.io │  │  상태 관리  │  │  게임 로직  │           │
-│  │  실시간    │  │ (인메모리)  │  │ (건물,퀘스트)│           │
-│  └────────────┘  └────────────┘  └────────────┘           │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ Socket.io Client
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  AI 에이전트 (Node.js)                       │
-│  ┌─────────────────┐  ┌──────────────────┐                 │
-│  │  GLM-4.7 API    │  │  Chat Context    │                 │
-│  │  (Cerebras)     │  │  Manager         │                 │
-│  └─────────────────┘  └──────────────────┘                 │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────┐         ┌─────────────────┐
+│   Frontend      │         │   Backend       │
+│   (React)       │◄────────┤   (Node.js)     │
+│                 │ Socket  │                 │
+│ - GameCanvas    │  .io    │ - socket.io     │
+│ - ChatInput     │         │ - Express       │
+│ - Components    │ REST    │ - AI Agent      │
+└─────────────────┘  API    │   (GLM-4.7)     │
+      │                     └─────────────────┘
+      │                              │
+      │                              │
+      ▼                              ▼
+  Browser                    Cerebras API
 ```
 
----
+## Frontend 구조
 
-## 구성 요소
+### 주요 컴포넌트
 
-### 1. Frontend (React + Vite)
-- **위치:** `frontend/`
-- **포트:** 3000
-- **주요 컴포넌트:**
-  - `App.jsx` - 메인 앱 (상태 관리, Socket 연결)
-  - `GameCanvas.jsx` - 2D Canvas 렌더링 (캐릭터, 건물, 맵, 2026-02-17 최적화: useRef + useEffect 의존성 최소화로 렌더 루프 개선)
-  - `Character.jsx` - 캐릭터 렌더링
-  - `ChatBubble.jsx` - Speech bubble UI
-  - `ChatInput.jsx` - 채팅 입력창 (textarea, Enter 전송)
-  - `MiniMap.jsx` - 미니맵 (건물/캐릭터 위치)
-  - `Inventory.jsx` - 인벤토리 UI
-  - `Reward.jsx` - 보상 UI
-  - `Quest.jsx` - 퀘스트 UI
-  - `EventLog.jsx` - 이벤트 로그
-  - `RoomMenu.jsx` - 방 선택 메뉴
-  - `InteractionMenu.jsx` - 인터랙션 메뉴
-  - `AffinityDisplay.jsx` - 호감도 표시
-  - `CharacterList.jsx` - 캐릭터 목록
-  - `Toast.jsx` - 토스트 알림
-- **Custom Hooks:**
-  - `useSocketEvent.js` - Socket 이벤트 관리
-  - `useCharacter.js` - 캐릭터 상태 관리
-- **Utilities:**
-  - `characterUtils.js` - 캐릭터 유틸리티 함수
-  - `socket.js` - Socket.io 클라이언트 설정
-  - `BuildingRenderer.js` - 건물 스프라이트 렌더링 (2026-02-18 추가: 건물 스프라이트 리팩토링)
+- **App.jsx**: 메인 애플리케이션
+- **GameCanvas**: 메인 게임 캔버스
+- **ChatInput**: 채팅 입력
+- **InteractionMenu**: 상호작용 메뉴
+- **AffinityDisplay**: 호감도 표시
+- **RoomMenu**: 방 메뉴
+- **Inventory**: 인벤토리
+- **Quest**: 퀘스트 시스템
+- **Reward**: 보상 시스템
 
-### 2. Backend (Node.js + Express + Socket.io)
-- **위치:** `backend/`
-- **포트:** 4000
-- **주요 파일:**
-  - `server.js` - 메인 서버 (Socket.io 이벤트 핸들러, 게임 로직)
-  - `inventory.js` - 인벤토리/아이템 시스템
-  - `quest.js` - 퀘스트 시스템
-- **데이터 저장:** 인메모리 (Redis/DB 미사용, 서버 재시작 시 초기화)
+### Custom Hooks
 
-### 3. AI Agent (Node.js)
-- **위치:** `ai-agent/`
-- **주요 파일:**
-  - `agent.js` - AI 에이전트 메인 (GLM-4.7 연동, 이동/대화 로직)
-  - `chat-context.js` - 대화 컨텍스트 관리 (최근 10개 대화 저장)
-- **LLM:** Cerebras GLM-4.7 (zai-glm-4.7)
-- **기능:**
-  - 주기적 자동 이동
-  - 채팅 응답 생성 (Persona 기반)
-  - 인터랙션 응답 (호감도 기반)
-  - 8가지 인터랙션 타입 (greet, talk, gift, poke, wave, compliment, tease, ignore)
+- **useSocketEvent**: Socket.io 이벤트 핸들러
 
----
+## Backend 구조
 
-## Socket.io 이벤트 목록
+### 핵심 모듈
 
-### Client → Server
-| 이벤트 | 파라미터 | 설명 |
-|--------|----------|------|
-| `move` | `{x, y}` | 플레이어 이동 |
-| `chatMessage` | `{characterId, message}` | 채팅 메시지 전송 |
-| `interact` | `{characterId, interactionType}` | 캐릭터 인터랙션 |
-| `enterBuilding` | `{buildingId}` | 건물 입장 |
-| `exitBuilding` | `{buildingId}` | 건물 퇴장 |
-| `joinRoom` | `{roomId}` | 방 입장 |
-| `leaveRoom` | `{roomId}` | 방 퇴장 |
-| `useItem` | `{itemId}` | 아이템 사용 |
-| `acceptQuest` | `{questId}` | 퀘스트 수락 |
-| `completeQuest` | `{questId}` | 퀘스트 완료 |
+- **server.js**: 메인 서vier (HTTP + Socket.io)
+- **ai-agent/agent.js**: AI Agent (GLM-4.7 연동)
+- **ai-agent/character.js**: 캐릭터 대화 로직
+- **routes/*.js**: REST API 라우트
 
-### Server → Client
-| 이벤트 | 파라미터 | 설명 |
-|--------|----------|------|
-| `playerMoved` | `{id, x, y}` | 플레이어 이동 브로드캐스트 |
-| `chatBroadcast` | `{characterId, message, roomId}` | 채팅 브로드캐스트 |
-| `characterInteractionBroadcast` | `{characterId, interactionType, response}` | 인터랙션 결과 |
-| `buildingEntered` | `{buildingId, timestamp}` | 건물 입장 확인 |
-| `buildingExited` | `{buildingId, duration}` | 건물 퇴장 확인 |
-| `inventoryUpdate` | `{inventory}` | 인벤토리 업데이트 |
-| `questUpdate` | `{quests}` | 퀘스트 상태 업데이트 |
-| `rewardReceived` | `{reward}` | 보상 수령 |
+### Socket.io 이벤트
 
----
+**클라이언트 → 서버**:
+- `join`: 방 입장
+- `move`: 캐릭터 이동
+- `chatMessage`: 채팅 메시지
+- `interact`: 캐릭터 상호작용
+- `characterInteraction`: AI 상호작용
+- `createRoom`: 방 생성
+- `changeRoom`: 방 변경
+- `enterBuilding`: 건물 입장
+- `exitBuilding`: 건물 퇴장
+- `getInventory`: 인벤토리 조회
+- `useItem`: 아이템 사용
+- `claimReward`: 보상 수령
+- `getQuests`: 퀘스트 조회
+- `acceptQuest`: 퀘스트 수락
+- `claimQuestReward`: 퀘스트 보상 수령
 
-## 외부 접속
+**서버 → 클라이언트**:
+- `characters`: 모든 캐릭터 상태
+- `characterUpdate`: 캐릭터 업데이트
+- `chatBroadcast`: 채팅 브로드캐스트
+- `characterInteractionBroadcast`: 상호작용 브로드캐스트
+- `affinities`: 호감도 데이터
+- `rooms`: 방 목록
+- `roomJoined`: 방 입장 알림
+- `buildings`: 건물 목록
+- `buildingEvent`: 건물 이벤트
+- `roomNotification`: 방 알림
+- `inventory`: 인벤토리 데이터
+- `rewardClaimed`: 보상 수령
+- `itemUsed`: 아이템 사용
+- `itemUseFailed`: 아이템 사용 실패
+- `quests`: 퀘스트 데이터
+- `questProgress`: 퀘스트 진행
+- `questAccepted`: 퀘스트 수락
+- `questRewardClaimed`: 퀘스트 보상 수령
 
-- **Mac mini IP:** `10.76.29.91`
-- **Frontend:** `http://10.76.29.91:3000`
-- **Backend:** `http://10.76.29.91:4000`
-- **호스트 바인딩:** `0.0.0.0` (외부 접근 허용)
+## API Endpoint
 
----
+### REST API
 
-*마지막 업데이트: 2026-02-16*
+- `GET /api/health`: 헬스 체크
+- `GET /api/character/:id`: 캐릭터 정보 조회
+- `GET /api/rooms`: 방 목록 조회
+- `GET /api/buildings`: 건물 목록 조회
+- `GET /api/events/:characterId`: 이벤트 로그 조회
+- `POST /api/rooms`: 방 생성
+- `POST /api/weather`: 날씨 변경
 
+## 데이터 흐름
 
-## 날씨/시간 시스템 (2026-02-17 추가)
-
-### 구조
-- **유틸리티:** `frontend/src/utils/weatherTimeSystem.js`
-- **통합:** `GameCanvas.jsx`에서 import하여 렌더링 루프에 통합
-
-### 게임 시간
-- 1 게임 일 = 24분 실시간
-- 시간대: 새벽(5-7), 아침(7-12), 오후(12-17), 저녁(17-20), 밤(20-5)
-- 시간대별 오버레이 색상 변화
-
-### 날씨 시스템
-- 4종류: 맑음, 흐림, 비, 눈
-- 5분마다 랜덤 변경
-- 비/눈: 파티클 시스템으로 렌더링
-
-### HUD
-- 좌상단에 게임 시간 + 날씨 표시
-- 픽셀 아트 스타일 (Press Start 2P 폰트)
-
-## NPC 스케줄/일과 시스템 (2026-02-17 추가)
-
-### 구조
-- **공유 모듈:** `shared/npcSchedule.js` (프론트엔드/백엔드 공용)
-- **통합 대상:** `ai-agent/agent.js` (Issue #34)
-
-### 장소 (5개)
-- 도서관 (175, 150), 카페 (800, 475), 상점 (490, 560), 공원 (500, 300), 집 (100, 600)
-
-### 일과 스케줄
-| 시간 | 장소 | 활동 |
-|------|------|------|
-| 0-6 | 집 | 수면 |
-| 6-8 | 카페 | 커피 |
-| 8-12 | 도서관 | 공부 |
-| 12-13 | 카페 | 커피 |
-| 13-15 | 공원 | 산책 |
-| 15-18 | 도서관 | 독서 |
-| 18-19 | 상점 | 쇼핑 |
-| 19-21 | 공원 | 휴식 |
-| 21-24 | 집 | 수면 |
-
-### 주요 함수
-- `getCurrentSchedule(hour)`: 현재 스케줄 항목
-- `getScheduleLocation(hour)`: 목표 좌표
-- `moveTowardTarget(cx, cy, tx, ty, speed)`: 이동 계산
-- `getNpcStatus(hour)`: 전체 상태 조회
+1. **캐릭터 이동**: 클라이언트 → `move` 이벤트 → 서버 업데이트 → `characterUpdate` 브로드캐스트
+2. **채팅**: 클라이언트 → `chatMessage` → 서버 저장 → `chatBroadcast` 브로드캐스트
+3. **AI 대화**: 클라이언트 → `chatMessage` → 서버 → GLM-4.7 API → 응답 → `chatBroadcast` 브로드캐스트

@@ -65,6 +65,7 @@ import {
   renderWeatherTimeHUD,
   WEATHER_TYPES
 } from '../utils/weatherTimeSystem'
+import { drawPixelCharacter } from '../utils/pixelArtRenderer'
 import {
   initializeInputHandler,
   getMovementDirection,
@@ -173,7 +174,8 @@ function GameCanvas({
     clothingColor: 'blue',
     accessory: 'none'
   },
-  weather = 'CLEAR'
+  weather = 'CLEAR',
+  animatedCharacters: propsAnimatedCharacters = {}
 }) {
   const [animatedCharacters, setAnimatedCharacters] = useState({})
   const [spriteSheets, setSpriteSheets] = useState({})
@@ -228,6 +230,12 @@ function GameCanvas({
   useEffect(() => {
     animatedCharactersRef.current = animatedCharacters
   }, [animatedCharacters])
+
+  // Sync propsAnimatedCharacters ref (animation from App.js)
+  const propsAnimatedCharactersRef = useRef(propsAnimatedCharacters)
+  useEffect(() => {
+    propsAnimatedCharactersRef.current = propsAnimatedCharacters
+  }, [propsAnimatedCharacters])
 
   // Sync interior refs
   useEffect(() => {
@@ -519,7 +527,7 @@ function GameCanvas({
       const blds = buildingsRef.current
       const cust = characterCustomizationRef.current
       const wthr = weatherRef.current
-      const animChars = animatedCharactersRef.current
+      const animChars = { ...animatedCharactersRef.current, ...propsAnimatedCharactersRef.current }
       const currentScale = scaleRef.current
 
       // Background fill (MUST happen first!)
@@ -607,21 +615,6 @@ function GameCanvas({
       }
 
       } // END: 맵 모드 (else 블록)
-      ctx.strokeStyle = 'rgba(42, 42, 78, 0.3)'
-      ctx.lineWidth = 1
-      ctx.imageSmoothingEnabled = false
-      for (let x = 0; x < canvas.width; x += CELL_SIZE_SCALED) {
-        ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, canvas.height)
-        ctx.stroke()
-      }
-      for (let y = 0; y < canvas.height; y += CELL_SIZE_SCALED) {
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(canvas.width, y)
-        ctx.stroke()
-      }
 
       /**
        * Character rendering
@@ -651,78 +644,100 @@ function GameCanvas({
           ? getOptionEmoji(CUSTOMIZATION_CATEGORIES.HAIR_STYLES, customization.hairStyle) || emoji
           : emoji
 
-        // 픽셀 아트 캐릭터 렌더링 (프로그래매틱)
-        {
-          const s = CHARACTER_SIZE_SCALED
-          const px = s / 16
-          const cx = x - s / 2
-          const cy = y - s / 2
-
-          // 걷기 애니메이션 프레임
-          const isWalking = direction && direction !== 'idle'
-          const walkFrame = isWalking ? Math.floor(timestamp / 200) % 4 : 0
-          const bounce = isWalking ? Math.sin(walkFrame * Math.PI / 2) * px * 2 : 0
-
-          // 그림자
-          ctx.fillStyle = 'rgba(0,0,0,0.2)'
-          ctx.beginPath()
-          ctx.ellipse(x, y + s / 2 + px, s / 3, px * 2, 0, 0, Math.PI * 2)
-          ctx.fill()
-
-          // 몸통 (옷 색상)
-          ctx.fillStyle = finalCharColor
-          ctx.fillRect(cx + px * 4, cy + px * 7 - bounce, px * 8, px * 7)
-
-          // 머리 (피부색)
-          ctx.fillStyle = '#FFD5B8'
-          ctx.fillRect(cx + px * 3, cy + px * 1 - bounce, px * 10, px * 7)
-
-          // 머리카락
-          ctx.fillStyle = isAi ? '#FF6B6B' : '#5C3317'
-          ctx.fillRect(cx + px * 3, cy + px * 0 - bounce, px * 10, px * 3)
-          ctx.fillRect(cx + px * 2, cy + px * 1 - bounce, px * 2, px * 5)
-          ctx.fillRect(cx + px * 12, cy + px * 1 - bounce, px * 2, px * 5)
-
-          // 눈
-          ctx.fillStyle = '#000000'
-          if (direction === 'walk_left') {
-            ctx.fillRect(cx + px * 4, cy + px * 4 - bounce, px * 2, px * 2)
-            ctx.fillRect(cx + px * 8, cy + px * 4 - bounce, px * 2, px * 2)
-          } else if (direction === 'walk_right') {
-            ctx.fillRect(cx + px * 6, cy + px * 4 - bounce, px * 2, px * 2)
-            ctx.fillRect(cx + px * 10, cy + px * 4 - bounce, px * 2, px * 2)
-          } else {
-            ctx.fillRect(cx + px * 5, cy + px * 4 - bounce, px * 2, px * 2)
-            ctx.fillRect(cx + px * 9, cy + px * 4 - bounce, px * 2, px * 2)
-          }
-
-          // 다리
-          const legOffset = isWalking ? Math.sin(walkFrame * Math.PI / 2) * px * 2 : 0
-          ctx.fillStyle = '#4A3728'
-          ctx.fillRect(cx + px * 4, cy + px * 14 - bounce, px * 3, px * 2)
-          ctx.fillRect(cx + px * 9, cy + px * 14 - bounce, px * 3, px * 2)
-          if (isWalking) {
-            ctx.fillRect(cx + px * 4 - legOffset, cy + px * 14 - bounce, px * 3, px * 2)
-            ctx.fillRect(cx + px * 9 + legOffset, cy + px * 14 - bounce, px * 3, px * 2)
-          }
-
-          // AI/대화 중 표시
-          if (isConversing) {
-            ctx.strokeStyle = '#FFD700'
-            ctx.lineWidth = 3
-            ctx.strokeRect(cx + px * 2, cy - bounce - px, px * 12, px * 17)
-          } else if (isAi) {
-            ctx.strokeStyle = '#FF6B6B'
-            ctx.lineWidth = 2
-            ctx.strokeRect(cx + px * 2, cy - bounce - px, px * 12, px * 17)
-          }
-
-          // 이모지
-          ctx.font = `${s / 2.5}px Arial`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(finalEmoji, x, cy - px * 2 - bounce)
+        // 커스터마이징 옵션 준비 (pixelArtRenderer용)
+        const pixelArtOptions = {
+          hairStyle: customization?.hairStyle || 'short',
+          hairColor: 'default',
+          clothingColor: customization?.clothingColor || 'blue',
+          accessory: customization?.accessory || 'none',
+          emotion: 'neutral'
         }
+
+        // 색상 매핑 (characterCustomization → pixelArtRenderer)
+        const colorMap = {
+          'blue': 'blue', 'red': 'red', 'green': 'green',
+          'yellow': 'yellow', 'purple': 'purple',
+          'orange': 'red', 'pink': 'purple', 'cyan': 'blue',
+          'lime': 'green', 'gray': 'blue', 'white': 'blue'
+        }
+        if (customization?.clothingColor) {
+          pixelArtOptions.clothingColor = colorMap[customization.clothingColor] || 'blue'
+        }
+
+        // AI 캐릭터에는 기본 스타일 적용
+        if (!isMyCharacter && isAi) {
+          pixelArtOptions.clothingColor = 'red'
+          pixelArtOptions.hairColor = 'brown'
+        }
+
+        // 걷기 애니메이션을 위한 바운스 효과
+        const isWalking = direction && direction !== 'idle'
+        const walkFrame = isWalking ? Math.floor(timestamp / 200) % 4 : 0
+        const bounce = isWalking ? Math.sin(walkFrame * Math.PI / 2) * 2 : 0
+
+        // 그림자
+        ctx.fillStyle = 'rgba(0,0,0,0.2)'
+        ctx.beginPath()
+        ctx.ellipse(x, y + CHARACTER_SIZE_SCALED / 3, CHARACTER_SIZE_SCALED / 4, 4 * currentScale, 0, 0, Math.PI * 2)
+        ctx.fill()
+
+        // PixelArtRenderer로 캐릭터 렌더링
+        // PixelArtRenderer: draw character using simple colored rectangles as fallback
+        {
+          const charW = CHARACTER_SIZE_SCALED * 0.6
+          const charH = CHARACTER_SIZE_SCALED * 0.8
+          const charX = x - charW / 2
+          const charY = y - charH / 2 - (bounce * currentScale)
+          
+          // Body
+          const bodyColor = isMyCharacter 
+            ? (characterCustomColor || '#4169E1')
+            : (isAi ? '#FF6347' : (color || '#4169E1'))
+          ctx.fillStyle = bodyColor
+          ctx.fillRect(charX + charW * 0.2, charY + charH * 0.4, charW * 0.6, charH * 0.5)
+          
+          // Head (skin color)
+          ctx.fillStyle = '#FFE4C4'
+          const headSize = charW * 0.5
+          ctx.fillRect(charX + (charW - headSize) / 2, charY + charH * 0.1, headSize, headSize)
+          
+          // Hair
+          const hairColor = isAi ? '#8B4513' : '#000000'
+          ctx.fillStyle = hairColor
+          ctx.fillRect(charX + (charW - headSize) / 2, charY + charH * 0.05, headSize, headSize * 0.3)
+          
+          // Eyes
+          ctx.fillStyle = '#000000'
+          const eyeSize = Math.max(2, charW * 0.08)
+          ctx.fillRect(charX + charW * 0.35, charY + charH * 0.22, eyeSize, eyeSize)
+          ctx.fillRect(charX + charW * 0.55, charY + charH * 0.22, eyeSize, eyeSize)
+          
+          // Legs
+          ctx.fillStyle = '#333333'
+          ctx.fillRect(charX + charW * 0.25, charY + charH * 0.85, charW * 0.2, charH * 0.15)
+          ctx.fillRect(charX + charW * 0.55, charY + charH * 0.85, charW * 0.2, charH * 0.15)
+          
+          // Outline
+          ctx.strokeStyle = '#222222'
+          ctx.lineWidth = 1
+          ctx.strokeRect(charX + charW * 0.2, charY + charH * 0.4, charW * 0.6, charH * 0.5)
+        }
+
+        // AI/대화 중 표시 (PixelArtRenderer 위에 그리기)
+        if (isConversing || isAi) {
+          const s = CHARACTER_SIZE_SCALED
+          const cx = x - s / 2
+          const cy = y - s / 2 - (bounce * currentScale)
+          ctx.strokeStyle = isConversing ? '#FFD700' : '#FF6B6B'
+          ctx.lineWidth = isConversing ? 3 : 2
+          ctx.strokeRect(cx - 2, cy - 2, s + 4, s + 4)
+        }
+
+        // 이모지
+        ctx.font = `${CHARACTER_SIZE_SCALED / 2.5}px Arial`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(finalEmoji, x, y - CHARACTER_SIZE_SCALED / 2 - (bounce * currentScale))
 
         // accessory
         if (accessoryEmoji) {
@@ -1135,6 +1150,7 @@ GameCanvas.propTypes = {
     isAi: PropTypes.bool.isRequired
   }).isRequired,
   characters: PropTypes.object.isRequired,
+  animatedCharacters: PropTypes.object,
   affinities: PropTypes.object.isRequired,
   chatMessages: PropTypes.object.isRequired,
   clickEffects: PropTypes.arrayOf(

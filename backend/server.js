@@ -2,16 +2,17 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { addItem, removeItem, getInventory } from './inventory.js'
-import { 
-  initializePlayerQuests, 
-  getPlayerQuests, 
-  getQuestProgress, 
-  updateQuestProgress, 
+import {
+  initializePlayerQuests,
+  getPlayerQuests,
+  getQuestProgress,
+  updateQuestProgress,
   completeQuest,
   getQuestReward,
   getPlayerAvailableQuests,
   assignQuestToPlayer
 } from './quest.js'
+import { initializeAgent } from './ai-agent/agent.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -177,6 +178,9 @@ function getCharactersInRoom(roomId) {
   return getRoom(roomId).characters
 }
 
+// AI 에이전트 초기화
+initializeAgent(io, rooms, characterRooms)
+
 // Socket.io 연결
 io.on('connection', (socket) => {
   console.log('👤 클라이언트 연결:', socket.id)
@@ -229,7 +233,7 @@ io.on('connection', (socket) => {
     console.log(`📍 방 ${roomId} 캐릭터 수:`, Object.keys(room.characters).length)
   })
 
-  // 캐릭터 이동 (방 내에서만)
+  // 캐릭터 이동 (방 내에서만) - 애니메이션 지원
   socket.on('move', (character) => {
     const roomId = characterRooms[character.id]
     if (!roomId) {
@@ -243,14 +247,38 @@ io.on('connection', (socket) => {
       return
     }
 
-    console.log('🚶 캐릭터 이동:', character.name, `(${character.x}, ${character.y})`, '→', roomId)
+    const oldCharacter = room.characters[character.id]
+    const moveData = {
+      characterId: character.id,
+      characterName: character.name,
+      from: { x: oldCharacter.x, y: oldCharacter.y },
+      to: { x: character.x, y: character.y },
+      direction: character.direction || determineDirection(oldCharacter, character),
+      timestamp: Date.now()
+    }
+
+    console.log('🚶 캐릭터 이동:', character.name, 
+      `(${moveData.from.x}, ${moveData.from.y}) → (${moveData.to.x}, ${moveData.to.y})`,
+      '방향:', moveData.direction, '→', roomId)
 
     // 방 내 캐릭터 업데이트
     room.characters[character.id] = character
 
-    // 방 내에만 브로드캐스트
-    io.to(roomId).emit('characterUpdate', character)
+    // 방 내에만 브로드캐스트 (애니메이션 데이터 포함)
+    io.to(roomId).emit('characterUpdate', character, moveData)
   })
+
+  // 방향 결정 헬퍼 함수
+  function determineDirection(from, to) {
+    const dx = to.x - from.x
+    const dy = to.y - from.y
+    
+    if (Math.abs(dx) > Math.abs(dy)) {
+      return dx > 0 ? 'right' : 'left'
+    } else {
+      return dy > 0 ? 'down' : 'up'
+    }
+  }
 
   // 채팅 메시지 수신 (방 내에서만)
   socket.on('chatMessage', (data) => {
