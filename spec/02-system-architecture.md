@@ -3,17 +3,17 @@
 ## 전체 아키텍처
 
 ```
-┌─────────────────┐         ┌─────────────────┐
-│   Frontend      │         │   Backend       │
-│   (React)       │◄────────┤   (Node.js)     │
-│                 │ Socket  │                 │
-│ - GameCanvas    │  .io    │ - socket.io     │
-│ - ChatInput     │         │ - Express       │
-│ - Components    │ REST    │ - AI Agent      │
-└─────────────────┘  API    │   (GLM-4.7)     │
-      │                     └─────────────────┘
-      │                              │
-      │                              │
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│   Frontend      │         │   Backend       │         │   Redis (DB)    │
+│   (React)       │◄────────┤   (Node.js)     │◄────────┤   (Persistence) │
+│                 │ Socket  │                 │   TCP   │                 │
+│ - GameCanvas    │  .io    │ - socket.io     │         │ - 캐릭터 데이터  │
+│ - ChatInput     │         │ - Express       │         │ - 인벤토리      │
+│ - Components    │ REST    │ - AI Agent      │         │ - 호감도        │
+└─────────────────┘  API    │   (GLM-4.7)     │         │ - 퀘스트        │
+      │                     └─────────────────┘         │ - 채팅 히스토리 │
+      │                              │                  │ - 방 데이터     │
+      │                              │                  └─────────────────┘
       ▼                              ▼
   Browser                    Cerebras API
 ```
@@ -66,10 +66,37 @@
 
 ### 핵심 모듈
 
-- **server.js**: 메인 서vier (HTTP + Socket.io)
+- **server.js**: 메인 서버 (HTTP + Socket.io)
 - **ai-agent/agent.js**: AI Agent (GLM-4.7 연동)
 - **ai-agent/character.js**: 캐릭터 대화 로직
 - **routes/*.js**: REST API 라우트
+
+#### 데이터 영속성 시스템 (Redis/DB) ✅
+
+- **backend/utils/redis-client.js**: Redis 클라이언트 연결 관리
+  - `initRedis()` - Redis 클라이언트 초기화
+  - `getRedisClient()` - Redis 클라이언트 인스턴스 가져오기
+  - `closeRedis()` - Redis 연결 종료
+  - `isRedisEnabled()` - Redis 사용 가능 여부 확인
+  - **Graceful degradation**: Redis 연결 실패 시 메모리 모드로 실행
+
+- **backend/persistence.js**: 데이터 영속화 API
+  - **캐릭터 데이터**: `saveCharacter()`, `loadCharacter()`
+  - **인벤토리**: `saveInventory()`, `loadInventory()`
+  - **호감도**: `saveAffinities()`, `loadAffinities()`
+  - **퀘스트**: `saveQuests()`, `loadQuests()`
+  - **채팅 히스토리**: `saveChatHistory()`, `loadChatHistory()`
+  - **방 데이터**: `saveRoom()`, `loadRoom()`
+  - **통합 API**: `saveCharacterData()`, `loadCharacterData()`, `saveRoomData()`, `loadRoomData()`
+  - **삭제**: `deleteCharacterData()`, `deleteRoomData()`
+
+**TTL 설정:**
+- SHORT: 5분
+- MEDIUM: 1시간 (기본값)
+- LONG: 1일 (캐릭터, 인벤토리, 호감도, 퀘스트, 방)
+- WEEK: 1주일 (채팅 히스토리)
+
+**추가일:** 2026-02-19
 
 ### Socket.io 이벤트
 

@@ -135,6 +135,179 @@
 
 ## Redis 데이터 구조
 
+### 데이터 영속성 시스템 (백엔드)
+
+**구현 파일:**
+- `backend/utils/redis-client.js` - Redis 클라이언트 연결 관리
+- `backend/persistence.js` - 데이터 영속화 API
+
+**TTL 설정 (초 단위):**
+| 상수 | 값 | 설명 |
+|------|-----|------|
+| `TTL.SHORT` | 300 | 5분 |
+| `TTL.MEDIUM` | 3600 | 1시간 (기본값) |
+| `TTL.LONG` | 86400 | 1일 |
+| `TTL.WEEK` | 604800 | 1주일 |
+
+---
+
+### 1. 캐릭터 데이터
+
+```
+character:{character_id} = {
+  "id": "test-character-1",
+  "name": "테스트 캐릭터",
+  "x": 100,
+  "y": 100,
+  "color": "#FF0000",
+  "emoji": "🎭"
+}
+```
+
+**TTL:** `TTL.LONG` (1일)
+
+---
+
+### 2. 인벤토리 데이터
+
+```
+inventory:{character_id} = {
+  "healthPotion": 5,
+  "coin": 100,
+  "giftBox": 2
+}
+```
+
+**TTL:** `TTL.LONG` (1일)
+
+---
+
+### 3. 호감도 데이터
+
+```
+affinities:{room_id} = {
+  "ai-agent-1": { "test-player": 50 },
+  "ai-agent-2": { "test-player": 30 }
+}
+```
+
+**TTL:** `TTL.LONG` (1일)
+
+---
+
+### 4. 퀘스트 데이터
+
+```
+quests:{character_id} = {
+  "active": [
+    {
+      "id": "quest-1",
+      "title": "테스트 퀘스트 1",
+      "progress": 50,
+      "completed": false
+    }
+  ],
+  "available": [
+    {
+      "id": "quest-2",
+      "title": "테스트 퀘스트 2",
+      "progress": 0,
+      "completed": false
+    }
+  ]
+}
+```
+
+**TTL:** `TTL.LONG` (1일)
+
+---
+
+### 5. 채팅 히스토리
+
+```
+chat:{room_id} = [
+  {
+    "characterId": "test-1",
+    "characterName": "유저1",
+    "message": "안녕하세요",
+    "timestamp": 1739675773000
+  },
+  {
+    "characterId": "test-2",
+    "characterName": "유저2",
+    "message": "반갑습니다",
+    "timestamp": 1739675773000
+  }
+]
+```
+
+**TTL:** `TTL.WEEK` (1주일)
+
+---
+
+### 6. 방 데이터
+
+```
+room:{room_id} = {
+  "id": "test-room-1",
+  "name": "테스트 방",
+  "characters": {
+    "test-character-1": {
+      "id": "test-character-1",
+      "name": "테스트 캐릭터",
+      "x": 100,
+      "y": 100,
+      "color": "#FF0000",
+      "emoji": "🎭"
+    }
+  }
+}
+```
+
+**TTL:** `TTL.LONG` (1일)
+
+---
+
+### 데이터 영속성 API
+
+캐릭터 데이터:
+- `saveCharacter(character)` - 캐릭터 저장
+- `loadCharacter(characterId)` - 캐릭터 로드
+
+인벤토리 데이터:
+- `saveInventory(characterId, inventory)` - 인벤토리 저장
+- `loadInventory(characterId)` - 인벤토리 로드
+
+호감도 데이터:
+- `saveAffinities(roomId, affinities)` - 호감도 저장
+- `loadAffinities(roomId)` - 호감도 로드
+
+퀘스트 데이터:
+- `saveQuests(characterId, quests)` - 퀘스트 저장
+- `loadQuests(characterId)` - 퀘스트 로드
+
+채팅 히스토리:
+- `saveChatHistory(roomId, chatHistory)` - 채팅 히스토리 저장
+- `loadChatHistory(roomId)` - 채팅 히스토리 로드
+
+방 데이터:
+- `saveRoom(room)` - 방 저장
+- `loadRoom(roomId)` - 방 로드
+
+**통합 API:**
+- `saveCharacterData(characterId, roomId)` - 캐릭터 관련 모든 데이터 저장
+- `loadCharacterData(characterId)` - 캐릭터 관련 모든 데이터 로드
+- `saveRoomData(roomId, roomData)` - 방 관련 모든 데이터 저장
+- `loadRoomData(roomId)` - 방 관련 모든 데이터 로드
+
+**삭제 API:**
+- `deleteCharacterData(characterId)` - 캐릭터 모든 데이터 삭제
+- `deleteRoomData(roomId)` - 방 모든 데이터 삭제
+
+---
+
+실시간 상태 (캐시):
+
 ### 1. 캐릭터 실시간 상태
 
 ```
