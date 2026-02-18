@@ -170,9 +170,37 @@ async function generateChatResponse(characterId, userMessage) {
     }
 
     const data = await response.json()
-    // content 또는 reasoning 필드 확인 (GLM-4.7 추론 모드)
     const messageObj = data.choices[0].message
-    const aiResponse = messageObj.content || messageObj.reasoning || ''
+    let aiResponse = messageObj.content || ''
+
+    // GLM-4.7 reasoning 모드 대응: reasoning만 있으면 마지막 실제 대화 부분 추출
+    if (!aiResponse && messageObj.reasoning) {
+      // reasoning 텍스트에서 실제 응답 부분만 추출
+      const reasoning = messageObj.reasoning
+      // **Final Response:** 또는 마지막 큰따옴표 안의 텍스트 등 패턴 매칭
+      const finalMatch = reasoning.match(/(?:Final Response|최종 응답|답변)[:\s]*[""]?([^""\n]+)/i)
+      if (finalMatch) {
+        aiResponse = finalMatch[1].trim()
+      } else {
+        // 마지막 줄에서 한국어 대화 추출 시도
+        const lines = reasoning.split('\n').filter(l => l.trim())
+        const lastLine = lines[lines.length - 1]?.trim() || ''
+        // 마크다운/분석 텍스트가 아닌 자연스러운 한국어 대화인지 확인
+        if (lastLine && !lastLine.startsWith('*') && !lastLine.startsWith('#') && !lastLine.startsWith('-') && lastLine.length < 200) {
+          aiResponse = lastLine.replace(/^[""\s*]+|[""\s*]+$/g, '')
+        } else {
+          // fallback: 페르소나 기반 간단 응답
+          const fallbacks = [
+            `안녕하세요! ${persona.name}이에요 😊`,
+            '재미있는 얘기네요! ✨',
+            '그렇군요~ 더 얘기해줘요! 😄',
+            '오 정말요? 신기하다! 🌟'
+          ]
+          aiResponse = fallbacks[Math.floor(Math.random() * fallbacks.length)]
+        }
+      }
+      console.log('🔄 reasoning→대화 변환:', aiResponse.substring(0, 50))
+    }
 
     if (!aiResponse) {
       console.log('⚠️ GLM-4.7 응답 내용 없음')
