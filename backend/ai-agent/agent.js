@@ -22,6 +22,16 @@ const AI_PERSONAS = {
     dislikes: ['무례한 행동', '거짓말'],
     age: 22,
     gender: 'female'
+  },
+  'ai-agent-2': {
+    id: 'ai-agent-2',
+    name: 'AI 히카리',
+    personality: '활발하고 장난기 많으며, 새로운 것에 도전하는 걸 좋아합니다. 가끔 유리에게 장난을 칩니다.',
+    speakingStyle: '반말과 존댓말을 섞어 쓰고, 감탄사를 많이 사용합니다.',
+    interests: ['요리', '운동', '패션', '여행'],
+    dislikes: ['지루한 일', '느린 것'],
+    age: 20,
+    gender: 'female'
   }
 }
 
@@ -147,7 +157,7 @@ async function generateChatResponse(characterId, userMessage) {
       body: JSON.stringify({
         model: 'zai-glm-4.7',
         messages,
-        max_tokens: 150,
+        max_tokens: 300,
         temperature: 0.7,
         top_p: 0.9
       })
@@ -160,12 +170,19 @@ async function generateChatResponse(characterId, userMessage) {
     }
 
     const data = await response.json()
-    const aiResponse = data.choices[0].message.content
+    // content 또는 reasoning 필드 확인 (GLM-4.7 추론 모드)
+    const messageObj = data.choices[0].message
+    const aiResponse = messageObj.content || messageObj.reasoning || ''
+
+    if (!aiResponse) {
+      console.log('⚠️ GLM-4.7 응답 내용 없음')
+      return null
+    }
 
     // 응답을 컨텍스트에 추가
     contextManager.addMessage(characterId, 'assistant', aiResponse)
 
-    console.log('🤖 GLM-4.7 응답 생성:', aiResponse)
+    console.log('🤖 GLM-4.7 응답 생성:', aiResponse.substring(0, 100) + '...')
     return aiResponse
   } catch (error) {
     console.log('❌ GLM-4.7 응답 생성 실패:', error)
@@ -280,7 +297,102 @@ function initializeAgent(io, rooms, characterRooms) {
     })
   })
 
-  console.log('✅ AI 에이전트 초기화 완료')
+  // === AI 간 자동 상호작용 시스템 ===
+  const AI_INTERACTION_INTERVAL = 60000 // 60초마다 AI끼리 대화
+  const AI_INTERACTION_TOPICS = [
+    '오늘 날씨가 어떤 것 같아?',
+    '요즘 재미있는 거 있어?',
+    '이 메타버스 세계 어때? 재미있지 않아?',
+    '뭐 하고 있었어?',
+    '같이 공원 가볼까?',
+    '배고프다~ 카페 갈래?',
+    '새로운 플레이어가 올까?',
+    '체육관에서 운동할까?',
+    '도서관에 재미있는 책 있을까?',
+    '오늘 뭐 할까? 심심해~'
+  ]
+
+  let aiInteractionTimer = null
+
+  function startAIInteraction() {
+    if (aiInteractionTimer) clearInterval(aiInteractionTimer)
+
+    aiInteractionTimer = setInterval(async () => {
+      // 같은 방에 있는 AI 캐릭터 쌍 찾기
+      for (const roomId of Object.keys(rooms)) {
+        const room = rooms[roomId]
+        const aiCharsInRoom = Object.values(room.characters).filter(c => c.isAi)
+
+        if (aiCharsInRoom.length < 2) continue
+
+        // 랜덤하게 대화 시작할 AI 선택
+        const initiator = aiCharsInRoom[Math.floor(Math.random() * aiCharsInRoom.length)]
+        const responder = aiCharsInRoom.find(c => c.id !== initiator.id)
+
+        if (!initiator || !responder) continue
+
+        // 대화 중이면 스킵
+        if (conversationStateManager.getConversingState(initiator.id) ||
+            conversationStateManager.getConversingState(responder.id)) {
+          continue
+        }
+
+        console.log(`🤝 AI 상호작용 시작: ${initiator.name} → ${responder.name} (${roomId})`)
+
+        // 랜덤 토픽 선택
+        const topic = AI_INTERACTION_TOPICS[Math.floor(Math.random() * AI_INTERACTION_TOPICS.length)]
+
+        // 1) Initiator가 먼저 말하기
+        conversationStateManager.setConversingState(initiator.id, true)
+        const initiatorResponse = await generateChatResponse(initiator.id, `[${responder.name}에게 말 걸기] ${topic}`)
+
+        if (initiatorResponse) {
+          const chatData1 = {
+            characterId: initiator.id,
+            characterName: AI_PERSONAS[initiator.id]?.name || 'AI',
+            message: initiatorResponse,
+            timestamp: Date.now(),
+            roomId
+          }
+          room.chatHistory.push(chatData1)
+          if (room.chatHistory.length > 30) room.chatHistory.shift()
+          io.to(roomId).emit('chatBroadcast', chatData1)
+          console.log(`📢 AI 대화: ${initiator.name}: ${initiatorResponse.substring(0, 50)}...`)
+
+          // 2) 2~4초 후 Responder가 답하기
+          await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000))
+
+          conversationStateManager.setConversingState(responder.id, true)
+          const responderResponse = await generateChatResponse(responder.id, initiatorResponse)
+
+          if (responderResponse) {
+            const chatData2 = {
+              characterId: responder.id,
+              characterName: AI_PERSONAS[responder.id]?.name || 'AI',
+              message: responderResponse,
+              timestamp: Date.now(),
+              roomId
+            }
+            room.chatHistory.push(chatData2)
+            if (room.chatHistory.length > 30) room.chatHistory.shift()
+            io.to(roomId).emit('chatBroadcast', chatData2)
+            console.log(`📢 AI 응답: ${responder.name}: ${responderResponse.substring(0, 50)}...`)
+          }
+
+          conversationStateManager.setConversingState(responder.id, false)
+        }
+
+        conversationStateManager.setConversingState(initiator.id, false)
+      }
+    }, AI_INTERACTION_INTERVAL)
+
+    console.log(`🔄 AI 상호작용 타이머 시작 (${AI_INTERACTION_INTERVAL / 1000}초 간격)`)
+  }
+
+  // AI 상호작용 시작
+  startAIInteraction()
+
+  console.log('✅ AI 에이전트 초기화 완료 (2명: 유리 + 히카리)')
 }
 
 export {

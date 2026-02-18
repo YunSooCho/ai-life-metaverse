@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -142,7 +143,7 @@ const AFFINITY_CHANGES = {
 }
 
 // AI 캐릭터 초기화 (기본 방)
-const aiCharacter = {
+const aiCharacter1 = {
   id: 'ai-agent-1',
   name: 'AI 유리',
   x: 500,
@@ -152,10 +153,23 @@ const aiCharacter = {
   isAi: true
 }
 
-rooms[DEFAULT_ROOM_ID].characters[aiCharacter.id] = aiCharacter
-characterRooms[aiCharacter.id] = DEFAULT_ROOM_ID
+const aiCharacter2 = {
+  id: 'ai-agent-2',
+  name: 'AI 히카리',
+  x: 600,
+  y: 300,
+  color: '#FFB347',
+  emoji: '✨',
+  isAi: true
+}
 
-console.log('✅ AI 캐릭터 초기화:', aiCharacter.name, '→', DEFAULT_ROOM_ID)
+rooms[DEFAULT_ROOM_ID].characters[aiCharacter1.id] = aiCharacter1
+rooms[DEFAULT_ROOM_ID].characters[aiCharacter2.id] = aiCharacter2
+characterRooms[aiCharacter1.id] = DEFAULT_ROOM_ID
+characterRooms[aiCharacter2.id] = DEFAULT_ROOM_ID
+
+console.log('✅ AI 캐릭터 초기화:', aiCharacter1.name, '→', DEFAULT_ROOM_ID)
+console.log('✅ AI 캐릭터 초기화:', aiCharacter2.name, '→', DEFAULT_ROOM_ID)
 
 app.use(express.json())
 
@@ -832,8 +846,8 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
   console.log('🚀 서버 실행 중: http://0.0.0.0:' + PORT)
   console.log('🌐 외부 접속: http://10.76.29.91:' + PORT)
   console.log('🏠 기본 방:', rooms[DEFAULT_ROOM_ID].name, `(${DEFAULT_ROOM_ID})`)
-  console.log('✅ AI 캐릭터:', aiCharacter.name, `→ ${DEFAULT_ROOM_ID}`)
-  console.log('📍 AI 캐릭터 위치:', `(${aiCharacter.x}, ${aiCharacter.y})`)
+  console.log('✅ AI 캐릭터 1:', aiCharacter1.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter1.x}, ${aiCharacter1.y})`)
+  console.log('✅ AI 캐릭터 2:', aiCharacter2.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter2.x}, ${aiCharacter2.y})`)
 })
 
 export { ITEMS, REWARDS }
