@@ -1,324 +1,204 @@
 /**
- * FriendRequest 테스트
+ * Friend Request Manager Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createClient } from 'redis';
-import FriendRequest from '../friend-request';
-import FriendManager from '../friend-manager';
+import { describe, it, test, expect, beforeEach, afterEach } from 'vitest';
+import FriendRequestManager from '../friend-request.js';
 
-describe('FriendRequest', () => {
-  let redisClient;
-  let friendRequest;
-  let friendManager;
-  const TEST_CHARACTER_1 = 'test-char-1';
-  const TEST_CHARACTER_2 = 'test-char-2';
-  const TEST_NAME_1 = 'Test User 1';
-  const TEST_NAME_2 = 'Test User 2';
+describe('FriendRequestManager', () => {
+  let requestManager;
 
-  beforeEach(async () => {
-    redisClient = createClient({
-      url: 'redis://localhost:6379'
-    });
-
-    await redisClient.connect();
-    friendRequest = new FriendRequest(redisClient);
-    friendManager = new FriendManager(redisClient);
-
-    // 테스트 데이터 정리
-    await friendRequest.clearRequests(TEST_CHARACTER_1);
-    await friendRequest.clearRequests(TEST_CHARACTER_2);
-    await friendManager.clearFriends(TEST_CHARACTER_1);
-    await friendManager.clearFriends(TEST_CHARACTER_2);
+  beforeEach(() => {
+    requestManager = new FriendRequestManager(null); // Memory mode
   });
 
-  afterEach(async () => {
-    await friendRequest.clearRequests(TEST_CHARACTER_1);
-    await friendRequest.clearRequests(TEST_CHARACTER_2);
-    await friendManager.clearFriends(TEST_CHARACTER_1);
-    await friendManager.clearFriends(TEST_CHARACTER_2);
-    await redisClient.quit();
+  describe('getReceivedRequests', () => {
+    it('메모리 모드: 빈 리스트를 반환해야 함', async () => {
+      const list = await requestManager.getReceivedRequests('char1');
+      expect(list).toEqual([]);
+    });
+
+    it('메모리 모드: 수신한 요청 목록을 반환해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+
+      const list = await requestManager.getReceivedRequests('char2');
+
+      expect(list).toHaveLength(1);
+      expect(list[0].from.id).toBe('char1');
+      expect(list[0].to.id).toBe('char2');
+    });
+  });
+
+  describe('getSentRequests', () => {
+    it('메모리 모드: 빈 리스트를 반환해야 함', async () => {
+      const list = await requestManager.getSentRequests('char1');
+      expect(list).toEqual([]);
+    });
+
+    it('메모리 모드: 보낸 요청 목록을 반환해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+
+      const list = await requestManager.getSentRequests('char1');
+
+      expect(list).toHaveLength(1);
+      expect(list[0].from.id).toBe('char1');
+      expect(list[0].to.id).toBe('char2');
+    });
   });
 
   describe('sendRequest', () => {
-    it('친구 요청을 전송할 수 있어야 함', async () => {
-      const result = await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        '친구가 될까요?'
-      );
+    it('메모리 모드: 요청을 전송해야 함', async () => {
+      const result = await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.request).toBeDefined();
+      expect(result.request.from.id).toBe('char1');
+      expect(result.request.to.id).toBe('char2');
+      expect(result.request.status).toBe('pending');
+      expect(result.request.createdAt).toBeDefined();
     });
 
-    it('자신에게 요청을 보낼 수 없어야 함', async () => {
-      const result = await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_1,
-        '테스트'
-      );
+    it('자기 자신에게 요청할 수 없음', async () => {
+      const result = await requestManager.sendRequest('char1', 'User A', 'char1', 'User A');
 
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Cannot send request to yourself');
     });
 
-    it('이미 요청을 보낸 경우 다시 보낼 수 없어야 함', async () => {
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2);
+    it('이미 대기 중인 요청이 있는 경우 실패해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      const result = await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
 
-      const result = await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2
-      );
-
-      expect(result).toBe(false);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Request already sent');
     });
 
-    it('요청 메시지를 포함할 수 있어야 함', async () => {
-      const message = '안녕, 친구가 될까요?';
+    it('요청이 수신자의 수신 목록에 추가되어야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
 
-      await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        message
-      );
+      const received = await requestManager.getReceivedRequests('char2');
 
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-      expect(request.message).toBe(message);
+      expect(received).toHaveLength(1);
+      expect(received[0].from.id).toBe('char1');
+    });
+
+    it('대상 이름이 지정되지 않은 경우 기본값이 사용됨', async () => {
+      const result = await requestManager.sendRequest('char1', 'User A', 'char2');
+
+      expect(result.success).toBe(true);
+      expect(result.request.to.name).toBe('Unknown');
     });
   });
 
   describe('acceptRequest', () => {
-    beforeEach(async () => {
-      await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        '친구 요청'
-      );
+    it('메모리 모드: 요청을 수락해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      const result = await requestManager.acceptRequest('char1', 'char2');
+
+      expect(result.success).toBe(true);
+      expect(result.request.status).toBe('accepted');
+      expect(result.request.respondedAt).toBeDefined();
     });
 
-    it('친구 요청을 수락할 수 있어야 함', async () => {
-      const result = await friendRequest.acceptRequest(
-        TEST_CHARACTER_2,
-        TEST_CHARACTER_1,
-        friendManager
-      );
+    it('존재하지 않는 요청의 수락은 실패해야 함', async () => {
+      const result = await requestManager.acceptRequest('char1', 'char2');
 
-      expect(result).toBe(true);
-
-      // 서로 친구인지 확인
-      const isFriend1 = await friendManager.isFriend(TEST_CHARACTER_1, TEST_CHARACTER_2);
-      const isFriend2 = await friendManager.isFriend(TEST_CHARACTER_2, TEST_CHARACTER_1);
-
-      expect(isFriend1).toBe(true);
-      expect(isFriend2).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Request not found');
     });
 
-    it('수락 후 요청이 삭제되어야 함', async () => {
-      await friendRequest.acceptRequest(
-        TEST_CHARACTER_2,
-        TEST_CHARACTER_1,
-        friendManager
-      );
+    it('보낸 요청도 상태가 변경되어야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      await requestManager.acceptRequest('char1', 'char2');
 
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-      expect(request).toBeNull();
-    });
+      const sent = await requestManager.getSentRequests('char1');
 
-    it('존재하지 않는 요청은 수락할 수 없어야 함', async () => {
-      const result = await friendRequest.acceptRequest(
-        TEST_CHARACTER_2,
-        'non-existent',
-        friendManager
-      );
-
-      expect(result).toBe(false);
+      expect(sent[0].status).toBe('accepted');
     });
   });
 
   describe('rejectRequest', () => {
-    beforeEach(async () => {
-      await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        '친구 요청'
-      );
+    it('메모리 모드: 요청을 거절해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      const result = await requestManager.rejectRequest('char1', 'char2');
+
+      expect(result.success).toBe(true);
+      expect(result.request.status).toBe('rejected');
+      expect(result.request.respondedAt).toBeDefined();
     });
 
-    it('친구 요청을 거절할 수 있어야 함', async () => {
-      const result = await friendRequest.rejectRequest(
-        TEST_CHARACTER_2,
-        TEST_CHARACTER_1
-      );
+    it('존재하지 않는 요청의 거절은 실패해야 함', async () => {
+      const result = await requestManager.rejectRequest('char1', 'char2');
 
-      expect(result).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Request not found');
     });
 
-    it('거절 후 요청이 삭제되어야 함', async () => {
-      await friendRequest.rejectRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
+    it('보낸 요청도 상태가 변경되어야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      await requestManager.rejectRequest('char1', 'char2');
 
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-      expect(request).toBeNull();
-    });
+      const sent = await requestManager.getSentRequests('char1');
 
-    it('거절해도 친구는 추가되지 않아야 함', async () => {
-      await friendRequest.rejectRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-
-      const isFriend1 = await friendManager.isFriend(TEST_CHARACTER_1, TEST_CHARACTER_2);
-      const isFriend2 = await friendManager.isFriend(TEST_CHARACTER_2, TEST_CHARACTER_1);
-
-      expect(isFriend1).toBe(false);
-      expect(isFriend2).toBe(false);
+      expect(sent[0].status).toBe('rejected');
     });
   });
 
-  describe('cancelRequest', () => {
-    beforeEach(async () => {
-      await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        '친구 요청'
-      );
+  describe('getPendingRequestCount', () => {
+    it('메모리 모드: 대기 중인 요청 수를 반환해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      await requestManager.sendRequest('char3', 'User C', 'char2', 'User D');
+      await requestManager.acceptRequest('char1', 'char2');
+
+      const count = await requestManager.getPendingRequestCount('char2');
+
+      expect(count).toBe(1);
     });
 
-    it('보낸 요청을 취소할 수 있어야 함', async () => {
-      const result = await friendRequest.cancelRequest(
-        TEST_CHARACTER_1,
-        TEST_CHARACTER_2
-      );
+    it('대기 중인 요청이 없으면 0을 반환해야 함', async () => {
+      const count = await requestManager.getPendingRequestCount('char1');
 
-      expect(result).toBe(true);
-    });
-
-    it('취소 후 요청이 삭제되어야 함', async () => {
-      await friendRequest.cancelRequest(TEST_CHARACTER_1, TEST_CHARACTER_2);
-
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-      expect(request).toBeNull();
-    });
-
-    it('존재하지 않는 요청은 취소할 수 없어야 함', async () => {
-      const result = await friendRequest.cancelRequest(
-        TEST_CHARACTER_1,
-        'non-existent'
-      );
-
-      expect(result).toBe(false);
+      expect(count).toBe(0);
     });
   });
 
-  describe('getRequests', () => {
-    it('빈 수신 요청 목록을 반환해야 함', async () => {
-      const requests = await friendRequest.getRequests(TEST_CHARACTER_2);
+  describe('findRequest', () => {
+    it('특정 요청을 찾을 수 있음', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
 
-      expect(requests).toEqual([]);
-    });
+      const request = await requestManager.findRequest('char1', 'char2');
 
-    it('수신 요청 목록을 반환해야 함', async () => {
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2, '요청 1');
-      await friendRequest.sendRequest(TEST_CHARACTER_2, TEST_NAME_2, TEST_CHARACTER_1, '요청 2');
-
-      const requests = await friendRequest.getRequests(TEST_CHARACTER_1);
-
-      expect(requests).toHaveLength(1);
-      expect(requests[0].fromCharacterId).toBe(TEST_CHARACTER_2);
-    });
-
-    it('수신 요청 목록이 오래된 순서로 정렬되어야 함', async () => {
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2);
-
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      await friendRequest.sendRequest('char-3', 'Char 3', TEST_CHARACTER_2);
-
-      const requests = await friendRequest.getRequests(TEST_CHARACTER_2);
-
-      expect(new Date(requests[0].sentAt).getTime()).toBeLessThan(
-        new Date(requests[1].sentAt).getTime()
-      );
-    });
-  });
-
-  describe('getPendingRequests', () => {
-    it('빈 보낸 요청 목록을 반환해야 함', async () => {
-      const pending = await friendRequest.getPendingRequests(TEST_CHARACTER_1);
-
-      expect(pending).toEqual([]);
-    });
-
-    it('보낸 요청 목록을 반환해야 함', async () => {
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2, '요청');
-
-      const pending = await friendRequest.getPendingRequests(TEST_CHARACTER_1);
-
-      expect(pending).toHaveLength(1);
-      expect(pending[0].toCharacterId).toBe(TEST_CHARACTER_2);
-    });
-  });
-
-  describe('getRequest', () => {
-    it('요청을 조회할 수 있어야 함', async () => {
-      await friendRequest.sendRequest(
-        TEST_CHARACTER_1,
-        TEST_NAME_1,
-        TEST_CHARACTER_2,
-        '테스트 요청'
-      );
-
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, TEST_CHARACTER_1);
-
-      expect(request).not.toBeNull();
-      expect(request.fromCharacterId).toBe(TEST_CHARACTER_1);
-      expect(request.fromCharacterName).toBe(TEST_NAME_1);
-      expect(request.toCharacterId).toBe(TEST_CHARACTER_2);
-      expect(request.message).toBe('테스트 요청');
+      expect(request).toBeDefined();
+      expect(request.to.id).toBe('char2');
       expect(request.status).toBe('pending');
     });
 
+    it('대기 중인 요청만 찾아야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      await requestManager.acceptRequest('char1', 'char2');
+
+      const request = await requestManager.findRequest('char1', 'char2');
+
+      expect(request).toBeNull();
+    });
+
     it('존재하지 않는 요청은 null을 반환해야 함', async () => {
-      const request = await friendRequest.getRequest(TEST_CHARACTER_2, 'non-existent');
+      const request = await requestManager.findRequest('char1', 'char2');
 
       expect(request).toBeNull();
     });
   });
 
-  describe('hasPendingRequest', () => {
-    it('보낸 요청 존재 여부를 확인할 수 있어야 함', async () => {
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2);
+  describe('clearRequestData', () => {
+    it('메모리 모드: 캐릭터의 요청 데이터를 삭제해야 함', async () => {
+      await requestManager.sendRequest('char1', 'User A', 'char2', 'User B');
+      await requestManager.clearRequestData('char1');
 
-      const hasPending = await friendRequest.hasPendingRequest(
-        TEST_CHARACTER_1,
-        TEST_CHARACTER_2
-      );
+      const sent = await requestManager.getSentRequests('char1');
+      const received = await requestManager.getReceivedRequests('char1');
 
-      expect(hasPending).toBe(true);
-    });
-
-    it('요청이 없으면 false를 반환해야 함', async () => {
-      const hasPending = await friendRequest.hasPendingRequest(
-        TEST_CHARACTER_1,
-        TEST_CHARACTER_2
-      );
-
-      expect(hasPending).toBe(false);
-    });
-  });
-
-  describe('getRequestCount', () => {
-    it('수신 요청 수를 반환해야 함', async () => {
-      const count0 = await friendRequest.getRequestCount(TEST_CHARACTER_2);
-      expect(count0).toBe(0);
-
-      await friendRequest.sendRequest(TEST_CHARACTER_1, TEST_NAME_1, TEST_CHARACTER_2);
-      await friendRequest.sendRequest('char-3', 'Char 3', TEST_CHARACTER_2);
-
-      const count2 = await friendRequest.getRequestCount(TEST_CHARACTER_2);
-      expect(count2).toBe(2);
+      expect(sent).toEqual([]);
+      expect(received).toEqual([]);
     });
   });
 });

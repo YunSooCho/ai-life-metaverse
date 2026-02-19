@@ -1,295 +1,248 @@
 /**
- * FriendSystem - 친구 시스템 통합
- *
- * FriendManager, FriendRequest, OnlineStatus를 통합하여
- * 전체 친구 시스템을 관리합니다.
+ * Friend System - Phase 9
+ * 친구 시스템 통합 모듈
  */
 
-const FriendManager = require('./friend-manager');
-const FriendRequest = require('./friend-request');
-const OnlineStatus = require('./online-status');
+import FriendManager from './friend-manager.js';
+import FriendRequestManager from './friend-request.js';
+import OnlineTracker from './online-tracker.js';
 
+/**
+ * Friend System Class
+ */
 class FriendSystem {
-  constructor(redisClient) {
-    this.redisClient = redisClient;
+  constructor(redisClient = null) {
     this.friendManager = new FriendManager(redisClient);
-    this.friendRequest = new FriendRequest(redisClient);
-    this.onlineStatus = new OnlineStatus(redisClient);
+    this.requestManager = new FriendRequestManager(redisClient);
+    this.onlineTracker = new OnlineTracker(redisClient);
   }
 
   /**
-   * 친구 시스템 초기화
-   * @returns {Promise<void>}
+   * 친구 관리 시스템 가져오기
    */
-  async initialize() {
-    // 초기화할 로직이 있으면 여기에 추가
-  }
-
-  // ==================== FriendManager 위임 ====================
-
-  /**
-   * 친구 추가
-   */
-  async addFriend(characterId, friendId, friendName, metadata = {}) {
-    return this.friendManager.addFriend(characterId, friendId, friendName, metadata);
+  getFriendManager() {
+    return this.friendManager;
   }
 
   /**
-   * 친구 삭제
+   * 친구 요청 시스템 가져오기
    */
-  async removeFriend(characterId, friendId) {
-    return this.friendManager.removeFriend(characterId, friendId);
+  getRequestManager() {
+    return this.requestManager;
   }
 
   /**
-   * 친구 목록 조회
+   * 온라인 추적 시스템 가져오기
    */
-  async getFriends(characterId) {
-    return this.friendManager.getFriends(characterId);
+  getOnlineTracker() {
+    return this.onlineTracker;
   }
 
   /**
-   * 친구 검색
+   * 친구 요청 전송 & 검증
    */
-  async searchFriends(characterId, keyword) {
-    return this.friendManager.searchFriends(characterId, keyword);
+  async sendFriendRequest(fromId, fromName, toId, toName) {
+    try {
+      // 자신에게 요청 불가
+      if (fromId === toId) {
+        return { success: false, message: 'Cannot send request to yourself' };
+      }
+
+      // 이미 친구인지 확인
+      const isAlreadyFriend = await this.friendManager.isFriend(fromId, toId);
+      if (isAlreadyFriend) {
+        return { success: false, message: 'Already friends' };
+      }
+
+      // 대기 중인 요청 확인
+      const existingRequest = await this.requestManager.findRequest(fromId, toId);
+      if (existingRequest) {
+        return { success: false, message: 'Request already exists' };
+      }
+
+      // 요청 전송
+      const result = await this.requestManager.sendRequest(fromId, fromName, toId, toName);
+
+      if (!result.success) {
+        return result;
+      }
+
+      return { success: true, request: result.request };
+    } catch (error) {
+      console.error('sendFriendRequest error:', error);
+      return { success: false, message: 'Failed to send friend request' };
+    }
   }
 
   /**
-   * 친구 존재 확인
+   * 친구 요청 수락 & 친구 추가
    */
-  async isFriend(characterId, friendId) {
-    return this.friendManager.isFriend(characterId, friendId);
-  }
+  async acceptFriendRequest(fromId, toId, friendName) {
+    try {
+      // 요청 수락
+      const acceptResult = await this.requestManager.acceptRequest(fromId, toId);
 
-  /**
-   * 친구 수 조회
-   */
-  async getFriendCount(characterId) {
-    return this.friendManager.getFriendCount(characterId);
-  }
+      if (!acceptResult.success) {
+        return acceptResult;
+      }
 
-  /**
-   * 친구 정보 조회
-   */
-  async getFriend(characterId, friendId) {
-    return this.friendManager.getFriend(characterId, friendId);
-  }
+      // 서로 친구로 추가
+      await this.friendManager.addFriend(fromId, toId, acceptResult.request.to.name);
+      await this.friendManager.addFriend(toId, fromId, friendName);
 
-  // ==================== FriendRequest 위임 ====================
-
-  /**
-   * 친구 요청 전송
-   */
-  async sendFriendRequest(fromCharacterId, fromCharacterName, toCharacterId, message = '') {
-    return this.friendRequest.sendRequest(fromCharacterId, fromCharacterName, toCharacterId, message);
-  }
-
-  /**
-   * 친구 요청 수락
-   */
-  async acceptFriendRequest(toCharacterId, fromCharacterId, fromCharacterName) {
-    return this.friendRequest.acceptRequest(toCharacterId, fromCharacterId, this.friendManager);
+      return { success: true, request: acceptResult.request };
+    } catch (error) {
+      console.error('acceptFriendRequest error:', error);
+      return { success: false, message: 'Failed to accept friend request' };
+    }
   }
 
   /**
    * 친구 요청 거절
    */
-  async rejectFriendRequest(toCharacterId, fromCharacterId) {
-    return this.friendRequest.rejectRequest(toCharacterId, fromCharacterId);
-  }
-
-  /**
-   * 친구 요청 취소
-   */
-  async cancelFriendRequest(fromCharacterId, toCharacterId) {
-    return this.friendRequest.cancelRequest(fromCharacterId, toCharacterId);
-  }
-
-  /**
-   * 수신 요청 목록 조회
-   */
-  async getFriendRequests(characterId) {
-    return this.friendRequest.getRequests(characterId);
-  }
-
-  /**
-   * 보낸 요청 목록 조회
-   */
-  async getPendingFriendRequests(characterId) {
-    return this.friendRequest.getPendingRequests(characterId);
-  }
-
-  /**
-   * 요청 조회
-   */
-  async getFriendRequest(toCharacterId, fromCharacterId) {
-    return this.friendRequest.getRequest(toCharacterId, fromCharacterId);
-  }
-
-  /**
-   * 대기 중 요청 존재 확인
-   */
-  async hasPendingFriendRequest(fromCharacterId, toCharacterId) {
-    return this.friendRequest.hasPendingRequest(fromCharacterId, toCharacterId);
-  }
-
-  /**
-   * 대기 중 요청 수 조회
-   */
-  async getFriendRequestCount(characterId) {
-    return this.friendRequest.getRequestCount(characterId);
-  }
-
-  // ==================== OnlineStatus 위임 ====================
-
-  /**
-   * 온라인 상태 설정
-   */
-  async setOnlineStatus(characterId, statusMessage = '') {
-    return this.onlineStatus.setOnline(characterId, statusMessage);
-  }
-
-  /**
-   * 오프라인 상태 설정
-   */
-  async setOfflineStatus(characterId) {
-    return this.onlineStatus.setOffline(characterId);
-  }
-
-  /**
-   * 온라인 상태 확인
-   */
-  async getOnlineStatus(characterId) {
-    return this.onlineStatus.getOnlineStatus(characterId);
-  }
-
-  /**
-   * 온라인 친구 목록 조회
-   */
-  async getOnlineFriends(characterId) {
-    return this.onlineStatus.getOnlineFriends(characterId, this.friendManager);
-  }
-
-  /**
-   * 오프라인 친구 목록 조회
-   */
-  async getOfflineFriends(characterId) {
-    return this.onlineStatus.getOfflineFriends(characterId, this.friendManager);
-  }
-
-  /**
-   * 마지막 접속 시간 조회
-   */
-  async getLastSeen(characterId) {
-    return this.onlineStatus.getLastSeen(characterId);
-  }
-
-  /**
-   * 상태 메시지 업데이트
-   */
-  async updateStatusMessage(characterId, statusMessage) {
-    return this.onlineStatus.updateStatusMessage(characterId, statusMessage);
-  }
-
-  // ==================== 통합 기능 ====================
-
-  /**
-   * 캐릭터의 전체 친구 데이터 조회
-   * - 친구 목록
-   * - 수신 요청
-   * - 보낸 요청
-   * - 온라인 친구
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<Object>} 전체 친구 데이터
-   */
-  async getFriendData(characterId) {
+  async rejectFriendRequest(fromId, toId) {
     try {
-      const friends = await this.getFriends(characterId);
-      const requests = await this.getFriendRequests(characterId);
-      const pending = await this.getPendingFriendRequests(characterId);
-      const onlineFriends = await this.getOnlineFriends(characterId);
+      const result = await this.requestManager.rejectRequest(fromId, toId);
+      return result;
+    } catch (error) {
+      console.error('rejectFriendRequest error:', error);
+      return { success: false, message: 'Failed to reject friend request' };
+    }
+  }
+
+  /**
+   * 친구 삭제 (양방향)
+   */
+  async removeFriend(characterId, friendId) {
+    try {
+      const result1 = await this.friendManager.removeFriend(characterId, friendId);
+      const result2 = await this.friendManager.removeFriend(friendId, characterId);
 
       return {
-        friends,
-        requests,
-        pending,
-        onlineFriends,
-        stats: {
-          totalFriends: friends.length,
-          pendingRequests: requests.length,
-          sentRequests: pending.length,
-          onlineFriends: onlineFriends.length
-        }
+        success: result1.success && result2.success,
+        message: result1.success ? 'Friend removed' : 'Failed to remove friend'
       };
     } catch (error) {
-      console.error('친구 데이터 조회 실패:', error);
-      throw error;
+      console.error('removeFriend error:', error);
+      return { success: false, message: 'Failed to remove friend' };
     }
   }
 
   /**
-   * 다른 캐릭터와의 관계 확인
-   * - 서로 친구인지
-   * - 요청을 보낸 적이 있는지
-   * - 요청을 받았는지
-   * @param {string} characterId1 - 캐릭터 1 ID
-   * @param {string} characterId2 - 캐릭터 2 ID
-   * @returns {Promise<Object>} 관계 데이터
+   * 친구 리스트 & 온라인 상태 가져오기
    */
-  async getRelationship(characterId1, characterId2) {
+  async getFriendListWithStatus(characterId) {
     try {
-      const isFriend = await this.isFriend(characterId1, characterId2);
-      const hasPending = await this.hasPendingFriendRequest(characterId1, characterId2);
-      const hasRequest = await this.getFriendRequest(characterId2, characterId1);
+      const friendList = await this.friendManager.getFriendList(characterId);
+      const friendIds = friendList.map(f => f.id);
 
+      if (friendIds.length === 0) {
+        return friendList;
+      }
+
+      const statuses = await this.onlineTracker.getFriendsOnlineStatus(friendIds);
+
+      const friendListWithStatus = friendList.map(friend => {
+        const status = statuses.find(s => s.id === friend.id);
+        return {
+          ...friend,
+          online: status?.online || false,
+          lastSeen: status?.lastSeen || null
+        };
+      });
+
+      return friendListWithStatus;
+    } catch (error) {
+      console.error('getFriendListWithStatus error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 캐릭터 접속 처리
+   */
+  async characterOnline(characterId, characterName) {
+    try {
+      return await this.onlineTracker.setOnline(characterId, characterName);
+    } catch (error) {
+      console.error('characterOnline error:', error);
+      return { success: false, online: false };
+    }
+  }
+
+  /**
+   * 캐릭터 접속 종료 처리
+   */
+  async characterOffline(characterId) {
+    try {
+      return await this.onlineTracker.setOffline(characterId);
+    } catch (error) {
+      console.error('characterOffline error:', error);
+      return { success: false, online: false };
+    }
+  }
+
+  /**
+   * 캐릭터 데이터 전체 삭제
+   */
+  async clearCharacterData(characterId) {
+    try {
+      await this.friendManager.clearFriendData(characterId);
+      await this.requestManager.clearRequestData(characterId);
+      await this.onlineTracker.clearUserData(characterId);
+
+      return { success: true };
+    } catch (error) {
+      console.error('clearCharacterData error:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * 시스템 통계
+   */
+  async getSystemStats() {
+    try {
+      const onlineUsers = await this.onlineTracker.getOnlineUsers();
       return {
-        isFriend,
-        hasRequestTo: hasPending,
-        hasRequestFrom: hasRequest !== null,
-        requestStatus: hasRequest ? hasRequest.status : null
+        onlineUsersCount: onlineUsers.length,
+        onlineUserIds: onlineUsers.map(u => u.id)
       };
     } catch (error) {
-      console.error('관계 확인 실패:', error);
-      throw error;
+      console.error('getSystemStats error:', error);
+      return {
+        onlineUsersCount: 0,
+        onlineUserIds: []
+      };
     }
-  }
-
-  /**
-   * 친구 추천 시스템 (간단 버전)
-   * - 현재 친구가 아닌 캐릭터 목록 반환
-   * - 실제 구현시 캐릭터 데이터베이스와 연결 필요
-   * @param {string} characterId - 캐릭터 ID
-   * @param {Array} allCharacters - 모든 캐릭터 목록
-   * @returns {Promise<Array>} 추천 친구 목록
-   */
-  async getFriendRecommendations(characterId, allCharacters = []) {
-    try {
-      const friends = await this.getFriends(characterId);
-
-      const friendIds = friends.map(friend => friend.characterId);
-
-      // 자신과 이미 친구인 캐릭터 제외
-      const recommendations = allCharacters.filter(character =>
-        character.characterId !== characterId &&
-        !friendIds.includes(character.characterId)
-      );
-
-      return recommendations.slice(0, 10); // 최대 10개
-    } catch (error) {
-      console.error('친구 추천 실패:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 연결 종료 시 데이터 정리
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<void>}
-   */
-  async cleanup(characterId) {
-    await this.setOfflineStatus(characterId);
   }
 }
 
-module.exports = FriendSystem;
+// Single instance
+let friendSystem = null;
+
+/**
+ * Friend System 초기화
+ */
+function initializeFriendSystem(redisClient = null) {
+  if (!friendSystem) {
+    friendSystem = new FriendSystem(redisClient);
+  }
+  return friendSystem;
+}
+
+/**
+ * Friend System 인스턴스 가져오기
+ */
+function getFriendSystem() {
+  if (!friendSystem) {
+    friendSystem = new FriendSystem(null);
+  }
+  return friendSystem;
+}
+
+export {
+  FriendSystem,
+  initializeFriendSystem,
+  getFriendSystem
+};

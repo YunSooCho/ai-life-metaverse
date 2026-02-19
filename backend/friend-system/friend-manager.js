@@ -1,230 +1,197 @@
 /**
- * FriendManager - 친구 관리 시스템
- *
- * 기능:
- * - 친구 추가/삭제
- * - 친구 목록 조회
- * - 친구 검색
- * - 친구 존재 확인
+ * Friend Manager
+ * 친구 관리 시스템
  */
 
 class FriendManager {
   constructor(redisClient) {
     this.redisClient = redisClient;
-    this.FRIENDS_KEY_PREFIX = 'friends:';
+    this.FRIENDLIST_KEY = 'friendlist';
+    this.FRIENDLIST_TTL = 7 * 24 * 60 * 60; // 7일
   }
 
   /**
-   * 캐릭터 친구 목록 키 생성
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {string} Redis 키
+   * 캐릭터의 친구 목록 가져오기
    */
-  getFriendsKey(characterId) {
-    return this.FRIENDS_KEY_PREFIX + characterId;
+  async getFriendList(characterId) {
+    try {
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryFriendLists) {
+          this._memoryFriendLists = {};
+        }
+        return this._memoryFriendLists[characterId] || [];
+      }
+
+      const key = `${this.FRIENDLIST_KEY}:${characterId}`;
+      const friends = await this.redisClient.get(key);
+      return friends ? JSON.parse(friends) : [];
+    } catch (error) {
+      console.error('getFriendList error:', error);
+      return [];
+    }
   }
 
   /**
    * 친구 추가
-   * @param {string} characterId - 캐릭터 ID
-   * @param {string} friendId - 추가할 친구 ID
-   * @param {string} friendName - 친구 이름
-   * @param {Object} metadata - 추가 메타데이터
-   * @returns {Promise<boolean>} 성공 여부
    */
-  async addFriend(characterId, friendId, friendName, metadata = {}) {
+  async addFriend(characterId, friendId, friendName = 'Unknown') {
     try {
-      const friendsKey = this.getFriendsKey(characterId);
+      const friendList = await this.getFriendList(characterId);
 
       // 이미 친구인지 확인
-      const isAlreadyFriend = await this.isFriend(characterId, friendId);
-      if (isAlreadyFriend) {
-        return false;
+      if (friendList.some(f => f.id === friendId)) {
+        return { success: false, message: 'Already friends' };
       }
 
-      // 자신을 친구로 추가 불가
+      // 자기 자신인지 확인
       if (characterId === friendId) {
-        return false;
+        return { success: false, message: 'Cannot add yourself' };
       }
 
-      const friendData = {
-        characterId: friendId,
+      const friend = {
+        id: friendId,
         name: friendName,
-        addedAt: new Date().toISOString(),
-        ...metadata
+        addedAt: new Date().toISOString()
       };
 
-      // Redis Hash에 친구 추가
-      await this.redisClient.hset(
-        friendsKey,
-        friendId,
-        JSON.stringify(friendData)
+      friendList.push(friend);
+
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryFriendLists) {
+          this._memoryFriendLists = {};
+        }
+        this._memoryFriendLists[characterId] = friendList;
+        return { success: true, friend };
+      }
+
+      const key = `${this.FRIENDLIST_KEY}:${characterId}`;
+      await this.redisClient.setex(
+        key,
+        this.FRIENDLIST_TTL,
+        JSON.stringify(friendList)
       );
 
-      return true;
+      return { success: true, friend };
     } catch (error) {
-      console.error('친구 추가 실패:', error);
-      throw error;
+      console.error('addFriend error:', error);
+      return { success: false, message: 'Failed to add friend' };
     }
   }
 
   /**
    * 친구 삭제
-   * @param {string} characterId - 캐릭터 ID
-   * @param {string} friendId - 삭제할 친구 ID
-   * @returns {Promise<boolean>} 성공 여부
    */
   async removeFriend(characterId, friendId) {
     try {
-      const friendsKey = this.getFriendsKey(characterId);
+      const friendList = await this.getFriendList(characterId);
 
-      // 친구인지 확인
-      const isFriend = await this.isFriend(characterId, friendId);
-      if (!isFriend) {
-        return false;
+      const newFriendList = friendList.filter(f => f.id !== friendId);
+
+      if (newFriendList.length === friendList.length) {
+        return { success: false, message: 'Friend not found' };
       }
 
-      // Redis Hash에서 친구 삭제
-      await this.redisClient.hdel(friendsKey, friendId);
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryFriendLists) {
+          this._memoryFriendLists = {};
+        }
+        this._memoryFriendLists[characterId] = newFriendList;
+        return { success: true, removedFriendId: friendId };
+      }
 
-      return true;
+      const key = `${this.FRIENDLIST_KEY}:${characterId}`;
+      if (newFriendList.length === 0) {
+        await this.redisClient.del(key);
+      } else {
+        await this.redisClient.setex(
+          key,
+          this.FRIENDLIST_TTL,
+          JSON.stringify(newFriendList)
+        );
+      }
+
+      return { success: true, removedFriendId: friendId };
     } catch (error) {
-      console.error('친구 삭제 실패:', error);
-      throw error;
+      console.error('removeFriend error:', error);
+      return { success: false, message: 'Failed to remove friend' };
     }
   }
 
   /**
-   * 친구 목록 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<Array>} 친구 목록
+   * 친구인지 확인
    */
-  async getFriends(characterId) {
+  async isFriend(characterId, targetId) {
     try {
-      const friendsKey = this.getFriendsKey(characterId);
-      const friends = await this.redisClient.hgetall(friendsKey);
-
-      if (!friends) {
-        return [];
-      }
-
-      // 친구 데이터를 파싱하고 배열로 변환
-      const friendList = Object.values(friends).map(friend => {
-        try {
-          return JSON.parse(friend);
-        } catch (err) {
-          console.error('친구 데이터 파싱 실패:', err);
-          return null;
-        }
-      }).filter(Boolean);
-
-      // 추가 시간순 정렬
-      return friendList.sort((a, b) =>
-        new Date(b.addedAt) - new Date(a.addedAt)
-      );
+      const friendList = await this.getFriendList(characterId);
+      return friendList.some(f => f.id === targetId);
     } catch (error) {
-      console.error('친구 목록 조회 실패:', error);
-      throw error;
+      console.error('isFriend error:', error);
+      return false;
     }
   }
 
   /**
    * 친구 검색
-   * @param {string} characterId - 캐릭터 ID
-   * @param {string} keyword - 검색 키워드 (이름)
-   * @returns {Promise<Array>} 검색된 친구 목록
    */
-  async searchFriends(characterId, keyword) {
+  async searchFriends(characterId, query) {
     try {
-      const friends = await this.getFriends(characterId);
+      const friendList = await this.getFriendList(characterId);
+      const lowerQuery = query.toLowerCase();
 
-      if (!keyword || keyword.trim() === '') {
-        return friends;
-      }
-
-      const lowerKeyword = keyword.toLowerCase().trim();
-
-      // 이름으로 검색
-      return friends.filter(friend =>
-        friend.name &&
-        friend.name.toLowerCase().includes(lowerKeyword)
+      return friendList.filter(f =>
+        f.name.toLowerCase().includes(lowerQuery) ||
+        f.id.toLowerCase().includes(lowerQuery)
       );
     } catch (error) {
-      console.error('친구 검색 실패:', error);
-      throw error;
+      console.error('searchFriends error:', error);
+      return [];
     }
   }
 
   /**
-   * 친구 존재 확인
-   * @param {string} characterId - 캐릭터 ID
-   * @param {string} friendId - 확인할 친구 ID
-   * @returns {Promise<boolean>} 친구 존재 여부
-   */
-  async isFriend(characterId, friendId) {
-    try {
-      const friendsKey = this.getFriendsKey(characterId);
-      const friendData = await this.redisClient.hget(friendsKey, friendId);
-
-      return friendData !== null;
-    } catch (error) {
-      console.error('친구 존재 확인 실패:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 친구 수 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<number>} 친구 수
+   * 친구 수 가져오기
    */
   async getFriendCount(characterId) {
     try {
-      const friendsKey = this.getFriendsKey(characterId);
-      const count = await this.redisClient.hlen(friendsKey);
-
-      return count;
+      const friendList = await this.getFriendList(characterId);
+      return friendList.length;
     } catch (error) {
-      console.error('친구 수 조회 실패:', error);
-      throw error;
+      console.error('getFriendCount error:', error);
+      return 0;
     }
   }
 
   /**
-   * 친구 정보 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @param {string} friendId - 조회할 친구 ID
-   * @returns {Promise<Object|null>} 친구 정보
+   * 캐릭터의 모든 친구 데이터 삭제
    */
-  async getFriend(characterId, friendId) {
+  async clearFriendData(characterId) {
     try {
-      const friendsKey = this.getFriendsKey(characterId);
-      const friendData = await this.redisClient.hget(friendsKey, friendId);
-
-      if (!friendData) {
-        return null;
+      if (!this.redisClient) {
+        // Memory mode
+        if (this._memoryFriendLists) {
+          delete this._memoryFriendLists[characterId];
+        }
+        return { success: true };
       }
 
-      return JSON.parse(friendData);
+      const key = `${this.FRIENDLIST_KEY}:${characterId}`;
+      await this.redisClient.del(key);
+      return { success: true };
     } catch (error) {
-      console.error('친구 정보 조회 실패:', error);
-      throw error;
+      console.error('clearFriendData error:', error);
+      return { success: false };
     }
   }
 
   /**
-   * 모든 친구 삭제 (테스트용)
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<void>}
+   * 메모리 모드 데이터 접근자 (테스트용)
    */
-  async clearFriends(characterId) {
-    try {
-      const friendsKey = this.getFriendsKey(characterId);
-      await this.redisClient.del(friendsKey);
-    } catch (error) {
-      console.error('친구 전체 삭제 실패:', error);
-      throw error;
-    }
+  _getMemoryData() {
+    return this._memoryFriendLists || {};
   }
 }
 
-module.exports = FriendManager;
+export default FriendManager;

@@ -1,332 +1,324 @@
 /**
- * FriendRequest - 친구 요청 시스템
- *
- * 기능:
- * - 친구 요청 전송
- * - 요청 수락/거절
- * - 요청 목록 조회
- * - 요청 취소
+ * Friend Request Manager
+ * 친구 요청 시스템
  */
 
-class FriendRequest {
+class FriendRequestManager {
   constructor(redisClient) {
     this.redisClient = redisClient;
-    this.REQUESTS_KEY_PREFIX = 'friend_requests:';
-    this.PENDING_KEY_PREFIX = 'pending_requests:';
+    this.REQUEST_KEY = 'friend_requests';
+    this.REQUEST_TTL = 24 * 60 * 60; // 24시간
   }
 
   /**
-   * 수신 요청 키 생성
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {string} Redis 키
+   * 캐릭터의 수신한 요청 목록 가져오기
    */
-  getRequestsKey(characterId) {
-    return this.REQUESTS_KEY_PREFIX + characterId;
+  async getReceivedRequests(characterId) {
+    try {
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryRequests) {
+          this._memoryRequests = {};
+        }
+        return this._memoryRequests[characterId]?.received || [];
+      }
+
+      const key = `${this.REQUEST_KEY}:${characterId}:received`;
+      const requests = await this.redisClient.get(key);
+      return requests ? JSON.parse(requests) : [];
+    } catch (error) {
+      console.error('getReceivedRequests error:', error);
+      return [];
+    }
   }
 
   /**
-   * 보낸 요청 키 생성
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {string} Redis 키
+   * 캐릭터의 보낸 요청 목록 가져오기
    */
-  getPendingKey(characterId) {
-    return this.PENDING_KEY_PREFIX + characterId;
+  async getSentRequests(characterId) {
+    try {
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryRequests) {
+          this._memoryRequests = {};
+        }
+        return this._memoryRequests[characterId]?.sent || [];
+      }
+
+      const key = `${this.REQUEST_KEY}:${characterId}:sent`;
+      const requests = await this.redisClient.get(key);
+      return requests ? JSON.parse(requests) : [];
+    } catch (error) {
+      console.error('getSentRequests error:', error);
+      return [];
+    }
   }
 
   /**
    * 친구 요청 전송
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @param {string} fromCharacterName - 보낸 캐릭터 이름
-   * @param {string} toCharacterId - 받을 캐릭터 ID
-   * @param {string} message - 요청 메시지
-   * @returns {Promise<boolean>} 성공 여부
    */
-  async sendRequest(fromCharacterId, fromCharacterName, toCharacterId, message = '') {
+  async sendRequest(fromId, fromName, toId, toName = 'Unknown') {
     try {
-      // 자신에게 요청 불가
-      if (fromCharacterId === toCharacterId) {
-        return false;
+      // 이미 친구인지 확인은 외부에서 처리
+      // 자기 자신에게 요청 금지
+      if (fromId === toId) {
+        return { success: false, message: 'Cannot send request to yourself' };
       }
 
-      const requestsKey = this.getRequestsKey(toCharacterId);
-      const pendingKey = this.getPendingKey(fromCharacterId);
-
-      // 이미 요청을 보냈는지 확인
-      const alreadySent = await this.hasPendingRequest(fromCharacterId, toCharacterId);
-      if (alreadySent) {
-        return false;
-      }
-
-      const requestData = {
-        fromCharacterId,
-        fromCharacterName,
-        toCharacterId,
-        message,
-        sentAt: new Date().toISOString(),
-        status: 'pending'
+      const request = {
+        id: `req_${Date.now()}_${fromId}_${toId}`,
+        from: { id: fromId, name: fromName },
+        to: { id: toId, name: toName },
+        status: 'pending',
+        createdAt: new Date().toISOString()
       };
 
-      // 수신자에게 요청 추가
-      await this.redisClient.hset(
-        requestsKey,
-        fromCharacterId,
-        JSON.stringify(requestData)
+      // 보낸 요청에 추가
+      const sentRequests = await this.getSentRequests(fromId);
+      const pendingRequest = sentRequests.find(
+        r => r.to.id === toId && r.status === 'pending'
       );
 
-      // 보낸 사람의 보낸 요청 목록에 추가
-      await this.redisClient.hset(
-        pendingKey,
-        toCharacterId,
-        JSON.stringify(requestData)
+      if (pendingRequest) {
+        return { success: false, message: 'Request already sent' };
+      }
+
+      sentRequests.push(request);
+
+      // 수신한 요청에 추가
+      const receivedRequests = await this.getReceivedRequests(toId);
+      receivedRequests.push(request);
+
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryRequests) {
+          this._memoryRequests = {};
+        }
+        if (!this._memoryRequests[fromId]) {
+          this._memoryRequests[fromId] = { received: [], sent: [] };
+        }
+        if (!this._memoryRequests[toId]) {
+          this._memoryRequests[toId] = { received: [], sent: [] };
+        }
+        this._memoryRequests[fromId].sent = sentRequests;
+        this._memoryRequests[toId].received = receivedRequests;
+        return { success: true, request };
+      }
+
+      const sentKey = `${this.REQUEST_KEY}:${fromId}:sent`;
+      await this.redisClient.setex(
+        sentKey,
+        this.REQUEST_TTL,
+        JSON.stringify(sentRequests)
       );
 
-      return true;
+      const receivedKey = `${this.REQUEST_KEY}:${toId}:received`;
+      await this.redisClient.setex(
+        receivedKey,
+        this.REQUEST_TTL,
+        JSON.stringify(receivedRequests)
+      );
+
+      return { success: true, request };
     } catch (error) {
-      console.error('친구 요청 전송 실패:', error);
-      throw error;
+      console.error('sendRequest error:', error);
+      return { success: false, message: 'Failed to send request' };
     }
   }
 
   /**
    * 친구 요청 수락
-   * @param {string} toCharacterId - 받은 캐릭터 ID
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @param {FriendManager} friendManager - 친구 관리자
-   * @returns {Promise<boolean>} 성공 여부
    */
-  async acceptRequest(toCharacterId, fromCharacterId, friendManager) {
+  async acceptRequest(fromId, toId) {
     try {
-      const requestsKey = this.getRequestsKey(toCharacterId);
-      const pendingKey = this.getPendingKey(fromCharacterId);
+      const receivedRequests = await this.getReceivedRequests(toId);
 
-      // 요청 존재 확인
-      const requestData = await this.getRequest(toCharacterId, fromCharacterId);
-      if (!requestData || requestData.status !== 'pending') {
-        return false;
-      }
-
-      // 친구 추가 (서로)
-      const added1 = await friendManager.addFriend(
-        toCharacterId,
-        fromCharacterId,
-        requestData.fromCharacterName
-      );
-      const added2 = await friendManager.addFriend(
-        fromCharacterId,
-        toCharacterId,
-        requestData.toCharacterName || 'Unknown'
+      const requestIndex = receivedRequests.findIndex(
+        r => r.from.id === fromId && r.status === 'pending'
       );
 
-      if (!added1 || !added2) {
-        return false;
+      if (requestIndex === -1) {
+        return { success: false, message: 'Request not found' };
       }
 
-      // 요청 삭제
-      await this.redisClient.hdel(requestsKey, fromCharacterId);
-      await this.redisClient.hdel(pendingKey, toCharacterId);
+      const request = receivedRequests[requestIndex];
+      request.status = 'accepted';
+      request.respondedAt = new Date().toISOString();
 
-      return true;
+      const sentRequests = await this.getSentRequests(fromId);
+      const sentRequestIndex = sentRequests.findIndex(
+        r => r.to.id === toId && r.status === 'pending'
+      );
+
+      if (sentRequestIndex !== -1) {
+        sentRequests[sentRequestIndex].status = 'accepted';
+        sentRequests[sentRequestIndex].respondedAt = request.respondedAt;
+      }
+
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryRequests) {
+          this._memoryRequests = {};
+        }
+        if (!this._memoryRequests[fromId]) {
+          this._memoryRequests[fromId] = { received: [], sent: [] };
+        }
+        if (!this._memoryRequests[toId]) {
+          this._memoryRequests[toId] = { received: [], sent: [] };
+        }
+        this._memoryRequests[toId].received = receivedRequests;
+        this._memoryRequests[fromId].sent = sentRequests;
+        return { success: true, request };
+      }
+
+      const receivedKey = `${this.REQUEST_KEY}:${toId}:received`;
+      await this.redisClient.setex(
+        receivedKey,
+        this.REQUEST_TTL,
+        JSON.stringify(receivedRequests)
+      );
+
+      const sentKey = `${this.REQUEST_KEY}:${fromId}:sent`;
+      await this.redisClient.setex(
+        sentKey,
+        this.REQUEST_TTL,
+        JSON.stringify(sentRequests)
+      );
+
+      return { success: true, request };
     } catch (error) {
-      console.error('친구 요청 수락 실패:', error);
-      throw error;
+      console.error('acceptRequest error:', error);
+      return { success: false, message: 'Failed to accept request' };
     }
   }
 
   /**
    * 친구 요청 거절
-   * @param {string} toCharacterId - 받은 캐릭터 ID
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @returns {Promise<boolean>} 성공 여부
    */
-  async rejectRequest(toCharacterId, fromCharacterId) {
+  async rejectRequest(fromId, toId) {
     try {
-      const requestsKey = this.getRequestsKey(toCharacterId);
-      const pendingKey = this.getPendingKey(fromCharacterId);
+      const receivedRequests = await this.getReceivedRequests(toId);
 
-      // 요청 존재 확인
-      const requestData = await this.getRequest(toCharacterId, fromCharacterId);
-      if (!requestData) {
-        return false;
-      }
-
-      // 요청 삭제
-      await this.redisClient.hdel(requestsKey, fromCharacterId);
-      await this.redisClient.hdel(pendingKey, toCharacterId);
-
-      return true;
-    } catch (error) {
-      console.error('친구 요청 거절 실패:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 친구 요청 취소
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @param {string} toCharacterId - 받을 캐릭터 ID
-   * @returns {Promise<boolean>} 성공 여부
-   */
-  async cancelRequest(fromCharacterId, toCharacterId) {
-    try {
-      const requestsKey = this.getRequestsKey(toCharacterId);
-      const pendingKey = this.getPendingKey(fromCharacterId);
-
-      // 보낸 요청 존재 확인
-      const hasPending = await this.hasPendingRequest(fromCharacterId, toCharacterId);
-      if (!hasPending) {
-        return false;
-      }
-
-      // 요청 삭제
-      await this.redisClient.hdel(requestsKey, fromCharacterId);
-      await this.redisClient.hdel(pendingKey, toCharacterId);
-
-      return true;
-    } catch (error) {
-      console.error('친구 요청 취소 실패:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 수신 요청 목록 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<Array>} 요청 목록
-   */
-  async getRequests(characterId) {
-    try {
-      const requestsKey = this.getRequestsKey(characterId);
-      const requests = await this.redisClient.hgetall(requestsKey);
-
-      if (!requests) {
-        return [];
-      }
-
-      const requestList = Object.values(requests).map(request => {
-        try {
-          return JSON.parse(request);
-        } catch (err) {
-          console.error('요청 데이터 파싱 실패:', err);
-          return null;
-        }
-      }).filter(Boolean);
-
-      // 오래된 순서 정렬 (먼저 온 요청이 우선)
-      return requestList.sort((a, b) =>
-        new Date(a.sentAt) - new Date(b.sentAt)
+      const requestIndex = receivedRequests.findIndex(
+        r => r.from.id === fromId && r.status === 'pending'
       );
-    } catch (error) {
-      console.error('수신 요청 목록 조회 실패:', error);
-      throw error;
-    }
-  }
 
-  /**
-   * 보낸 요청 목록 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<Array>} 요청 목록
-   */
-  async getPendingRequests(characterId) {
-    try {
-      const pendingKey = this.getPendingKey(characterId);
-      const pending = await this.redisClient.hgetall(pendingKey);
-
-      if (!pending) {
-        return [];
+      if (requestIndex === -1) {
+        return { success: false, message: 'Request not found' };
       }
 
-      const pendingList = Object.values(pending).map(request => {
-        try {
-          return JSON.parse(request);
-        } catch (err) {
-          console.error('요청 데이터 파싱 실패:', err);
-          return null;
-        }
-      }).filter(Boolean);
+      const request = receivedRequests[requestIndex];
+      request.status = 'rejected';
+      request.respondedAt = new Date().toISOString();
 
-      return pendingList.sort((a, b) =>
-        new Date(a.sentAt) - new Date(b.sentAt)
+      const sentRequests = await this.getSentRequests(fromId);
+      const sentRequestIndex = sentRequests.findIndex(
+        r => r.to.id === toId && r.status === 'pending'
       );
-    } catch (error) {
-      console.error('보낸 요청 목록 조회 실패:', error);
-      throw error;
-    }
-  }
 
-  /**
-   * 요청 조회
-   * @param {string} toCharacterId - 받은 캐릭터 ID
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @returns {Promise<Object|null>} 요청 데이터
-   */
-  async getRequest(toCharacterId, fromCharacterId) {
-    try {
-      const requestsKey = this.getRequestsKey(toCharacterId);
-      const requestData = await this.redisClient.hget(requestsKey, fromCharacterId);
-
-      if (!requestData) {
-        return null;
+      if (sentRequestIndex !== -1) {
+        sentRequests[sentRequestIndex].status = 'rejected';
+        sentRequests[sentRequestIndex].respondedAt = request.respondedAt;
       }
 
-      return JSON.parse(requestData);
+      if (!this.redisClient) {
+        // Memory mode
+        if (!this._memoryRequests) {
+          this._memoryRequests = {};
+        }
+        if (!this._memoryRequests[fromId]) {
+          this._memoryRequests[fromId] = { received: [], sent: [] };
+        }
+        if (!this._memoryRequests[toId]) {
+          this._memoryRequests[toId] = { received: [], sent: [] };
+        }
+        this._memoryRequests[toId].received = receivedRequests;
+        this._memoryRequests[fromId].sent = sentRequests;
+        return { success: true, request };
+      }
+
+      const receivedKey = `${this.REQUEST_KEY}:${toId}:received`;
+      await this.redisClient.setex(
+        receivedKey,
+        this.REQUEST_TTL,
+        JSON.stringify(receivedRequests)
+      );
+
+      const sentKey = `${this.REQUEST_KEY}:${fromId}:sent`;
+      await this.redisClient.setex(
+        sentKey,
+        this.REQUEST_TTL,
+        JSON.stringify(sentRequests)
+      );
+
+      return { success: true, request };
     } catch (error) {
-      console.error('요청 조회 실패:', error);
-      throw error;
+      console.error('rejectRequest error:', error);
+      return { success: false, message: 'Failed to reject request' };
     }
   }
 
   /**
-   * 보낸 요청 존재 확인
-   * @param {string} fromCharacterId - 보낸 캐릭터 ID
-   * @param {string} toCharacterId - 받을 캐릭터 ID
-   * @returns {Promise<boolean>} 요청 존재 여부
+   * 대기 중인 요청 수 가져오기
    */
-  async hasPendingRequest(fromCharacterId, toCharacterId) {
+  async getPendingRequestCount(characterId) {
     try {
-      const pendingKey = this.getPendingKey(fromCharacterId);
-      const requestData = await this.redisClient.hget(pendingKey, toCharacterId);
-
-      return requestData !== null;
+      const receivedRequests = await this.getReceivedRequests(characterId);
+      return receivedRequests.filter(r => r.status === 'pending').length;
     } catch (error) {
-      console.error('보낸 요청 존재 확인 실패:', error);
-      throw error;
+      console.error('getPendingRequestCount error:', error);
+      return 0;
     }
   }
 
   /**
-   * 대기 중 요청 수 조회
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<number>} 요청 수
+   * 특정 요청 찾기
    */
-  async getRequestCount(characterId) {
+  async findRequest(fromId, toId) {
     try {
-      const requestsKey = this.getRequestsKey(characterId);
-      const count = await this.redisClient.hlen(requestsKey);
-
-      return count;
+      const sentRequests = await this.getSentRequests(fromId);
+      const request = sentRequests.find(
+        r => r.to.id === toId && r.status === 'pending'
+      );
+      return request || null;
     } catch (error) {
-      console.error('요청 수 조회 실패:', error);
-      throw error;
+      console.error('findRequest error:', error);
+      return null;
     }
   }
 
   /**
-   * 모든 요청 삭제 (테스트용)
-   * @param {string} characterId - 캐릭터 ID
-   * @returns {Promise<void>}
+   * 캐릭터의 모든 요청 데이터 삭제
    */
-  async clearRequests(characterId) {
+  async clearRequestData(characterId) {
     try {
-      const requestsKey = this.getRequestsKey(characterId);
-      const pendingKey = this.getPendingKey(characterId);
+      if (!this.redisClient) {
+        // Memory mode
+        if (this._memoryRequests) {
+          delete this._memoryRequests[characterId];
+        }
+        return { success: true };
+      }
 
-      await this.redisClient.del(requestsKey);
-      await this.redisClient.del(pendingKey);
+      const receivedKey = `${this.REQUEST_KEY}:${characterId}:received`;
+      const sentKey = `${this.REQUEST_KEY}:${characterId}:sent`;
+
+      await this.redisClient.del(receivedKey);
+      await this.redisClient.del(sentKey);
+
+      return { success: true };
     } catch (error) {
-      console.error('요청 전체 삭제 실패:', error);
-      throw error;
+      console.error('clearRequestData error:', error);
+      return { success: false };
     }
+  }
+
+  /**
+   * 메모리 모드 데이터 접근자 (테스트용)
+   */
+  _getMemoryData() {
+    return this._memoryRequests || {};
   }
 }
 
-module.exports = FriendRequest;
+export default FriendRequestManager;

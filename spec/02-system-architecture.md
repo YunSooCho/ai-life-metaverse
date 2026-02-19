@@ -260,3 +260,71 @@
 - index.test.js: 19개 테스트 ✅
 
 **추가일:** 2026-02-19
+
+### 친구 시스템 (friend-system/) ✅ (2026-02-19 완료)
+
+친구 관리, 친구 요청, 온라인 상태 추적을 위한 소셜 시스템
+
+- **friend-manager.js**: 친구 관리 시스템
+  - 친구 추가/삭제/목록/검색
+  - 친구 관계 확인 및 수 가져오기
+  - 기능:
+    - `getFriendList(characterId)`: 캐릭터의 친구 목록
+    - `addFriend(characterId, friendId, friendName)`: 친구 추가
+    - `removeFriend(characterId, friendId)`: 친구 삭제
+    - `isFriend(characterId, targetId)`: 친구인지 확인
+    - `searchFriends(characterId, query)`: 친구 검색
+    - `getFriendCount(characterId)`: 친구 수
+  - Graceful degradation: Redis 연결 실패 시 메모리 모드 실행
+  - TTL: 7일 (친구 목록)
+
+- **friend-request.js**: 친구 요청 시스템
+  - 친구 요청 전송/수락/거절
+  - 수신/보낸 요청 목록
+  - 기능:
+    - `getReceivedRequests(characterId)`: 수신한 요청 목록
+    - `getSentRequests(characterId)`: 보낸 요청 목록
+    - `sendRequest(fromId, fromName, toId, toName)`: 요청 전송
+    - `acceptRequest(fromId, toId)`: 요청 수락
+    - `rejectRequest(fromId, toId)`: 요청 거절
+    - `getPendingRequestCount(characterId)`: 대기 중인 요청 수
+    - `findRequest(fromId, toId)`: 특정 요청 찾기
+  - 요청 상태: pending, accepted, rejected
+  - TTL: 24시간 (요청)
+  - 메모리 모드 지원 (Redis 연결 없음시)
+
+- **online-tracker.js**: 온라인 상태 추적 시스템
+  - 온라인/오프라인 상태 관리
+  - 마지막 접속 시간 추적
+  - 기능:
+    - `setOnline(characterId, characterName)`: 온라인 설정
+    - `setOffline(characterId)`: 오프라인 설정
+    - `isOnline(characterId)`: 온라인 상태 확인
+    - `getOnlineUsers()`: 모든 온라인 사용자
+    - `getLastSeen(characterId)`: 마지막 접속 시간
+    - `getFriendsOnlineStatus(friendIds)`: 친구들의 온라인 상태
+  - TTL: 5분 (온라인 상태)
+  - 긴 TTL: 마지막 접속 (유지)
+
+- **index.js**: 친구 시스템 통합 모듈
+  - `FriendSystem` class: 모든 서브시스템 통합
+  - 기능:
+    - `sendFriendRequest(fromId, fromName, toId, toName)`: 요청 전송 & 검증
+    - `acceptFriendRequest(fromId, toId, friendName)`: 요청 수락 & 친구 추가
+    - `rejectFriendRequest(fromId, toId)`: 요청 거절
+    - `removeFriend(characterId, friendId)`: 친구 삭제 (양방향)
+    - `getFriendListWithStatus(characterId)`: 친구 목록 & 온라인 상태
+    - `characterOnline(characterId, characterName)`: 캐릭터 접속
+    - `characterOffline(characterId)`: 캐릭터 접속 종료
+    - `clearCharacterData(characterId)`: 캐릭터 데이터 전체 삭제
+    - `getSystemStats()`: 시스템 통계 (온라인 사용자)
+  - Singleton pattern: `initializeFriendSystem(redisClient)`, `getFriendSystem()`
+
+**테스트 커버리지:**
+- friend-manager.test.js: 16개 테스트 ✅
+- friend-request.test.js: 21개 테스트 ✅
+- online-tracker.test.js: 19개 테스트 ✅
+- index.test.js: 26개 테스트 ✅
+- **총 82개 테스트 전체 통과!**
+
+**추가일:** 2026-02-19
