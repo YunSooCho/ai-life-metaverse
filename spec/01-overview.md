@@ -119,11 +119,12 @@ ai-life-metaverse/
 
 ### TODO
 
-- [ ] Phase 12: 캐릭터 시스템 고급화 (Issue #113)
+- [ ] 채팅 말풍운 표시 버그 수정 (Issue #126, 2026-02-20 발견)
+- [ ] main_theme 사운드 파일 배치 (Issue #41, 2026-02-20 콘솜 에러 확인)
 - [ ] 사운드 파일 준비 (audio/ 폴더에 BGM, SFX, 날씨 사운드 배치)
 - [ ] 사운드 초기화 oneshot (사용자 interaction 이후)
 - [ ] E2E 브라우저 테스트 자동화 (Issue #59)
-- [ ] Frontend 통합 (서버 → 클라이언트 API 연동)
+- [ ] 남은 시나리오 테스트 (S04, S06, S08, S10~S14)
 
 ### 완료된 작업
 
@@ -135,6 +136,10 @@ ai-life-metaverse/
   - 제작 실패 확률 및 난이도
   - 테스트 29/29 통과 ✅
   - Socket.io 이벤트 통합 (getRecipes, getCraftingLevel, craft, getCraftingHistory)
+
+- ✅ E2E 브라우저 테스트 (2026-02-20 00:00)
+  - 완료된 시나리오: S01, S02(부분), S03(부분), S07, S09
+  - 발견된 버그: #126 채팅 말풍운 표시 안됨, #41 main_theme 사운드 로드 실패
 
 - ✅ Phase 12: 캐릭터 진화 시스템 - Issue #113 (2026-02-19)
   - EvolutionManager: 진화 시스템 (조건/경험치/레벨/형태)
