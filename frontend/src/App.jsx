@@ -700,6 +700,16 @@ function AppContent() {
     setMyCharacter(updatedCharacter)
     socket.emit('move', updatedCharacter)
 
+    // ✅ BUG FIX: animatedCharacters에도 이동 데이터 추가 (_issue_101)
+    // GameCanvas에서 캐릭터 렌더링 시 animatedCharacters 데이터를 사용하므로 필요
+    setAnimatedCharacters(prev => ({
+      ...prev,
+      [myCharacter.id]: {
+        ...prev[myCharacter.id],
+        ...updatedCharacter
+      }
+    }))
+
     // 이동 효과음
     soundManager.playSFX(SFX_URLS.MOVE).catch(err => {
       console.warn('SFX playback failed:', err)
