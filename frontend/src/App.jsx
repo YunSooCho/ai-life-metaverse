@@ -628,8 +628,33 @@ function AppContent() {
 
   const sendChatMessage = (message) => {
     if (message.trim()) {
+      const trimmedMessage = message.trim()
+      const timestamp = Date.now()
+
+      // ✅ BUG FIX: 내 캐릭터의 채팅 말풍선 즉시 표시 (Issue #126)
+      // 백엔드 socket.to(roomId).emit는 보내는 소켓 제외하므로, 프론트엔드에서 즉시 표시
+      setChatMessages(prev => ({
+        ...prev,
+        [myCharacter.id]: {
+          message: trimmedMessage,
+          timestamp
+        }
+      }))
+
+      // 3초 후 메시지 삭제
+      setTimeout(() => {
+        setChatMessages(prev => {
+          const newMessages = { ...prev }
+          if (newMessages[myCharacter.id]?.message === trimmedMessage) {
+            delete newMessages[myCharacter.id]
+          }
+          return newMessages
+        })
+      }, 3000)
+
+      // 백엔드로 메시지 전송
       socket.emit('chatMessage', {
-        message: message.trim(),
+        message: trimmedMessage,
         characterId: myCharacter.id,
         roomId: currentRoom.id
       })

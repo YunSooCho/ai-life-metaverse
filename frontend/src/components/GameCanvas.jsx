@@ -1022,7 +1022,7 @@ function GameCanvas({
         }
 
         // 채팅 버블
-        const chatData = msgs[char.id] || (char.id === myChar.id ? msgs[myChar.id] : null)
+        const chatData = msgs[char.id]
         if (chatData?.message) {
           renderChatBubble(ctx, chatData.message, x, y, CHARACTER_SIZE_SCALED, currentScale)
         }
