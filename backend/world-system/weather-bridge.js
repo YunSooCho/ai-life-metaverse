@@ -85,8 +85,12 @@ export function getMapWeather(mapId) {
     return currentWeather.get(mapId)
   }
 
-  // 기본 날씨 반환
-  return DEFAULT_WEATHER[mapId] || DEFAULT_WEATHER.default
+  // 기본 날씨 반환 (lastUpdate 포함)
+  const defaultWeather = DEFAULT_WEATHER[mapId] || DEFAULT_WEATHER.default
+  return {
+    ...defaultWeather,
+    lastUpdate: null  // 기본 날씨는 lastUpdate가 null
+  }
 }
 
 /**
@@ -355,9 +359,15 @@ export function syncAllWeather() {
  */
 export function exportWeatherData() {
   const data = {}
+
+  // 실시간 날씨 데이터
   currentWeather.forEach((value, key) => {
     data[key] = value
   })
+
+  // 기본 날씨 데이터도 포함 (초기화용)
+  data._default = DEFAULT_WEATHER
+
   return data
 }
 
@@ -368,6 +378,155 @@ export function exportWeatherData() {
 export function importWeatherData(data) {
   Object.entries(data).forEach(([mapId, value]) => {
     currentWeather.set(mapId, value)
+  })
+}
+
+/**
+ * 맵의 기본 날씨 조회
+ * @param {string} mapId - 맵 ID
+ * @returns {Object} 기본 날씨 데이터
+ */
+export function getDefaultWeather(mapId) {
+  return DEFAULT_WEATHER[mapId] || DEFAULT_WEATHER.default
+}
+
+/**
+ * 랜덤 날씨 생성
+ * @param {string} mapId - 맵 ID
+ * @returns {Object} 랜덤 날씨 데이터
+ */
+export function getRandomWeather(mapId) {
+  const probabilities = WEATHER_PROBABILITIES[mapId] || WEATHER_PROBABILITIES.default
+
+  // 랜덤 날씨 선택
+  const random = Math.random() * 100
+  let cumulative = 0
+  let selectedWeather = WEATHER_TYPES.SUNNY
+
+  for (const [type, probability] of Object.entries(probabilities)) {
+    cumulative += probability
+    if (random <= cumulative) {
+      selectedWeather = type
+      break
+    }
+  }
+
+  // 온도 조정
+  const baseTemp = DEFAULT_WEATHER[mapId]?.temperature || 22
+  const tempVariation = Math.floor(Math.random() * 10) - 5 // -5 ~ +5
+
+  return {
+    type: selectedWeather,
+    temperature: baseTemp + tempVariation,
+    humidity: 50 + Math.floor(Math.random() * 30), // 50 ~ 80%
+    windSpeed: 5 + Math.floor(Math.random() * 20) // 5 ~ 25
+  }
+}
+
+/**
+ * 날씨 랜덤 변경 (别名)
+ * @param {string} mapId - 맵 ID
+ * @returns {Object|null} 변경된 날씨
+ */
+export const changeWeatherRandomly = randomizeMapWeather
+
+/**
+ * 날씨 수식어 반환
+ * @param {string} weatherType - 날씨 유형
+ * @returns {string} 날씨 수식어
+ */
+export function getWeatherModifier(weatherType) {
+  const modifiers = {
+    [WEATHER_TYPES.SUNNY]: '맑은',
+    [WEATHER_TYPES.CLOUDY]: '흐린',
+    [WEATHER_TYPES.RAINY]: '비 오는',
+    [WEATHER_TYPES.SNOWY]: '눈 내리는',
+    [WEATHER_TYPES.WINDY]: '바람이 부는',
+    [WEATHER_TYPES.FOGGY]: '안개가 낀'
+  }
+
+  return modifiers[weatherType] || ''
+}
+
+/**
+ * 맵의 기본 날씨 조회
+ * @param {string} mapId - 맵 ID
+ * @returns {Object} 기본 날씨 데이터
+ */
+export function getDefaultWeather(mapId) {
+  return DEFAULT_WEATHER[mapId] || DEFAULT_WEATHER.default
+}
+
+/**
+ * 랜덤 날씨 생성
+ * @param {string} mapId - 맵 ID
+ * @returns {Object} 랜덤 날씨 데이터
+ */
+export function getRandomWeather(mapId) {
+  const probabilities = WEATHER_PROBABILITIES[mapId] || WEATHER_PROBABILITIES.default
+
+  // 랜덤 날씨 선택
+  const random = Math.random() * 100
+  let cumulative = 0
+  let selectedWeather = WEATHER_TYPES.SUNNY
+
+  for (const [type, probability] of Object.entries(probabilities)) {
+    cumulative += probability
+    if (random <= cumulative) {
+      selectedWeather = type
+      break
+    }
+  }
+
+  // 온도 조정
+  const baseTemp = DEFAULT_WEATHER[mapId]?.temperature || 22
+  const tempVariation = Math.floor(Math.random() * 10) - 5 // -5 ~ +5
+
+  return {
+    type: selectedWeather,
+    temperature: baseTemp + tempVariation,
+    humidity: 50 + Math.floor(Math.random() * 30), // 50 ~ 80%
+    windSpeed: 5 + Math.floor(Math.random() * 20) // 5 ~ 25
+  }
+}
+
+/**
+ * 날씨 랜덤 변경 (别名)
+ * @param {string} mapId - 맵 ID
+ * @returns {Object|null} 변경된 날씨
+ */
+export const changeWeatherRandomly = randomizeMapWeather
+
+/**
+ * 날씨 수식어 반환
+ * @param {string} weatherType - 날씨 유형
+ * @returns {string} 날씨 수식어
+ */
+export function getWeatherModifier(weatherType) {
+  const modifiers = {
+    [WEATHER_TYPES.SUNNY]: '맑은',
+    [WEATHER_TYPES.CLOUDY]: '흐린',
+    [WEATHER_TYPES.RAINY]: '비 오는',
+    [WEATHER_TYPES.SNOWY]: '눈 내리는',
+    [WEATHER_TYPES.WINDY]: '바람이 부는',
+    [WEATHER_TYPES.FOGGY]: '안개가 낀'
+  }
+
+  return modifiers[weatherType] || ''
+}
+
+/**
+ * 날씨 데이터 초기화 (모든 맵에 기본 날씨 설정)
+ */
+export function clearWeatherData() {
+  currentWeather.clear()
+  // 모든 맵에 기본 날씨 설정 (lastUpdate 포함)
+  getAllMaps().forEach(map => {
+    const defaultWeather = getDefaultWeather(map.id)
+    currentWeather.set(map.id, {
+      ...defaultWeather,
+      lastUpdate: Date.now()
+    })
   })
 }
 

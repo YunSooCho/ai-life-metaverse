@@ -49,6 +49,18 @@ export const MAP_CONNECTIONS = {
   }
 }
 
+// 전환 시스템 메모리 저장소
+let currentMaps = new Map()  // 캐릭터별 현재 맵
+let transitionHistory = []   // 전환 기록
+
+/**
+ * 전환 기록 초기화
+ */
+export function clearTransitionHistory() {
+  transitionHistory = []
+  currentMaps = new Map()
+}
+
 /**
  * 맵 전환 가능 여부 확인
  * @param {string} fromMapId - 출발 맵 ID
@@ -76,9 +88,10 @@ export function canTransition(fromMapId, toMapId) {
  * 맵 전환 설정 조회
  * @param {string} fromMapId - 출발 맵 ID
  * @param {string} toMapId - 도착 맵 ID
+ * @param {Object} customConfig - 커스텀 전환 설정 (선택)
  * @returns {Object|null} 전환 설정
  */
-export function getTransition(fromMapId, toMapId) {
+export function getTransitionConfig(fromMapId, toMapId, customConfig = {}) {
   if (!canTransition(fromMapId, toMapId)) {
     return null
   }
@@ -88,30 +101,18 @@ export function getTransition(fromMapId, toMapId) {
   const toMap = getMap(toMapId)
 
   return {
-    fromMap: {
-      id: fromMapId,
-      name: fromMap.name,
-      width: fromMap.width,
-      height: fromMap.height
-    },
-    toMap: {
-      id: toMapId,
-      name: toMap.name,
-      width: toMap.width,
-      height: toMap.height
-    },
-    transition: {
-      type: connection.defaultTransition.type,
-      direction: connection.defaultTransition.direction || TRANSITION_DIRECTIONS.CENTER,
-      duration: connection.defaultTransition.duration
-    },
-    metadata: {
-      distance: calculateMapDistance(fromMapId, toMapId),
-      travelTime: connection.defaultTransition.duration,
-      specialEffects: getSpecialTransitionEffects(fromMapId, toMapId)
-    }
+    fromMapId,
+    toMapId,
+    fromMapName: fromMap?.name || connection.name,
+    toMapName: toMap?.name || toMapId,
+    type: customConfig.type || connection.defaultTransition.type,
+    direction: customConfig.direction || connection.defaultTransition.direction || TRANSITION_DIRECTIONS.CENTER,
+    duration: customConfig.duration || connection.defaultTransition.duration
   }
 }
+
+// 호환성을 위한 별칭
+export const getTransition = getTransitionConfig
 
 /**
  * 맵 간 거리 계산 (단순화된 거리)
@@ -138,7 +139,7 @@ function getSpecialTransitionEffects(fromMapId, toMapId) {
 
   // 계절/날씨 기반 효과
   const toMap = getMap(toMapId)
-  if (toMap.weather) {
+  if (toMap?.weather) {
     if (toMap.weather.type === 'snowy') {
       effects.push('snow_fade')
     } else if (toMap.weather.type === 'sunny') {
@@ -149,6 +150,149 @@ function getSpecialTransitionEffects(fromMapId, toMapId) {
   }
 
   return effects
+}
+
+/**
+ * 말 전환 수행 (데이터베이스/상태 업데이트)
+ * @param {string} characterId - 캐릭터 ID
+ * @param {string} fromMapId - 출발 맵 ID
+ * @param {string} toMapId - 도착 맵 ID
+ * @returns {Object} 전환 결과
+ */
+export function performTransition(characterId, fromMapId, toMapId) {
+  if (!canTransition(fromMapId, toMapId)) {
+    return {
+      success: false,
+      error: 'Cannot transition between these maps'
+    }
+  }
+
+  const config = getTransitionConfig(fromMapId, toMapId)
+  const timestamp = Date.now()
+
+  const transitionRecord = {
+    characterId,
+    timestamp,
+    fromMap: fromMapId,  // fromMapId 대신 fromMap 사용
+    toMap: toMapId,      // toMapId 대신 toMap 사용
+    fromMapId,
+    toMapId,
+    config,
+    duration: config.duration,
+    status: 'completed',
+    distance: calculateMapDistance(fromMapId, toMapId),
+    specialEffects: getSpecialTransitionEffects(fromMapId, toMapId)
+  }
+
+  transitionHistory.push(transitionRecord)
+  currentMaps.set(characterId, toMapId)
+
+  return {
+    success: true,
+    ...transitionRecord
+  }
+}
+
+/**
+ * 캐릭터 맵 이동 (간편 API)
+ * @param {string} characterId - 캐릭터 ID
+ * @param {string} toMapId - 목표 맵 ID
+ * @returns {Object} 전환 결과
+ */
+export function transitionToMap(characterId, toMapId) {
+  const currentMap = currentMaps.get(characterId) || null
+
+  // 첫 번째 전환은 'default'로 간주
+  const fromMapId = currentMap || 'default'
+
+  if (currentMap && !canTransition(currentMap, toMapId)) {
+    return {
+      success: false,
+      error: 'Cannot transition to this map'
+    }
+  }
+
+  // 첫 번째 전환이면 default → toMap, 그렇지 않으면 currentMap → toMap
+  const actualFromMapId = currentMap ? currentMap : 'default'
+
+  if (!canTransition(actualFromMapId, toMapId)) {
+    return {
+      success: false,
+      error: 'Cannot transition to this map'
+    }
+  }
+
+  const timestamp = Date.now()
+  const config = getTransitionConfig(actualFromMapId, toMapId)
+
+  const transitionRecord = {
+    characterId,
+    timestamp,
+    fromMap: actualFromMapId,
+    toMap: toMapId,
+    config  // config 추가
+  }
+
+  transitionHistory.push(transitionRecord)
+  currentMaps.set(characterId, toMapId)
+
+  return {
+    success: true,
+    timestamp,
+    fromMap: currentMap || null,
+    toMap: toMapId,
+    currentMap: toMapId
+  }
+}
+
+/**
+ * 전환 기록 조회
+ * @param {string} characterId - 캐릭터 ID (선택)
+ * @returns {Array} 전환 기록 배열
+ */
+export function getTransitionHistory(characterId) {
+  if (characterId) {
+    return transitionHistory.filter(
+      record => record.characterId === characterId
+    )
+  }
+  return [...transitionHistory]
+}
+
+/**
+ * 전환 데이터 내보내기
+ * @returns {Object} 전환 데이터
+ */
+export function exportTransitionData() {
+  const currentMapsObj = {}
+  currentMaps.forEach((value, key) => {
+    currentMapsObj[key] = value
+  })
+
+  return {
+    currentMaps: currentMapsObj,
+    histories: [...transitionHistory],
+    exportTime: Date.now()
+  }
+}
+
+/**
+ * 전환 데이터 불러오기
+ * @param {Object} data - 불러올 데이터
+ * @returns {boolean} 성공 여부
+ */
+export function importTransitionData(data) {
+  if (data && (data.currentMaps || data.histories)) {
+    if (data.currentMaps) {
+      currentMaps = new Map(Object.entries(data.currentMaps))
+    }
+    if (data.histories) {
+      transitionHistory = [...data.histories]
+    }
+    return true
+  }
+  clearTransitionHistory()
+  return false
 }
 
 /**
@@ -166,11 +310,11 @@ export function getAllTransitionPaths(startMapId) {
   const connection = MAP_CONNECTIONS[startMapId]
   if (connection && connection.nextMaps) {
     connection.nextMaps.forEach(nextMapId => {
-      const transition = getTransition(startMapId, nextMapId)
+      const transition = getTransitionConfig(startMapId, nextMapId)
       if (transition) {
         paths.push({
           toMapId: nextMapId,
-          transition: transition
+          transition
         })
       }
     })
@@ -237,7 +381,7 @@ export function calculatePathTransitions(path) {
   const transitions = []
 
   for (let i = 0; i < path.length - 1; i++) {
-    const transition = getTransition(path[i], path[i + 1])
+    const transition = getTransitionConfig(path[i], path[i + 1])
     if (transition) {
       transitions.push(transition)
     }
@@ -255,9 +399,9 @@ export function calculatePathTransitions(path) {
  */
 export function createTransitionEvent(characterId, fromMapId, toMapId) {
   const startTime = Date.now()
-  const transition = getTransition(fromMapId, toMapId)
+  const config = getTransitionConfig(fromMapId, toMapId)
 
-  if (!transition) {
+  if (!config) {
     return null
   }
 
@@ -265,11 +409,19 @@ export function createTransitionEvent(characterId, fromMapId, toMapId) {
     characterId,
     fromMapId,
     toMapId,
-    transition: transition.transition,
+    transition: {
+      type: config.type,
+      direction: config.direction,
+      duration: config.duration
+    },
     startTime,
-    estimatedEndTime: startTime + transition.transition.duration,
+    estimatedEndTime: startTime + config.duration,
     status: 'started',
-    metadata: transition.metadata
+    metadata: {
+      distance: calculateMapDistance(fromMapId, toMapId),
+      travelTime: config.duration,
+      specialEffects: getSpecialTransitionEffects(fromMapId, toMapId)
+    }
   }
 }
 
@@ -285,4 +437,4 @@ export function isTransitionComplete(transitionEvent) {
   return Date.now() >= transitionEvent.estimatedEndTime
 }
 
-export { getMap, mapExists, getAllMaps, MAP_CONNECTIONS }
+export { getMap, mapExists, getAllMaps }
