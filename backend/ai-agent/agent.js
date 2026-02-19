@@ -5,11 +5,23 @@
  * - Socket.io에서 chatMessage 이벤트 수신
  * - GLM-4.7로 자연어 응답 생성
  * - 응답을 chatBroadcast로 전파
+ * - 채팅 로그 DB 영구 저장
+ * - AI 관계성 관리 (호감도, 대화 빈도, 토픽)
  */
 
 // Cerebras GLM-4.7 설정
 const CEREBRAS_API_URL = 'https://api.cerebras.ai/v1/chat/completions'
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY || ''
+
+// Database modules
+import {
+  saveChatLog,
+  incrementConversation,
+  updateAffinity,
+  addCommonTopic,
+  updateMood,
+  getRelationship
+} from '../database/index.js'
 
 // AI 캐릭터 Persona 설정
 const AI_PERSONAS = {
@@ -368,7 +380,7 @@ function initializeAgent(io, rooms, characterRooms) {
 
   // 모든 방에서 AI 캐릭터가 메시지를 수신하도록 설정
   io.on('connection', (socket) => {
-    // 채팅 메시지 수신 → AI 응답 생성
+    // 채팅 메시지 수신 → AI 응답 생성 + DB 저장
     socket.on('chatMessage', async (data) => {
       const { message, characterId } = data
       const roomId = characterRooms[characterId]
@@ -376,6 +388,22 @@ function initializeAgent(io, rooms, characterRooms) {
       if (!roomId) {
         console.log('⚠️ 캐릭터 방을 찾을 수 없음:', characterId)
         return
+      }
+
+      const room = rooms[roomId]
+      const character = room.characters[characterId]
+
+      // ✅ DB: 사용자 채팅 로그 저장
+      if (character) {
+        saveChatLog({
+          room_id: roomId,
+          sender_id: characterId,
+          character_name: character.name || 'Player',
+          message: message,
+          timestamp: Date.now(),
+          persona_type: 'player',
+          is_ai: false
+        })
       }
 
       const room = rooms[roomId]
@@ -421,6 +449,23 @@ function initializeAgent(io, rooms, characterRooms) {
             io.to(roomId).emit('chatBroadcast', chatData)
 
             console.log('📢 AI 응답 브로드캐스트:', AI_PERSONAS[aiCharacterId]?.name, ':', aiResponse)
+
+            // ✅ DB: AI 응답 채팅 로그 저장
+            saveChatLog({
+              room_id: roomId,
+              sender_id: aiCharacterId,
+              character_name: AI_PERSONAS[aiCharacterId]?.name || 'AI',
+              message: aiResponse,
+              timestamp: Date.now(),
+              persona_type: aiCharacterId,
+              is_ai: true
+            })
+
+            // ✅ DB: AI-Player 관계성 업데이트
+            incrementConversation(characterId, aiCharacterId)
+            updateAffinity(characterId, aiCharacterId, 0.05) // +0.05
+
+            console.log(`💖 AI-Player 관계성 업데이트: ${characterId} ↔ ${aiCharacterId} (호감도 +0.05)`)
           } else {
             console.log('⚠️ AI 응답 생성 실패')
           }
@@ -494,6 +539,17 @@ function initializeAgent(io, rooms, characterRooms) {
           io.to(roomId).emit('chatBroadcast', chatData1)
           console.log(`📢 AI 대화: ${initiator.name}: ${initiatorResponse.substring(0, 50)}...`)
 
+          // ✅ DB: 채팅 로그 저장
+          saveChatLog({
+            room_id: roomId,
+            sender_id: initiator.id,
+            character_name: AI_PERSONAS[initiator.id]?.name || 'AI',
+            message: initiatorResponse,
+            timestamp: Date.now(),
+            persona_type: initiator.id,
+            is_ai: true
+          })
+
           // 2) 2~4초 후 Responder가 답하기
           await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000))
 
@@ -512,6 +568,35 @@ function initializeAgent(io, rooms, characterRooms) {
             if (room.chatHistory.length > 30) room.chatHistory.shift()
             io.to(roomId).emit('chatBroadcast', chatData2)
             console.log(`📢 AI 응답: ${responder.name}: ${responderResponse.substring(0, 50)}...`)
+
+            // ✅ DB: 채팅 로그 저장
+            saveChatLog({
+              room_id: roomId,
+              sender_id: responder.id,
+              character_name: AI_PERSONAS[responder.id]?.name || 'AI',
+              message: responderResponse,
+              timestamp: Date.now(),
+              persona_type: responder.id,
+              is_ai: true
+            })
+
+            // ✅ DB: AI 관계성 업데이트 (대화 증가, 호감도 증가, 토픽 추가)
+            const charId1 = initiator.id
+            const charId2 = responder.id
+
+            // 대화 증가
+            incrementConversation(charId1, charId2)
+
+            // 호감도 증가 (+0.1)
+            updateAffinity(charId1, charId2, 0.1)
+
+            // 공통 토픽 추가
+            addCommonTopic(charId1, charId2, topic)
+
+            // 감정 상태 업데이트 (friendly)
+            updateMood(charId1, charId2, 'friendly')
+
+            console.log(`💖 AI 관계성 업데이트: ${charId1} ↔ ${charId2} (호감도 +0.1, 토픽: ${topic})`)
           }
 
           conversationStateManager.setConversingState(responder.id, false)

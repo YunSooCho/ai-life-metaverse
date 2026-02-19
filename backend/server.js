@@ -23,6 +23,7 @@ import {
   claimReward,
   getEventSystemStatus
 } from './event-system/index.js'
+import { initDatabase } from './database/index.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -214,6 +215,110 @@ app.get('/api/events/:characterId', (req, res) => {
 
 app.get('/api/buildings', (req, res) => {
   res.json({ buildings })
+})
+
+// 채팅 로그 조회 HTTP 엔드포인트
+import {
+  getChatLogsByRoom,
+  getChatLogsByCharacter,
+  getAIChatLogs,
+  getChatLogStats
+} from './database/index.js'
+
+app.get('/api/chat-logs/room/:roomId', (req, res) => {
+  const { roomId } = req.params
+  const limit = parseInt(req.query.limit) || 50
+
+  try {
+    const logs = getChatLogsByRoom(roomId, limit)
+    res.json({ logs, count: logs.length })
+  } catch (error) {
+    console.error('채팅 로그 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get chat logs' })
+  }
+})
+
+app.get('/api/chat-logs/character/:characterId', (req, res) => {
+  const { characterId } = req.params
+  const limit = parseInt(req.query.limit) || 100
+
+  try {
+    const logs = getChatLogsByCharacter(characterId, limit)
+    res.json({ logs, count: logs.length })
+  } catch (error) {
+    console.error('캐릭터 채팅 로그 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get character chat logs' })
+  }
+})
+
+app.get('/api/chat-logs/ai/:charId1/:charId2', (req, res) => {
+  const { charId1, charId2 } = req.params
+  const { roomId } = req.query
+  const limit = parseInt(req.query.limit) || 50
+
+  if (!roomId) {
+    return res.status(400).json({ error: 'roomId is required' })
+  }
+
+  try {
+    const logs = getAIChatLogs(charId1, charId2, roomId, limit)
+    res.json({ logs, count: logs.length })
+  } catch (error) {
+    console.error('AI 채팅 로그 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get AI chat logs' })
+  }
+})
+
+app.get('/api/chat-logs/stats', (req, res) => {
+  try {
+    const stats = getChatLogStats()
+    res.json({ stats })
+  } catch (error) {
+    console.error('채팅 로그 통계 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get chat log stats' })
+  }
+})
+
+// AI 관계성 조회 HTTP 엔드포인트
+import {
+  getRelationship,
+  getAllRelationships,
+  getRelationshipStats
+} from './database/index.js'
+
+app.get('/api/ai-relationships/:charId1/:charId2', (req, res) => {
+  const { charId1, charId2 } = req.params
+
+  try {
+    const relationship = getRelationship(charId1, charId2)
+    if (!relationship) {
+      return res.status(404).json({ error: 'Relationship not found' })
+    }
+    res.json({ relationship })
+  } catch (error) {
+    console.error('AI 관계성 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get relationship' })
+  }
+})
+
+app.get('/api/ai-relationships', (req, res) => {
+  try {
+    const relationships = getAllRelationships()
+    res.json({ relationships, count: relationships.length })
+  } catch (error) {
+    console.error('AI 관계성 목록 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get relationships' })
+  }
+})
+
+app.get('/api/ai-relationships/stats', (req, res) => {
+  try {
+    const stats = getRelationshipStats()
+    res.json({ stats })
+  } catch (error) {
+    console.error('AI 관계성 통계 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get relationship stats' })
+  }
 })
 
 // 활성 방 목록 조회 API
@@ -1134,6 +1239,14 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
   console.log('🏠 기본 방:', rooms[DEFAULT_ROOM_ID].name, `(${DEFAULT_ROOM_ID})`)
   console.log('✅ AI 캐릭터 1:', aiCharacter1.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter1.x}, ${aiCharacter1.y})`)
   console.log('✅ AI 캐릭터 2:', aiCharacter2.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter2.x}, ${aiCharacter2.y})`)
+
+  // 데이터베이스 초기화
+  try {
+    initDatabase()
+    console.log('🗄️  데이터베이스 초기화 완료')
+  } catch (error) {
+    console.error('❌ 데이터베이스 초기화 실패:', error)
+  }
 
   // 이벤트 시스템 초기화
   try {
