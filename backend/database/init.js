@@ -60,7 +60,7 @@ export function initDatabase() {
       conversation_count INTEGER DEFAULT 0,
       affinity_score REAL DEFAULT 0,
       last_conversation INTEGER,
-      common_topics TEXT,  // JSON 문자열
+      common_topics TEXT,  -- JSON 문자열
       mood TEXT DEFAULT 'neutral',
       created_at INTEGER DEFAULT (strftime('%s', 'now')),
       updated_at INTEGER DEFAULT (strftime('%s', 'now')),

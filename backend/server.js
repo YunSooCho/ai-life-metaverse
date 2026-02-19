@@ -14,29 +14,61 @@ import {
   assignQuestToPlayer
 } from './quest.js'
 import { initializeAgent } from './ai-agent/agent.js'
-import {
-  initializeEventSystem,
-  initializeCharacter,
-  getActiveEvents,
-  getCharacterEvents,
-  handleEvent,
-  claimReward,
-  getEventSystemStatus
-} from './event-system/index.js'
+// import {
+//   initializeEventSystem,
+//   initializeCharacter,
+//   getActiveEvents,
+//   getCharacterEvents,
+//   handleEvent,
+//   getEventSystemStatus
+// } from './event-system/index.js'
 import { initDatabase } from './database/index.js'
+
+// Event system stubs (임시)
+function handleEvent(characterId, eventType, eventData) {
+  // No-op until event system is properly exported
+}
+function initializeCharacter(characterId) {
+  // No-op until event system is properly exported
+}
+function getActiveEvents() {
+  // No-op until event system is properly exported
+  return []
+}
+function getCharacterEvents(characterId) {
+  // No-op until event system is properly exported
+  return {}
+}
+function getEventSystemStatus() {
+  // No-op until event system is properly exported
+  return { enabled: false }
+}
+function initializeEventSystem() {
+  // No-op until event system is properly exported
+}
 
 const app = express()
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: ['http://localhost:3000', 'http://10.76.29.91:3000', '*'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
   },
+  transport: ['websocket', 'polling'],  // WebSocket 우선, polling fallback
   // 연결 안정화 설정
-  pingTimeout: 30000,      // 30초 타임아웃
-  pingInterval: 10000,     // 10초마다 핑
+  pingTimeout: 60000,      // 60초 타임아웃 (증가)
+  pingInterval: 25000,     // 25초마다 핑 (증가)
   upgradeTimeout: 30000,   // 업그레이드 타임아웃
-  maxHttpBufferSize: 1e6   // 1MB 버퍼
+  maxHttpBufferSize: 1e6,  // 1MB 버퍼
+  allowUpgrades: true,     // HTTP long-polling → WebSocket 업그레이드 허용
+  connectTimeout: 45000,   // 연결 타임아웃
+  // 재연결 설정
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000
 })
 
 // 맵 크기
@@ -377,6 +409,9 @@ io.on('connection', (socket) => {
     // 소켓에 캐릭터 정보 저장 (disconnect에서 사용)
     socket.characterId = character.id
     socket.character = character
+
+    // 소켓을 방에 join (채팅 브로드캐스트 수신을 위해 필수)
+    socket.join(roomId)
 
     // 방에 캐릭터 등록
     room.characters[character.id] = character
@@ -1248,18 +1283,17 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
     console.error('❌ 데이터베이스 초기화 실패:', error)
   }
 
-  // 이벤트 시스템 초기화
-  try {
-    const eventSystemInitialized = initializeEventSystem()
-    console.log('🎪 이벤트 시스템 ' + (eventSystemInitialized ? '초기화 완료' : '초기화 실패'))
-
-    // AI 캐릭터 이벤트 시스템 초기화
-    initializeCharacter(aiCharacter1.id)
-    initializeCharacter(aiCharacter2.id)
-    console.log('📊 AI 캐릭터 이벤트 시스템 초기화 완료')
-  } catch (error) {
-    console.error('❌ 이벤트 시스템 초기화 실패:', error)
-  }
+  // 이벤트 시스템 초기화 (임시 비활성화)
+  // try {
+  //   const eventSystemInitialized = initializeEventSystem()
+  //   console.log('🎪 이벤트 시스템 ' + (eventSystemInitialized ? '초기화 완료' : '초기화 실패'))
+  //   // AI 캐릭터 이벤트 시스템 초기화
+  //   initializeCharacter(aiCharacter1.id)
+  //   initializeCharacter(aiCharacter2.id)
+  //   console.log('📊 AI 캐릭터 이벤트 시스템 초기화 완료')
+  // } catch (error) {
+  //   console.error('❌ 이벤트 시스템 초기화 실패:', error)
+  // }
 })
 
 export { ITEMS, REWARDS }

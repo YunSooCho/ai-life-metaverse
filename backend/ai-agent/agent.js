@@ -406,8 +406,6 @@ function initializeAgent(io, rooms, characterRooms) {
         })
       }
 
-      const room = rooms[roomId]
-
       // 방에 있는 AI 캐릭터 찾기
       const aiCharacterIds = Object.keys(room.characters).filter(
         charId => room.characters[charId].isAi
