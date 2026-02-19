@@ -406,6 +406,61 @@ const buildingSources = {
   }
   ```
 
+#### 버그 수정: Issue #126 채팅 말풍선 표시 안됨 (2026-02-20)
+**원인:**
+1. 백엔드 `socket.to(roomId).emit('chatBroadcast')`는 보내는 소켓 제외
+2. 프론트엔드에서 내 캐릭터의 채팅 말풍선이 렌더링되지 않음
+
+**해결:**
+1. `App.jsx`: 메시지 전송 시 즉시 `chatMessages` 상태 업데이트
+2. `GameCanvas.jsx`: 채팅 버블 렌더링 로직 단순화
+
+**수정 코드 (App.jsx):**
+```javascript
+const sendChatMessage = (message) => {
+  if (message.trim()) {
+    const trimmedMessage = message.trim()
+    const timestamp = Date.now()
+
+    // ✅ 내 캐릭터의 채팅 말풍선 즉시 표시
+    setChatMessages(prev => ({
+      ...prev,
+      [myCharacter.id]: {
+        message: trimmedMessage,
+        timestamp
+      }
+    }))
+
+    // 3초 후 메시지 삭제
+    setTimeout(() => {
+      setChatMessages(prev => {
+        const newMessages = { ...prev }
+        if (newMessages[myCharacter.id]?.message === trimmedMessage) {
+          delete newMessages[myCharacter.id]
+        }
+        return newMessages
+      })
+    }, 3000)
+
+    // 백엔드로 메시지 전송
+    socket.emit('chatMessage', {
+      message: trimmedMessage,
+      characterId: myCharacter.id,
+      roomId: currentRoom.id
+    })
+  }
+}
+```
+
+**수정 코드 (GameCanvas.jsx):**
+```javascript
+// 채팅 버블
+const chatData = msgs[char.id]
+if (chatData?.message) {
+  renderChatBubble(ctx, chatData.message, x, y, CHARACTER_SIZE_SCALED, currentScale)
+}
+```
+
 ### 3. ChatInput - 픽셀 입력창
 - 픽셀 폰트: 'Press Start 2P', 12px
 - 스타일: 레트로 텍스트 박스
