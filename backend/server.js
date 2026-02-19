@@ -14,6 +14,15 @@ import {
   assignQuestToPlayer
 } from './quest.js'
 import { initializeAgent } from './ai-agent/agent.js'
+import {
+  initializeEventSystem,
+  initializeCharacter,
+  getActiveEvents,
+  getCharacterEvents,
+  handleEvent,
+  claimReward,
+  getEventSystemStatus
+} from './event-system/index.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -116,8 +125,9 @@ const eventLogs = {}
 const activeBuildingVisits = {}
 
 // 방(Room) 시스템
-const rooms = {}  // { roomId: { id, name, characters: {}, chatHistory: [], affinities: {} } }
+const rooms = {}  // { roomId: { id, name, characters: {}, chatHistory: [], affinities: {}, capacity: 20 } }
 const DEFAULT_ROOM_ID = 'main'
+const DEFAULT_ROOM_CAPACITY = 20
 
 // 기본 방 생성
 rooms[DEFAULT_ROOM_ID] = {
@@ -125,11 +135,15 @@ rooms[DEFAULT_ROOM_ID] = {
   name: '메인 광장',
   characters: {},
   chatHistory: [],
-  affinities: {}
+  affinities: {},
+  capacity: DEFAULT_ROOM_CAPACITY
 }
 
 // 캐릭터-방 매핑: { characterId: roomId }
 const characterRooms = {}
+
+// 프라이빗 메시지 기록 (캐릭터 ID 기준)
+const privateMessages = {}  // { characterId: [messages] }
 
 // 채팅 히스토리 최대 개수
 const MAX_CHAT_HISTORY = 30
@@ -202,6 +216,18 @@ app.get('/api/buildings', (req, res) => {
   res.json({ buildings })
 })
 
+// 활성 방 목록 조회 API
+app.get('/api/rooms', (req, res) => {
+  const activeRooms = Object.values(rooms).map(room => ({
+    id: room.id,
+    name: room.name,
+    characterCount: Object.keys(room.characters).length,
+    capacity: room.capacity,
+    isFull: Object.keys(room.characters).length >= room.capacity
+  }))
+  res.json({ rooms: activeRooms })
+})
+
 // 방 유틸리티 함수
 function getRoom(roomId) {
   return rooms[roomId] || rooms[DEFAULT_ROOM_ID]
@@ -228,6 +254,19 @@ io.on('connection', (socket) => {
     const roomId = DEFAULT_ROOM_ID  // 기본 방으로 입장
     const room = getRoom(roomId)
 
+    // Capacity 체크
+    const currentCharacterCount = Object.keys(room.characters).length
+    if (currentCharacterCount >= room.capacity) {
+      console.log('⚠️ 방 정원 초과:', room.name, `(${currentCharacterCount}/${room.capacity})`)
+      socket.emit('roomError', {
+        type: 'capacity_exceeded',
+        message: `방 ${room.name}은 정원(${room.capacity})에 도달했습니다.`,
+       roomId,
+        capacity: room.capacity
+      })
+      return
+    }
+
     console.log('📝 캐릭터 등록:', character.name, '→', roomId)
 
     // 소켓에 캐릭터 정보 저장 (disconnect에서 사용)
@@ -242,6 +281,21 @@ io.on('connection', (socket) => {
     initializePlayerQuests(character.id)
     const playerQuests = getPlayerQuests(character.id)
     socket.emit('quests', playerQuests)
+
+    // 이벤트 시스템 초기화
+    try {
+      initializeCharacter(character.id)
+      const characterEvents = getCharacterEvents(character.id)
+      const activeEvents = getActiveEvents()
+      socket.emit('characterEvents', {
+        characterId: character.id,
+        events: characterEvents,
+        active: activeEvents
+      })
+      console.log(`📊 캐릭터 이벤트 시스템 초기화: ${character.name}`)
+    } catch (error) {
+      console.error(`❌ 캐릭터 이벤트 시스템 초기화 실패: ${character.name}`, error)
+    }
 
     // 방 내에 브로드캐스트
     io.to(roomId).emit('characterUpdate', character)
@@ -331,15 +385,49 @@ io.on('connection', (socket) => {
       return
     }
 
+    // 이모지 지원 - 이모지 코드를 변환 (예: :smile: → 😊)
+    const emojiMap = {
+      ':smile:': '😊',
+      ':laugh:': '😂',
+      ':heart:': '❤️',
+      ':thumbsup:': '👍',
+      ':thumbsdown:': '👎',
+      ':fire:': '🔥',
+      ':star:': '⭐',
+      ':celebrate:': '🎉',
+      ':sad:': '😢',
+      ':angry:': '😠',
+      ':love:': '😍',
+      ':cool:': '😎',
+      ':thinking:': '🤔',
+      ':surprised:': '😲',
+      ':sleeping:': '😴',
+      ':poop:': '💩',
+      ':ghost:': '👻',
+      ':skull:': '💀',
+      ':rocket:': '🚀',
+      ':coffee:': '☕',
+      ':pizza:': '🍕',
+      ':burger:': '🍔',
+      ':beer:': '🍺',
+      ':wine:': '🍷'
+    }
+
+    let processedMessage = message
+    for (const [code, emoji] of Object.entries(emojiMap)) {
+      processedMessage = processedMessage.replace(new RegExp(code.replace(/:/g, '\\:'), 'g'), emoji)
+    }
+
     const chatData = {
       characterId,
       characterName: character.name,
-      message,
+      message: processedMessage,
+      originalMessage: message, // 원본 메시지 저장
       timestamp: Date.now(),
       roomId
     }
 
-    console.log('💬 채팅 메시지:', character.name, ':', message, '→', roomId)
+    console.log('💬 채팅 메시지:', character.name, ':', processedMessage, '→', roomId)
 
     // 채팅 히스토리에 저장
     room.chatHistory.push(chatData)
@@ -349,6 +437,96 @@ io.on('connection', (socket) => {
 
     // 방 내에만 브로드캐스트
     io.to(roomId).emit('chatBroadcast', chatData)
+
+    // 이벤트 시스템: 채팅 이벤트 처리
+    handleEvent(characterId, 'chat', { roomName: room.name })
+  })
+
+  // 프라이빗 메시지 (DM) 수신
+  socket.on('privateMessage', (data) => {
+    const { message, characterId, targetCharacterId } = data
+
+    if (!characterId || !targetCharacterId) {
+      console.log('⚠️ 캐릭터 정보 누락 (privateMessage)')
+      return
+    }
+
+    // 보내는 캐릭터 정보 확인
+    const senderRoomId = characterRooms[characterId]
+    const senderRoom = getRoom(senderRoomId)
+    const sender = senderRoom.characters[characterId]
+
+    if (!sender) {
+      console.log('⚠️ 보내는 캐릭터를 찾을 수 없음:', characterId)
+      return
+    }
+
+    // 받는 캐릭터 찾기 (모든 방 검색)
+    let targetSocket = null
+    let targetCharacter = null
+    let targetRoomId = null
+
+    for (const [rid, room] of Object.entries(rooms)) {
+      const target = room.characters[targetCharacterId]
+      if (target) {
+        targetCharacter = target
+        targetRoomId = rid
+        // 해당 캐릭터의 소켓 찾기
+        const sockets = io.sockets.adapter.rooms.get(rid)
+        if (sockets) {
+          for (const socketId of sockets) {
+            const clientSocket = io.sockets.sockets.get(socketId)
+            if (clientSocket && clientSocket.characterId === targetCharacterId) {
+              targetSocket = clientSocket
+              break
+            }
+          }
+        }
+        break
+      }
+    }
+
+    if (!targetCharacter || !targetSocket) {
+      console.log('⚠️ 받는 캐릭터를 찾을 수 없음:', targetCharacterId)
+      socket.emit('privateMessageError', {
+        type: 'target_not_found',
+        message: '대상을 찾을 수 없습니다.'
+      })
+      return
+    }
+
+    const privateMessageData = {
+      characterId,
+      characterName: sender.name,
+      targetCharacterId,
+      targetCharacterName: targetCharacter.name,
+      message,
+      timestamp: Date.now()
+    }
+
+    console.log('📨 프라이빗 메시지:', sender.name, '→', targetCharacter.name, ':', message)
+
+    // 양쪽 소켓에 전송
+    socket.emit('privateMessage', privateMessageData)
+    targetSocket.emit('privateMessage', privateMessageData)
+
+    // 프라이빗 메시지 기록
+    if (!privateMessages[characterId]) {
+      privateMessages[characterId] = []
+    }
+    if (!privateMessages[targetCharacterId]) {
+      privateMessages[targetCharacterId] = []
+    }
+    privateMessages[characterId].push(privateMessageData)
+    privateMessages[targetCharacterId].push(privateMessageData)
+
+    // 히스토리 제한 (최대 50개)
+    if (privateMessages[characterId].length > 50) {
+      privateMessages[characterId].shift()
+    }
+    if (privateMessages[targetCharacterId].length > 50) {
+      privateMessages[targetCharacterId].shift()
+    }
   })
 
   // 캐릭터 클릭 상호작용
@@ -438,6 +616,9 @@ io.on('connection', (socket) => {
       affinity: room.affinities[fromCharacterId][toCharacterId],
       timestamp: timestamp || Date.now()
     })
+
+    // 이벤트 시스템: 상호작용 이벤트 처리
+    handleEvent(fromCharacterId, 'interact', { interactionType, targetCharacterId: toCharacterId })
   })
 
   // 방 목록 요청
@@ -473,10 +654,24 @@ io.on('connection', (socket) => {
         name: `방 ${newRoomId}`,
         characters: {},
         chatHistory: [],
-        affinities: {}
+        affinities: {},
+        capacity: DEFAULT_ROOM_CAPACITY
       }
       rooms[newRoomId] = newRoom
       console.log('🏠 새 방 생성:', newRoom.name)
+    }
+
+    // 새 방 capacity 체크
+    const newRoomCharacterCount = Object.keys(newRoom.characters).length
+    if (newRoomCharacterCount >= newRoom.capacity) {
+      console.log('⚠️ 방 정원 초과:', newRoom.name, `(${newRoomCharacterCount}/${newRoom.capacity})`)
+      socket.emit('roomError', {
+        type: 'capacity_exceeded',
+        message: `방 ${newRoom.name}은 정원(${newRoom.capacity})에 도달했습니다.`,
+        roomId: newRoomId,
+        capacity: newRoom.capacity
+      })
+      return
     }
 
     console.log('🚪 방 이동:', character.name, currentRoomId, '→', newRoomId)
@@ -599,6 +794,9 @@ io.on('connection', (socket) => {
       characterName: character.name,
       enterTime
     })
+
+    // 이벤트 시스템: 건물 방문 이벤트 처리
+    handleEvent(characterId, 'visit_building', { buildingId, buildingName: building.name })
   })
 
   // 건물 퇴장
@@ -792,32 +990,101 @@ io.on('connection', (socket) => {
   socket.on('claimQuestReward', (data) => {
     const { characterId, questId } = data
     const completionResult = completeQuest(characterId, questId)
-    
+
     if (completionResult.success) {
       const reward = getQuestReward(questId)
-      
+
       // 아이템 지급
       if (reward && reward.items) {
         reward.items.forEach(itemData => {
           addItem(characterId, itemData.id, itemData.quantity)
         })
       }
-      
+
       const inventory = getInventory(characterId)
       const playerQuests = getPlayerQuests(characterId)
-      
+
       socket.emit('quests', playerQuests)
       socket.emit('questRewardClaimed', {
         questId,
         reward,
         inventory
       })
-      
+
+      // 이벤트 시스템: 퀘스트 완료 이벤트 처리
+      handleEvent(characterId, 'complete_quest', { questId, difficulty: questId.includes('master') ? 'legendary' : 'normal' })
+
       console.log(`🎉 퀘스트 완료 보상 지급: ${questId} → ${characterId}`)
     } else {
       socket.emit('questRewardClaimFailed', {
         questId,
         error: completionResult.error
+      })
+    }
+  })
+
+  // 이벤트 시스템: 활성 이벤트 목록 요청
+  socket.on('getActiveEvents', (data) => {
+    const activeEvents = getActiveEvents()
+    const systemStatus = getEventSystemStatus()
+    socket.emit('activeEvents', {
+      events: activeEvents,
+      systemStatus
+    })
+  })
+
+  // 이벤트 시스템: 캐릭터 이벤트 목록 요청
+  socket.on('getCharacterEvents', (data) => {
+    const { characterId } = data
+    const characterEvents = getCharacterEvents(characterId)
+    const activeEvents = getActiveEvents()
+    socket.emit('characterEvents', {
+      characterId,
+      events: characterEvents,
+      active: activeEvents
+    })
+  })
+
+  // 이벤트 시스템: 이벤트 리워드 수령
+  socket.on('claimEventReward', (data) => {
+    const { characterId, eventType, eventId } = data
+    const result = claimReward(characterId, eventType, eventId)
+
+    if (result.success) {
+      // 리워드 지급
+      if (result.rewards) {
+        result.rewards.forEach(reward => {
+          if (reward.items) {
+            reward.items.forEach(itemData => {
+              addItem(characterId, itemData.id, itemData.quantity)
+            })
+          }
+          if (reward.experience) {
+            // 경험치 지급 로직 (player 데이터 업데이트 필요)
+          }
+          if (reward.coins) {
+            // 코인 지급 로직 (player 데이터 업데이트 필요)
+          }
+        })
+      }
+
+      const inventory = getInventory(characterId)
+      const characterEvents = getCharacterEvents(characterId)
+
+      socket.emit('eventRewardClaimed', {
+        eventType,
+        eventId,
+        reward: result.reward,
+        inventory,
+        events: characterEvents
+      })
+
+      console.log(`🎉 이벤트 리워드 수령: ${eventType}/${eventId} → ${characterId}`)
+    } else {
+      socket.emit('eventRewardClaimFailed', {
+        eventType,
+        eventId,
+        error: result.message
       })
     }
   })
@@ -867,6 +1134,19 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
   console.log('🏠 기본 방:', rooms[DEFAULT_ROOM_ID].name, `(${DEFAULT_ROOM_ID})`)
   console.log('✅ AI 캐릭터 1:', aiCharacter1.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter1.x}, ${aiCharacter1.y})`)
   console.log('✅ AI 캐릭터 2:', aiCharacter2.name, `→ ${DEFAULT_ROOM_ID} (${aiCharacter2.x}, ${aiCharacter2.y})`)
+
+  // 이벤트 시스템 초기화
+  try {
+    const eventSystemInitialized = initializeEventSystem()
+    console.log('🎪 이벤트 시스템 ' + (eventSystemInitialized ? '초기화 완료' : '초기화 실패'))
+
+    // AI 캐릭터 이벤트 시스템 초기화
+    initializeCharacter(aiCharacter1.id)
+    initializeCharacter(aiCharacter2.id)
+    console.log('📊 AI 캐릭터 이벤트 시스템 초기화 완료')
+  } catch (error) {
+    console.error('❌ 이벤트 시스템 초기화 실패:', error)
+  }
 })
 
 export { ITEMS, REWARDS }

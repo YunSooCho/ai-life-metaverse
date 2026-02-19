@@ -629,5 +629,330 @@ function getTimeOfDayReaction(characterId, type = 'greeting')
 
 ---
 
+## Phase 8: 멀티플레이어 확장 - 채팅 & 방 시스템 강화 (✅ 구현 완료 2026-02-19)
+
+### 개요
+Phase 8는 멀티플레이어 시스템을 확장하여 더 풍부한 소셜 경험을 제공합니다. 방 capacity 제한, 프라이빗 메시지, 이모지 지원, 활성 방 목록 조회 API를 포함합니다.
+
+### 방 Capacity 제한
+
+**기능:**
+- 방별 최대 인원 제한 (기본값: 20명)
+- 입장 시 capacity 체크
+- 정원 초과 시 에러 메시지 반환
+
+**기본 설정:**
+| 설정 | 값 | 설명 |
+|------|-----|------|
+| DEFAULT_ROOM_CAPACITY | 20 | 기본 방 최대 인원 |
+
+**방 데이터 구조 (변경):**
+```javascript
+{
+  id: 'main',
+  name: '메인 광장',
+  characters: {},
+  chatHistory: [],
+  affinities: {},
+  capacity: 20  // ✅ 추가됨
+}
+```
+
+**Socket.io 이벤트 (변경):**
+| 이벤트 | 방향 | 파라미터 | 설명 |
+|--------|------|----------|------|
+| `roomError` | Server→Client | `{type, message, roomId, capacity}` | 방 에러 (capacity 초과 등) |
+
+**roomError 이벤트 타입:**
+- `capacity_exceeded`: 방 정원 초과
+
+**roomError 예시:**
+```javascript
+{
+  type: 'capacity_exceeded',
+  message: '방 메인 광장은 정원(20)에 도달했습니다.',
+  roomId: 'main',
+  capacity: 20
+}
+```
+
+**Capacity 체크 로직 (server.js):**
+```javascript
+// join 이벤트에서
+const currentCharacterCount = Object.keys(room.characters).length
+if (currentCharacterCount >= room.capacity) {
+  socket.emit('roomError', {
+    type: 'capacity_exceeded',
+    message: `방 ${room.name}은 정원(${room.capacity})에 도달했습니다.`,
+   roomId,
+    capacity: room.capacity
+  })
+  return
+}
+
+// changeRoom 이벤트에서도 동일하게 적용
+```
+
+### 프라이빗 메시지 (DM - Private Message)
+
+**기능:**
+- 1:1 개인 메시지 전송
+- 메시지 히스토리 기록 (최대 50개)
+- 양쪽 소켓에 동시 전송
+
+**데이터 저장:**
+```javascript
+const privateMessages = {}  // { characterId: [messages] }
+```
+
+**프라이빗 메시지 구조:**
+```javascript
+{
+  characterId: 'char-1',
+  characterName: 'Char 1',
+  targetCharacterId: 'char-2',
+  targetCharacterName: 'Char 2',
+  message: 'Hello!',
+  timestamp: 1700000000000
+}
+```
+
+**Socket.io 이벤트:**
+| 이벤트 | 방향 | 파라미터 | 설명 |
+|--------|------|----------|------|
+| `privateMessage` | Client→Server | `{characterId, targetCharacterId, message}` | 프라이빗 메시지 전송 |
+| `privateMessage` | Server→Client | `{characterId, characterName, targetCharacterId, targetCharacterName, message, timestamp}` | 프라이빗 메시지 수신 |
+| `privateMessageError` | Server→Client | `{type, message}` | 프라이빗 메시지 에러 |
+
+**privateMessageError 이벤트 타입:**
+- `target_not_found`: 대상 캐릭터를 찾을 수 없음
+
+**프라이빗 메시지 처리 로직:**
+```javascript
+socket.on('privateMessage', (data) => {
+  const { message, characterId, targetCharacterId } = data
+
+  // 보내는 캐릭터 확인
+  const senderRoom = getRoom(characterRooms[characterId])
+  const sender = senderRoom.characters[characterId]
+
+  // 받는 캐릭터 찾기 (모든 방 검색)
+  let targetCharacter = null
+  let targetSocket = null
+  for (const [rid, room] of Object.entries(rooms)) {
+    const target = room.characters[targetCharacterId]
+    if (target) {
+      targetCharacter = target
+      // 해당 캐릭터의 소켓 찾기
+      const sockets = io.sockets.adapter.rooms.get(rid)
+      if (sockets) {
+        for (const socketId of sockets) {
+          const clientSocket = io.sockets.sockets.get(socketId)
+          if (clientSocket && clientSocket.characterId === targetCharacterId) {
+            targetSocket = clientSocket
+            break
+          }
+        }
+      }
+      break
+    }
+  }
+
+  if (!targetCharacter || !targetSocket) {
+    socket.emit('privateMessageError', {
+      type: 'target_not_found',
+      message: '대상을 찾을 수 없습니다.'
+    })
+    return
+  }
+
+  // 프라이빗 메시지 생성
+  const privateMessageData = {
+    characterId,
+    characterName: sender.name,
+    targetCharacterId,
+    targetCharacterName: targetCharacter.name,
+    message,
+    timestamp: Date.now()
+  }
+
+  // 양쪽 소켓에 전송
+  socket.emit('privateMessage', privateMessageData)
+  targetSocket.emit('privateMessage', privateMessageData)
+
+  // 프라이빗 메시지 기록
+  if (!privateMessages[characterId]) {
+    privateMessages[characterId] = []
+  }
+  if (!privateMessages[targetCharacterId]) {
+    privateMessages[targetCharacterId] = []
+  }
+  privateMessages[characterId].push(privateMessageData)
+  privateMessages[targetCharacterId].push(privateMessageData)
+
+  // 히스토리 제한 (최대 50개)
+  if (privateMessages[characterId].length > 50) {
+    privateMessages[characterId].shift()
+  }
+  if (privateMessages[targetCharacterId].length > 50) {
+    privateMessages[targetCharacterId].shift()
+  }
+})
+```
+
+### 이모지 지원 (Emoji Support)
+
+**기능:**
+- 채팅 메시지에서 이모지 코드 변환
+- 자동 이모지 맵 적용
+
+**지원되는 이모지 코드:**
+| 코드 | 이모지 | 설명 |
+|------|-------|------|
+| `:smile:` | 😊 | 웃음 |
+| `:laugh:` | 😂 | 크게 웃음 |
+| `:heart:` | ❤️ | 하트 |
+| `:thumbsup:` | 👍 | 엄지척 |
+| `:thumbsdown:` | 👎 | 엄지내림 |
+| `:fire:` | 🔥 | 불 |
+| `:star:` | ⭐ | 별 |
+| `:celebrate:` | 🎉 | 축하 |
+| `:sad:` | 😢 | 슬픔 |
+| `:angry:` | 😠 | 화남 |
+| `:love:` | 😍 | 사랑 |
+| `:cool:` | 😎 | 쿨 |
+| `:thinking:` | 🤔 | 생각 |
+| `:surprised:` | 😲 | 놀람 |
+| `:sleeping:` | 😴 | 취침 |
+| `:poop:` | 💩 | 똥 |
+| `:ghost:` | 👻 | 유령 |
+| `:skull:` | 💀 | 해골 |
+| `:rocket:` | 🚀 | 로켓 |
+| `:coffee:` | ☕ | 커피 |
+| `:pizza:` | 🍕 | 피자 |
+| `:burger:` | 🍔 | 햄버거 |
+| `:beer:` | 🍺 | 맥주 |
+| `:wine:` | 🍷 | 와인 |
+
+**이모지 변환 로직:**
+```javascript
+const emojiMap = {
+  ':smile:': '😊',
+  ':laugh:': '😂',
+  ':heart:': '❤️',
+  ':thumbsup:': '👍',
+  // ... 더 많은 이모지
+}
+
+let processedMessage = message
+for (const [code, emoji] of Object.entries(emojiMap)) {
+  processedMessage = processedMessage.replace(new RegExp(code.replace(/:/g, '\\:'), 'g'), emoji)
+}
+
+const chatData = {
+  characterId,
+  characterName: character.name,
+  message: processedMessage,
+  originalMessage: message,  // 원본 메시지 저장
+  timestamp: Date.now(),
+  roomId
+}
+```
+
+### 활성 방 목록 조회 API (Active Rooms API)
+
+**HTTP GET API:**
+- **URL:** `/api/rooms`
+- **Method:** GET
+- **Response:**
+```javascript
+{
+  "rooms": [
+    {
+      "id": "main",
+      "name": "메인 광장",
+      "characterCount": 5,
+      "capacity": 20,
+      "isFull": false
+    },
+    {
+      "id": "room2",
+      "name": "방 2",
+      "characterCount": 20,
+      "capacity": 20,
+      "isFull": true
+    }
+  ]
+}
+```
+
+**API 라우트 구현 (server.js):**
+```javascript
+app.get('/api/rooms', (req, res) => {
+  const activeRooms = Object.values(rooms).map(room => ({
+    id: room.id,
+    name: room.name,
+    characterCount: Object.keys(room.characters).length,
+    capacity: room.capacity,
+    isFull: Object.keys(room.characters).length >= room.capacity
+  }))
+  res.json({ rooms: activeRooms })
+})
+```
+
+**방 정보 필드:**
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `id` | string | 방 ID |
+| `name` | string | 방 이름 |
+| `characterCount` | number | 현재 인원 |
+| `capacity` | number | 최대 인원 |
+| `isFull` | boolean | 정원 도달 여부 |
+
+### 테스트 코드
+
+**테스트 파일:** `backend/tests/multiplayer.test.js`
+
+**테스트 항목:**
+1. **Capacity Check**
+   - Capacity 도달 전 입장 허용
+   - Capacity 제한 체크
+
+2. **Emoji Support**
+   - 이모지 코드 변환
+   - 동일 이모지 코드 다중 처리
+   - 이모지 코드 없는 메시지 처리
+
+3. **Chat History Management**
+   - 채팅 히스토리 제한 (최대 30개)
+   - 최신 메시지 유지
+
+4. **Active Rooms API**
+   - 방 정보 반환
+   - 인원 수 업데이트
+
+5. **Private Message System**
+   - 새 사용자 빈 기록 생성
+   - 프라이빗 메시지 기록 추가
+   - 기록 제한 (최대 50개)
+
+**테스트 결과:** 12/12 ✅
+
+### 추가 기능 요약
+
+| 기능 | 설명 | 구현 상태 |
+|------|------|-----------|
+| 방 Capacity 제한 | 방별 최대 인원 제한 | ✅ |
+| 프라이빗 메시지 | 1:1 DM 전송 | ✅ |
+| 이모지 지원 | 이모지 코드 변환 | ✅ |
+| 활성 방 목록 API | /api/rooms 엔드포인트 | ✅ |
+
+### GitHub Issue
+
+- **#100** Phase 8: 멀티플레이어 확장 - 채팅 & 방 시스템 강화
+
+---
+
 *마지막 업데이트: 2026-02-19*
 *GitHub Issue #95 완료: Phase 6 - AI 캐릭터 관계 시스템 (친밀도, 대화, 반응)*
+*GitHub Issue #100 완료: Phase 8 - 멀티플레이어 확장 (capacity, DM, 이모지, API)*
