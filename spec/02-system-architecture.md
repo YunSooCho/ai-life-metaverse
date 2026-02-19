@@ -71,6 +71,59 @@
 - **ai-agent/character.js**: 캐릭터 대화 로직
 - **routes/*.js**: REST API 라우트
 
+#### 월드 시스템 (world-system/) ✅ (2026-02-19 완료)
+
+맵 유형별 건물, NPC, 지형 데이터를 관리하는 월드 확장 시스템
+
+- **buildings.js**: 맵 유형별 건물 데이터 시스템
+  - 맵 유형: default, beach, forest, mountain
+  - 건물 데이터 구조: ID, 이름, 위치 (x, y), 크기 (width, height), 타입, 색상, mapType, description
+  - 기능:
+    - `getBuildingsByMap(mapType)`: 맵 유형별 건물 목록
+    - `findBuildingById(buildingId)`: 건물 ID로 찾기
+    - `getAllBuildings()`: 모든 건물 목록
+
+- **maps.js**: 맵 데이터 시스템
+  - 4개 맵:
+    - 메인 광장 (default): 1000x700, 기본 건물 5개
+    - 해변 (beach): 1200x800, 건물 3개, 바다/모래사장/파도
+    - 숲 (forest): 1100x750, 건물 3개, 나무/강/동굴
+    - 산맥 (mountain): 1300x900, 건물 3개, 산/눈/구름
+  - 맵 데이터 구조: ID, 이름, 크기, 배경색, 지형색, 설명, 피처(features), 날씨(weather)
+  - 피처 타입: pavement, decorative_tree, fountain, sand, sea, wave, umbrella, palm_tree, tree_cluster, stream, fireflies, mountain_peak, snow, mountain_base, pine_tree, cloud
+  - 기능:
+    - `getMap(mapId)`: 맵 데이터 가져오기
+    - `getAllMaps()`: 모든 맵 목록
+    - `mapExists(mapId)`: 맵 존재 여부
+    - `getMapFeaturesForRendering(mapId)`: 렌더링용 피처 데이터
+
+- **npcs.js**: NPC (새로운 AI 캐릭터) 데이터 시스템
+  - 캐릭터 데이터 구조: ID, 이름, 위치 (x, y), 색상, 이모지, isAi(true), mapType, description, personality
+  - 개인성(personality) 타입: friendly, energetic, responsible, adventurous, calm, knowledgeable, wild, confident, determined, hospitable
+  - 맵 유형별 NPC:
+    - default: AI 유리, AI 히카리 (2개)
+    - beach: 수영 선생님, 서퍼, 낚꾼 (3개)
+    - forest: 숲길 안내인, 야생 동물, 등산객 (3개)
+    - mountain: 스키 강사, 산악 등반가, 산장 주인 (3개)
+  - 기능:
+    - `getNPCsByMap(mapType)`: 맵 유형별 NPC 목록
+    - `findNPCById(npcId)`: NPC ID로 찾기
+    - `getAllNPCs()`: 모든 NPC 목록
+    - `getNPCIntroduction(npc)`: NPC 소개 텍스트 생성
+
+- **index.js**: 월드 시스템 통합 모듈
+  - `initializeWorldSystem()`: 월드 시스템 초기화 및 모든 데이터 로드
+  - `getMapCompleteData(mapId)`: 맵 단위 완전 데이터 (맵 + 건물 + NPC)
+
+**테스트 커버리지:**
+- buildings.test.js: 18개 테스트 전체 통과
+- maps.test.js: 24개 테스트 전체 통과
+- npcs.test.js: 23개 테스트 전체 통과
+- index.test.js: 22개 테스트 전체 통과
+- **총 87개 테스트 전체 통과**
+
+**추가일:** 2026-02-19
+
 #### 데이터 영속성 시스템 (Redis/DB) ✅
 
 - **backend/utils/redis-client.js**: Redis 클라이언트 연결 관리
@@ -154,3 +207,56 @@
 1. **캐릭터 이동**: 클라이언트 → `move` 이벤트 → 서버 업데이트 → `characterUpdate` 브로드캐스트
 2. **채팅**: 클라이언트 → `chatMessage` → 서버 저장 → `chatBroadcast` 브로드캐스트
 3. **AI 대화**: 클라이언트 → `chatMessage` → 서버 → GLM-4.7 API → 응답 → `chatBroadcast` 브로드캐스트
+
+### 이벤트 시스템 (event-system/) ✅ (2026-02-19 완료)
+
+시즌, 특별 이벤트, 일일/주간 퀘스트를 관리하는 이벤트 시스템
+
+- **event-manager.js**: 이벤트 관리 시스템
+  - 이벤트 등록, 활성화, 비활성화
+  - 기능: `registerEvent`, `activateEvent`, `deactivateEvent`, `getActiveEvents`, `joinEvent`, `claimEventReward`, `getEventStats`
+  - 이벤트 타입: seasonal, special, daily, weekly
+
+- **seasonal-event.js**: 시즌 이벤트 시스템
+  - 시즌: spring (봄), summer (여름), autumn (가을), winter (겨울)
+  - 시즌별 데이터: 색상, 아이템, 보상, 설명
+  - 기능: `getCurrentSeason`, `getSeasonalColors`, `getSeasonalItems`, `getSeasonalRewards`, `createSeasonalEvents`
+  - 시즌별 맞춤 테마와 보상 시스템
+
+- **special-event.js**: 특별 이벤트 시스템
+  - 특별 이벤트: halloween (할로완), christmas (크리스마스), new_year (신년), valentine (발렌타인), anniversary (기념일)
+  - 이벤트 데이터: 이름, 이모지, 설명, 기간, 색상, 특별 아이템, 활동
+  - 기능: `createSpecialEvent`, `getActiveSpecialEvents`, `joinSpecialEvent`, `getSpecialItem`, `completeSpecialActivity`
+  - 기간 내 맞춤 이벤트 자동 활성화
+
+- **daily-quest.js**: 일일 퀘스트 시스템
+  - 일일 퀘스트 카테고리: social, exploration, collection, combat, event
+  - 퀘스트 난이도: easy, normal, hard
+  - 기능: `createDailyQuests`, `updateQuestProgress`, `claimQuestReward`, `getCharacterDailyQuests`, `getDailyQuestStats`
+  - 매일 23:59:59 리셋
+
+- **weekly-quest.js**: 주간 퀘스트 시스템
+  - 주간 퀘스트 카테고리: social, exploration, collection, mastery, event
+  - 기능: `createWeeklyQuests`, `updateQuestProgress`, `claimQuestReward`, `getCharacterWeeklyQuests`, `getWeeklyQuestStats`, `getRemainingWeekInfo`
+  - 일요일 23:59:59 리셋
+
+- **event-reward.js**: 이벤트 보상 시스템
+  - 보상 유형: experience, coin, item, title, costume, decoration
+  - 보상 티어: common (60%), rare (30%), epic (8%), legendary (2%)
+  - 기능: `createReward`, `giveReward`, `generateRandomReward`, `drawFromRewardPool`, `getRewardStats`
+  - 확률 기반 랜덤 보상 시스템
+
+- **index.js**: 이벤트 시스템 통합 모듈
+  - `EventSystem`: 모든 이벤트 서브시스템 통합
+  - 기능: `initialize`, `createCharacterDailyQuests`, `createCharacterWeeklyQuests`, `joinEvent`, `claimEventReward`, `claimQuestReward`, `getActiveEvents`, `getCharacterQuests`, `getSystemStats`
+
+**테스트 커버리지:**
+- event-manager.test.js: 13개 테스트 ✅
+- seasonal-event.test.js: 22개 테스트 ✅
+- special-event.test.js: 28개 테스트 ✅
+- daily-quest.test.js: 30개 테스트 ✅
+- weekly-quest.test.js: 26개 테스트 ✅
+- event-reward.test.js: 32개 테스트 ✅
+- index.test.js: 19개 테스트 ✅
+
+**추가일:** 2026-02-19

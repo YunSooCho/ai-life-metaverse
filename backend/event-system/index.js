@@ -1,269 +1,308 @@
 /**
- * Event System - 이벤트 시스템 메인
- * Phase 7: 이벤트 시스템
+ * event-system/index.js
  *
- * 시즌 이벤트, 특별 이벤트, 일일/주간 퀘스트, 리워드 시스템 통합
+ * 이벤트 시스템 통합 모듈
+ * SeasonalEvent, SpecialEvent, DailyQuest, WeeklyQuest, EventReward 통합
  */
 
-import * as SeasonalEventManager from './seasonal-event-manager.js';
-import * as SpecialEventManager from './special-event-manager.js';
-import * as EventRewardSystem from './event-reward-system.js';
-import * as DailyQuestManager from './daily-quest-manager.js';
-import * as EventProgressManager from './event-progress-manager.js';
-import * as EventData from './event-data.js';
-
-// Export all modules
-export {
-  // Seasonal Event Manager
-  getCurrentSeasonInfo,
-  getSeasonEvents,
-  getAllSeasonalEvents,
-  getActiveSeasonEvents,
-  getCurrentSeason,
-  getCurrentYear,
-  startSeason,
-  endSeason,
-  updateSeasonEventProgress,
-  claimSeasonEventReward,
-  getCharacterSeasonEvents,
-  initializeCharacterSeasonEvents
-} from './seasonal-event-manager.js';
-
-export {
-  // Special Event Manager
-  getSpecialEvent,
-  getAllSpecialEvents,
-  getActiveSpecialEvents,
-  isEventActive,
-  activateSpecialEvent,
-  deactivateSpecialEvent,
-  updateSpecialEventProgress,
-  claimSpecialEventReward,
-  getCharacterSpecialEvents,
-  initializeCharacterSpecialEvents,
-  applyEventEffects,
-  removeEventEffects
-} from './special-event-manager.js';
-
-export {
-  // Event Reward System
-  createReward,
-  grantReward,
-  grantRewardsByEvent,
-  grantExperience,
-  grantCoins,
-  grantItem,
-  grantStatsBoost,
-  grantTitle,
-  saveRewardHistory,
-  getRewardHistory,
-  hasClaimedReward
-} from './event-reward-system.js';
-
-export {
-  // Daily/Weekly Quest Manager
-  getDailyQuests,
-  getWeeklyQuests,
-  updateDailyQuestProgress,
-  updateWeeklyQuestProgress,
-  updateQuestProgressByEventType,
-  completeQuest,
-  resetDailyQuests,
-  resetWeeklyQuests,
-  shouldResetDaily,
-  shouldResetWeekly,
-  initializeCharacterQuests
-} from './daily-quest-manager.js';
-
-export {
-  // Event Progress Manager
-  getEventProgress,
-  saveEventProgress,
-  initializeEventProgress,
-  updateTaskProgress,
-  completeTask,
-  initializeSeasonEventProgress,
-  initializeSpecialEventProgress,
-  initializeDailyQuestProgress,
-  initializeWeeklyQuestProgress,
-  resetDailyQuests,
-  resetWeeklyQuests,
-  shouldResetDaily,
-  shouldResetWeekly,
-  markEventCompleted,
-  markRewardClaimed,
-  hasClaimedReward
-} from './event-progress-manager.js';
-
-export {
-  // Event Data
-  SEASONAL_EVENTS,
-  SPECIAL_EVENTS,
-  DAILY_QUEST_TEMPLATES,
-  WEEKLY_QUEST_TEMPLATES,
-  getCurrentSeason,
-  getCurrentYear,
-  getCurrentWeekNumber,
-  getTodayDateString,
-  getWeekDateString,
-  isEventActive,
-  makeSeasonId,
-  makeSpecialEventId,
-  makeDailyQuestId,
-  makeWeeklyQuestId
-} from './event-data.js';
+const { EventManager, eventManager } = require('./event-manager');
+const { SeasonalEvent, seasonalEvent, Season, SEASON_DATA } = require('./seasonal-event');
+const { SpecialEvent, specialEvent, SpecialEventType, SPECIAL_EVENT_DATA } = require('./special-event');
+const { DailyQuest, dailyQuest, DailyQuestCategory, DAILY_QUEST_TEMPLATES } = require('./daily-quest');
+const { WeeklyQuest, weeklyQuest, WeeklyQuestCategory, WEEKLY_QUEST_TEMPLATES } = require('./weekly-quest');
+const { EventReward, eventReward, RewardType, RewardTier } = require('./event-reward');
 
 /**
- * 이벤트 시스템 초기화
+ * EventSystem 클래스
+ * 모든 이벤트 관련 시스템을 통합
  */
-export function initializeEventSystem() {
-  console.log('[Event System] Initializing...');
-
-  // Redis 연결 확인
-  const { isRedisEnabled } = require('../utils/redis-client.js');
-  if (!isRedisEnabled()) {
-    console.warn('[Event System] Redis is disabled. Event system running in memory mode.');
+class EventSystem {
+  constructor() {
+    this.eventManager = eventManager;
+    this.seasonalEvent = seasonalEvent;
+    this.specialEvent = specialEvent;
+    this.dailyQuest = dailyQuest;
+    this.weeklyQuest = weeklyQuest;
+    this.eventReward = eventReward;
+    this.initialized = false;
   }
 
-  console.log('[Event System] Event system initialized.');
-  return true;
-}
+  /**
+   * 이벤트 시스템 초기화
+   * @param {Object} options - 초기화 옵션
+   * @returns {boolean} 초기화 성공 여부
+   */
+  initialize(options = {}) {
+    if (this.initialized) {
+      console.warn('EventSystem: Already initialized');
+      return true;
+    }
 
-/**
- * 캐릭터 이벤트 시스템 초기화
- * 캐릭터 생성/로그인 시 호출
- */
-export function initializeCharacter(characterId) {
-  console.log(`[Event System] Initializing character ${characterId}...`);
+    const { autoCreateSeasonalEvents = true, autoCreateSpecialEvents = false } = options;
 
-  try {
-    // 시즌 이벤트 초기화
-    SeasonalEventManager.initializeCharacterSeasonEvents(characterId);
+    // 시즌 이벤트 생성
+    if (autoCreateSeasonalEvents) {
+      const currentSeason = this.seasonalEvent.getCurrentSeason();
+      const seasonalEvents = this.seasonalEvent.createSeasonalEvents();
 
-    // 특별 이벤트 초기화
-    SpecialEventManager.initializeCharacterSpecialEvents(characterId);
+      seasonalEvents.forEach(event => {
+        this.eventManager.registerEvent(event);
+        this.eventManager.activateEvent(event.id);
+      });
 
-    // 일일/주간 퀘스트 초기화
-    DailyQuestManager.initializeCharacterQuests(characterId);
+      console.log(`EventSystem: Initialized with ${currentSeason} season`);
+    }
 
-    console.log(`[Event System] Character ${characterId} initialized.`);
+    // 특별 이벤트 생성 (선택)
+    if (autoCreateSpecialEvents) {
+      // 오늘 날짜에 해당하는 특별 이벤트 생성
+      this.createActiveSpecialEvents();
+    }
+
+    this.initialized = true;
+    console.log('EventSystem: System initialized successfully');
     return true;
-  } catch (error) {
-    console.error('[Event System] Failed to initialize character:', error);
+  }
+
+  /**
+   * 현재 활성화된 특별 이벤트 생성
+   */
+  createActiveSpecialEvents() {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const year = now.getFullYear();
+
+    // 할로윈 (10월 25일 ~ 11월 1일)
+    if ((month === 10 && day >= 25) || (month === 11 && day <= 1)) {
+      const halloweenEvent = this.specialEvent.createSpecialEvent('halloween', year);
+      if (halloweenEvent) {
+        this.eventManager.registerEvent(halloweenEvent);
+        this.specialEvent.activateSpecialEvent(halloweenEvent.id);
+      }
+    }
+
+    // 크리스마스 (12월 20일 ~ 12월 31일)
+    if (month === 12 && day >= 20) {
+      const christmasEvent = this.specialEvent.createSpecialEvent('christmas', year);
+      if (christmasEvent) {
+        this.eventManager.registerEvent(christmasEvent);
+        this.specialEvent.activateSpecialEvent(christmasEvent.id);
+      }
+    }
+
+    // 신년 (1월 1일 ~ 1월 3일)
+    if (month === 1 && day <= 3) {
+      const newYearEvent = this.specialEvent.createSpecialEvent('new_year', year);
+      if (newYearEvent) {
+        this.eventManager.registerEvent(newYearEvent);
+        this.specialEvent.activateSpecialEvent(newYearEvent.id);
+      }
+    }
+
+    // 발렌타인 (2월 10일 ~ 2월 15일)
+    if (month === 2 && day >= 10 && day <= 15) {
+      const valentineEvent = this.specialEvent.createSpecialEvent('valentine', year);
+      if (valentineEvent) {
+        this.eventManager.registerEvent(valentineEvent);
+        this.specialEvent.activateSpecialEvent(valentineEvent.id);
+      }
+    }
+  }
+
+  /**
+   * 캐릭터용 일일 퀘스트 생성
+   * @param {string} characterId - 캐릭터 ID
+   * @returns {Array} 일일 퀘스트 목록
+   */
+  createCharacterDailyQuests(characterId) {
+    if (!this.dailyQuest.isTodayQuestsValid(characterId)) {
+      return this.dailyQuest.createDailyQuests(characterId);
+    }
+
+    return this.dailyQuest.getCharacterDailyQuests(characterId);
+  }
+
+  /**
+   * 캐릭터용 주간 퀘스트 생성
+   * @param {string} characterId - 캐릭터 ID
+   * @returns {Array} 주간 퀘스트 목록
+   */
+  createCharacterWeeklyQuests(characterId) {
+    if (!this.weeklyQuest.isThisWeekQuestsValid(characterId)) {
+      return this.weeklyQuest.createWeeklyQuests(characterId);
+    }
+
+    return this.weeklyQuest.getCharacterWeeklyQuests(characterId);
+  }
+
+  /**
+   * 이벤트 참가
+   * @param {string} characterId - 캐릭터 ID
+   * @param {string} eventId - 이벤트 ID
+   * @returns {boolean} 참가 성공 여부
+   */
+  joinEvent(characterId, eventId) {
+    const event = this.eventManager.getEventById(eventId);
+
+    if (!event) {
+      return false;
+    }
+
+    // 시즌 이벤트
+    if (event.type === 'seasonal') {
+      return this.eventManager.joinEvent(eventId, characterId);
+    }
+
+    // 특별 이벤트
+    if (event.type === 'special') {
+      return this.specialEvent.joinSpecialEvent(eventId, characterId);
+    }
+
     return false;
   }
-}
 
-/**
- * 활성 이벤트 목록 조회
- */
-export function getActiveEvents() {
-  const seasonEvents = SeasonalEventManager.getActiveSeasonEvents().map(e => ({
-    ...e,
-    category: 'seasonal'
-  }));
+  /**
+   * 이벤트 보상 수령
+   * @param {string} characterId - 캐릭터 ID
+   * @param {string} eventId - 이벤트 ID
+   * @returns {Object|null} 보상 데이터
+   */
+  claimEventReward(characterId, eventId) {
+    const event = this.eventManager.getEventById(eventId);
 
-  const specialEvents = SpecialEventManager.getActiveSpecialEvents().map(e => ({
-    ...e,
-    category: 'special'
-  }));
-
-  return [...seasonEvents, ...specialEvents];
-}
-
-/**
- * 캐릭터의 모든 이벤트 목록 조회
- */
-export function getCharacterEvents(characterId) {
-  return {
-    seasonal: SeasonalEventManager.getCharacterSeasonEvents(characterId),
-    special: SpecialEventManager.getCharacterSpecialEvents(characterId),
-    daily: DailyQuestManager.getDailyQuests(characterId),
-    weekly: DailyQuestManager.getWeeklyQuests(characterId)
-  };
-}
-
-/**
- * 이벤트 태스크 진행 처리
- * 게임 내 이벤트 발생 시 호출
- */
-export function handleEvent(characterId, eventType, data = {}) {
-  let results = {
-    seasonalUpdated: false,
-    specialUpdated: false,
-    dailyUpdated: false,
-    weeklyUpdated: false
-  };
-
-  try {
-    // 시즌 이벤트 업데이트
-    if (SeasonalEventManager.updateSeasonEventProgress(characterId, eventType, data.amount || 1)) {
-      results.seasonalUpdated = true;
+    if (!event) {
+      return null;
     }
 
-    // 특별 이벤트 업데이트
-    if (SpecialEventManager.updateSpecialEventProgress(characterId, eventType, data.amount || 1)) {
-      results.specialUpdated = true;
+    // 보상 획득
+    const reward = this.eventManager.claimEventReward(eventId, characterId);
+
+    if (!reward) {
+      return null;
     }
 
-    // 일일 퀘스트 업데이트
-    if (DailyQuestManager.updateDailyQuestProgress(characterId, eventType, data)) {
-      results.dailyUpdated = true;
-    }
-
-    // 주간 퀘스트 업데이트
-    if (DailyQuestManager.updateWeeklyQuestProgress(characterId, eventType, data)) {
-      results.weeklyUpdated = true;
-    }
-
-    return results;
-  } catch (error) {
-    console.error('[Event System] Failed to handle event:', error);
-    return results;
+    // 보상 지급
+    return this.eventReward.giveReward(characterId, reward, eventId);
   }
-}
 
-/**
- * 리워드 수령
- */
-export function claimReward(characterId, eventType, eventId) {
-  switch (eventType) {
-    case 'seasonal':
-      return SeasonalEventManager.claimSeasonEventReward(characterId, eventId);
-    case 'special':
-      return SpecialEventManager.claimSpecialEventReward(characterId, eventId);
-    case 'daily':
-    case 'weekly':
-      return DailyQuestManager.completeQuest(characterId, eventId);
-    default:
-      return {
-        success: false,
-        message: '알 수 없는 이벤트 타입'
-      };
+  /**
+   * 퀘스트 보상 수령
+   * @param {string} characterId - 캐릭터 ID
+   * @param {string} questId - 퀘스트 ID
+   * @param {string} questType - 퀘스트 유형 ('daily', 'weekly')
+   * @returns {Object|null} 보상 데이터
+   */
+  claimQuestReward(characterId, questId, questType = 'daily') {
+    let reward;
+
+    if (questType === 'daily') {
+      reward = this.dailyQuest.claimQuestReward(characterId, questId);
+    } else if (questType === 'weekly') {
+      reward = this.weeklyQuest.claimQuestReward(characterId, questId);
+    } else {
+      return null;
+    }
+
+    if (!reward) {
+      return null;
+    }
+
+    // 보상 지급
+    return this.eventReward.giveReward(characterId, reward, questType);
   }
-}
 
-/**
- * 이벤트 시스템 상태 조회
- */
-export function getEventSystemStatus() {
-  try {
-    const { isRedisEnabled } = require('../utils/redis-client.js');
+  /**
+   * 활성 이벤트 목록 조회
+   * @returns {Array} 활성 이벤트 목록
+   */
+  getActiveEvents() {
+    const seasonalEvents = this.eventManager.getActiveEvents();
+    const specialEvents = this.specialEvent.getActiveSpecialEvents();
 
+    return [...seasonalEvents, ...specialEvents];
+  }
+
+  /**
+   * 캐릭터의 퀘스트 조회
+   * @param {string} characterId - 캐릭터 ID
+   * @returns {Object} 일일/주간 퀘스트
+   */
+  getCharacterQuests(characterId) {
     return {
-      enabled: true,
-      redisEnabled: isRedisEnabled(),
-      currentSeason: EventData.getCurrentSeason(),
-      currentYear: EventData.getCurrentYear(),
-      activeSeasonEvents: SeasonalEventManager.getActiveSeasonEvents().length,
-      activeSpecialEvents: SpecialEventManager.getActiveSpecialEvents().length,
-      timestamp: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('[Event System] Failed to get status:', error);
-    return {
-      enabled: false,
-      error: error.message
+      daily: this.dailyQuest.getCharacterDailyQuests(characterId),
+      weekly: this.weeklyQuest.getCharacterWeeklyQuests(characterId)
     };
   }
+
+  /**
+   * 시스템 통계
+   * @returns {Object} 통계 데이터
+   */
+  getSystemStats() {
+    const activeEvents = this.getActiveEvents();
+
+    return {
+      initialized: this.initialized,
+      currentSeason: this.seasonalEvent.getCurrentSeason(),
+      activeEventsCount: activeEvents.length,
+      activeEvents: activeEvents.map(e => ({
+        id: e.id,
+        name: e.name,
+        type: e.type,
+        participants: e.participants.size
+      })),
+      eventStats: this.eventManager.getEventStats(),
+      rewardStats: this.eventReward.getRewardStats(),
+      specialEventType: Object.keys(SpecialEventType).length,
+      seasonalEventType: Object.keys(Season).length
+    };
+  }
+
+  /**
+   * 시스템 상태 리셋
+   */
+  reset() {
+    this.eventManager.resetAllEvents();
+    this.dailyQuest.resetDailyQuests();
+    this.weeklyQuest.resetWeeklyQuests();
+    this.eventReward.resetAllRewards();
+    this.initialized = false;
+    console.log('EventSystem: System reset');
+  }
 }
+
+// 싱글톤 인스턴스
+const eventSystem = new EventSystem();
+
+module.exports = {
+  EventSystem,
+  eventSystem,
+
+  // 개별 모듈 내보내기
+  EventManager,
+  eventManager,
+  SeasonalEvent,
+  seasonalEvent,
+  SpecialEvent,
+  specialEvent,
+  DailyQuest,
+  dailyQuest,
+  WeeklyQuest,
+  weeklyQuest,
+  EventReward,
+  eventReward,
+
+  // 열거형 및 데이터
+  Season,
+  SEASON_DATA,
+  SpecialEventType,
+  SPECIAL_EVENT_DATA,
+  DailyQuestCategory,
+  DAILY_QUEST_TEMPLATES,
+  WeeklyQuestCategory,
+  WEEKLY_QUEST_TEMPLATES,
+  RewardType,
+  RewardTier,
+  REWARD_TIER_PROBABILITIES
+};
