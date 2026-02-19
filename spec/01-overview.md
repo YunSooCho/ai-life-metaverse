@@ -90,14 +90,14 @@ ai-life-metaverse/
 - 이모지 지원
 - 활성 방 목록 API
 
-**Phase 9: 친구 시스템** ⏳ 진행 중 (2026-02-19 15:30)
+**Phase 9: 친구 시스템** ✅ 완료 (2026-02-19)
 - FriendManager - 친구 추가/삭제/목록/검색
 - FriendRequest - 요청 전송/수락/거절/취소
 - OnlineStatus - 온라인 상태 관리
 - Redis 기반 데이터 저장
-- 테스트 35/41 통과 (6개 버그 남음)
+- 테스트 82/82 통과 (100%)
 
-**Phase 10: 거래 시스템** ✅ 완료 (2026-02-19 17:34)
+**Phase 10: 거래 시스템** ✅ 완료 (2026-02-19)
 - TradeManager - 플레이어 간 아이템 거래 (요청/수락/거절/취소/완료)
 - ShopManager - NPC 상점 (구매/판매/재고 관리/가격 설정)
 - AuctionManager - 경매장 (등록/입찰/낙찰/취소/수수료 5%)
@@ -119,15 +119,49 @@ ai-life-metaverse/
 
 ### TODO
 
-- [ ] Phase 9 완료 (친구 시스템 남은 6개 버그 수정)
 - [ ] Phase 12: 캐릭터 시스템 고급화 (Issue #113)
-- [ ] Phase 13: 제작 시스템 (Issue #114)
 - [ ] 사운드 파일 준비 (audio/ 폴더에 BGM, SFX, 날씨 사운드 배치)
 - [ ] 사운드 초기화 oneshot (사용자 interaction 이후)
 - [ ] E2E 브라우저 테스트 자동화 (Issue #59)
 - [ ] Frontend 통합 (서버 → 클라이언트 API 연동)
 
 ### 완료된 작업
+
+- ✅ Phase 13: 제작 시스템 - Issue #115 (2026-02-19 23:30)
+  - RecipeManager: 레시피 관리 (등록/삭제/조회/레벨 필터)
+  - CraftingManager: 제작 로직 (재료 확인/소비/결과 생성)
+  - CraftingTable: 제작대 시스템 (초급/중급/고급, 보너스 효과)
+  - 제작 경험치/레벨 시스템 (1~100)
+  - 제작 실패 확률 및 난이도
+  - 테스트 29/29 통과 ✅
+  - Socket.io 이벤트 통합 (getRecipes, getCraftingLevel, craft, getCraftingHistory)
+
+- ✅ Phase 12: 캐릭터 진화 시스템 - Issue #113 (2026-02-19)
+  - EvolutionManager: 진화 시스템 (조건/경험치/레벨/형태)
+  - CharacterFormManager: 캐릭터 형태 관리
+  - 진화 이펙트 및 사운드
+  - 테스트 완료 ✅
+
+- ✅ Phase 11: 월드맵 시스템 정교화 (2026-02-19 19:30)
+  - 맵 상호작용 시스템
+  - 맵 전환 애니메이션
+  - 맵별 고유 이벤트 트리거
+  - 맵 내 비밀 장소/숨겨진 아이템
+  - 테스트 코드 완성 (11개 파일) ✅
+
+- ✅ Phase 10: 거래 시스템 (2026-02-19)
+  - TradeManager: 플레이어 간 아이템 거래
+  - ShopManager: NPC 상점 (구매/판매/재고 관리)
+  - AuctionManager: 경매장 (등록/입찰/낙찰/취소)
+  - CoinManager: 코인 시스템
+  - 테스트 101/101 통과 (100%) ✅
+
+- ✅ Phase 9: 친구 시스템 (2026-02-19 23:30)
+  - FriendManager: 친구 추가/삭제/목록/검색
+  - FriendRequest: 요청 전송/수락/거절/취소
+  - OnlineStatus: 온라인 상태 관리
+  - 테스트 82/82 통과 (100%) ✅
+  - vitest.config.js 수정 (friend-system 경로 추가)
 
 - ✅ Phase 6: AI 캐릭터 관계 시스템 - Issue #95 (2026-02-19)
   - RelationshipManager: 캐릭터 간 관계 관리 (친밀도, 레벨, 상호작용)

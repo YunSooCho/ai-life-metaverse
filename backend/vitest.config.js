@@ -5,7 +5,9 @@ export default defineConfig({
     include: [
       '__tests__/**/*.test.js',
       'tests/**/*.test.js',
-      'world-system/__tests__/**/*.test.js'
+      'world-system/__tests__/**/*.test.js',
+      'friend-system/__tests__/**/*.test.js',
+      'crafting-system/__tests__/**/*.test.js'
     ]
   }
 })
