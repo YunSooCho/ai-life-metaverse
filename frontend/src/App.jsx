@@ -20,6 +20,7 @@ import StatusPanel from './components/StatusPanel'
 import ErrorBoundary from './components/ErrorBoundary'
 import EquipmentMenu from './components/EquipmentMenu'
 import SkillMenu from './components/SkillMenu'
+import FriendList from './components/FriendList'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
@@ -119,6 +120,7 @@ function AppContent() {
   const [showStatus, setShowStatus] = useState(false)
   const [showEquipment, setShowEquipment] = useState(false)
   const [showSkillMenu, setShowSkillMenu] = useState(false)
+  const [showFriends, setShowFriends] = useState(false)
   const [characterCustomization, setCharacterCustomization] = useState({
     hairStyle: 'short',
     clothingColor: 'blue',
@@ -1157,6 +1159,12 @@ function AppContent() {
           >
             ⚔️ 스킬
           </button>
+          <button
+            className="room-button"
+            onClick={() => setShowFriends(prev => !prev)}
+          >
+            👥 친구
+          </button>
 <button
              className="room-button"
              onClick={() => setShowReward(prev => !prev)}
@@ -1371,6 +1379,18 @@ function AppContent() {
           socket={socket}
           characterData={myCharacter}
           onClose={() => setShowSkillMenu(false)}
+        />
+      )}
+      {showFriends && (
+        <FriendList
+          visible={showFriends}
+          socket={socket}
+          characterId={myCharacter.id}
+          onClose={() => setShowFriends(false)}
+          onChat={(friend) => {
+            // 친구와 채팅 시작 로직 (나중에 구현)
+            console.log('Chat with friend:', friend.name)
+          }}
         />
       )}
      </div>

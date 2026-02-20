@@ -1,0 +1,342 @@
+/* FriendList - 픽셀아트 스타일 친구 목록 UI */
+
+/* 오버레이 */
+.friendlist-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 윈도우 */
+.friendlist-window {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border: 4px solid #1a252f;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  image-rendering: pixelated;
+}
+
+/* 헤더 */
+.friendlist-header {
+  background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+  border-bottom: 4px solid #1a252f;
+  border-radius: 8px 8px 0 0;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.friendlist-title {
+  color: #f1c40f;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* 닫기 버튼 */
+.pixel-close-button {
+  background: #c0392b;
+  border: 3px solid #922b21;
+  color: #ecf0f1;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.1s;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+.pixel-close-button:hover {
+  background: #e74c3c;
+  transform: scale(1.1);
+}
+
+/* 상태 요약 */
+.friendlist-stats {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid #1a252f;
+}
+
+.friendlist-count {
+  color: #95a5a6;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+/* 필터 탭 */
+.friendlist-filter {
+  display: flex;
+  padding: 8px 16px;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid #1a252f;
+}
+
+.filter-tab {
+  flex: 1;
+  background: #34495e;
+  border: 2px solid #2c3e50;
+  color: #ecf0f1;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.1s;
+  position: relative;
+}
+
+.filter-tab:hover {
+  background: #3e5871;
+}
+
+.filter-tab.active {
+  background: #27ae60;
+  border-color: #1e8449;
+}
+
+.filter-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e74c3c;
+  color: #ecf0f1;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.filter-badge.online {
+  background: #27ae60;
+}
+
+/* 검색창 */
+.friendlist-search {
+  padding: 12px 16px;
+  border-bottom: 2px solid #1a252f;
+}
+
+.friendlist-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #2c3e50;
+  border-radius: 6px;
+  color: #ecf0f1;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.friendlist-search-input::placeholder {
+  color: #7f8c8d;
+}
+
+.friendlist-search-input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+/* 콘텐츠 영역 */
+.friendlist-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.friendlist-content::-webkit-scrollbar {
+  width: 12px;
+}
+
+.friendlist-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.friendlist-content::-webkit-scrollbar-thumb {
+  background: #34495e;
+  border-radius: 6px;
+}
+
+.friendlist-content::-webkit-scrollbar-thumb:hover {
+  background: #3e5871;
+}
+
+/* 로딩/빈 상태 */
+.friendlist-loading,
+.friendlist-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+}
+
+.empty-text {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+/* 친구 아이템 그리드/리스트 */
+.friendlist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.friendlist-item {
+  background: rgba(52, 73, 94, 0.8);
+  border: 3px solid #2c3e50;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.friendlist-item:hover {
+  background: rgba(62, 88, 113, 0.9);
+  border-color: #3498db;
+  transform: translateX(4px);
+}
+
+/* 온라인 상태 인디케이터 */
+.friend-status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #1a252f;
+  flex-shrink: 0;
+}
+
+.friend-status-indicator.online {
+  background: #27ae60;
+  box-shadow: 0 0 8px #27ae60;
+}
+
+.friend-status-indicator.offline {
+  background: #7f8c8d;
+}
+
+/* 친구 정보 */
+.friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.friend-name {
+  color: #ecf0f1;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+}
+
+.friend-status {
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+.friend-status.online {
+  color: #27ae60;
+}
+
+.friend-status.offline {
+  color: #7f8c8d;
+}
+
+.friend-added {
+  text-transform: capitalize;
+  font-size: 11px;
+  color: #7f8c8d;
+  font-family: 'Courier New', monospace;
+}
+
+/* 동작 버튼 */
+.friend-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pixel-button.small {
+  background: #3498db;
+  border: 2px solid #2980b9;
+  color: #ecf0f1;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixel-button.small:hover {
+  transform: scale(1.1);
+  filter: brightness(1.1);
+}
+
+.chat-button {
+  background: #9b59b6;
+  border-color: #8e44ad;
+}
+
+.chat-button:hover {
+  background: #a569bd;
+}
+
+.remove-button {
+  background: #e74c3c;
+  border-color: #c0392b;
+}
+
+.remove-button:hover {
+  background: #ec7063;
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+  .friendlist-window {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .friendlist-title {
+    font-size: 20px;
+  }
+
+  .filter-tab {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  .friendlist-item {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .friend-name {
+    font-size: 14px;
+  }
+}

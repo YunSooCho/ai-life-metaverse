@@ -11,8 +11,12 @@ export default defineConfig({
       'frontend/src/**/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}',
       'frontend/src/utils/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}',
       'shared/__tests__/**/*.{test,spec}.{js,jsx,mjs,cjs,ts,mts,cts}',
-      'backend/database/**/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}'
+      'backend/database/**/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',
+      'backend/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}'
     ],
     setupFiles: ['./frontend/src/__tests__/setup.js'],
+    coverage: {
+      provider: 'v8'
+    }
   }
 })

@@ -35,6 +35,11 @@ import { EvolutionManager } from './character-system/evolution-manager.js'
 import { SkillManager } from './character-system/skill-system.js'
 import { EquipmentSystem } from './character-system/equipment-system.js'
 
+// Phase 13: 제작 시스템
+import { RecipeManager } from './managers/RecipeManager.js'
+import { CraftingManager } from './managers/CraftingManager.js'
+import { CraftingTable } from './managers/CraftingTable.js'
+
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {
   // No-op until event system is properly exported
@@ -191,6 +196,12 @@ const characterRooms = {}
 const evolutionManager = new EvolutionManager(console)
 const skillManager = new SkillManager(console)
 const equipmentSystems = new Map(); // characterId -> EquipmentSystem
+
+// Phase 13: 제작 시스템 - 인스턴스 초기화
+// Redis 클라이언트는 없으므로 null 전달 (메모리 fallback 모드)
+const recipeManager = new RecipeManager(null)
+const craftingManager = new CraftingManager(null)
+const craftingTable = new CraftingTable(null)
 
 // 캐릭터의 장비 시스템 가져오기
 const getCharacterEquipment = (characterId) => {
@@ -1592,6 +1603,116 @@ io.on('connection', (socket) => {
   })
 
   // ===== Phase 12 종료 =====
+
+  // ===== Phase 13: 제작 시스템 이벤트 핸들러 =====
+
+  // 레시피 목록 조회 (레벨 필터링)
+  socket.on('getRecipes', async (data, callback) => {
+    try {
+      const { level, category } = data || {};
+      let recipes;
+
+      if (category) {
+        recipes = await recipeManager.getRecipesByCategory(category);
+      } else {
+        recipes = await recipeManager.getRecipesByLevel(level || 1);
+      }
+
+      callback?.({ success: true, recipes });
+    } catch (error) {
+      console.error('레시피 목록 조회 에러:', error);
+      callback?.({ success: false, error: error.message });
+    }
+  });
+
+  // 제작 레벨 조회
+  socket.on('getCraftingLevel', async (data, callback) => {
+    try {
+      const { characterId } = data || {};
+      if (!characterId) {
+        return callback?.({ success: false, error: 'characterId is required' });
+      }
+
+      const levelData = await craftingManager.getCraftingLevel(characterId);
+      callback?.({ success: true, levelData });
+    } catch (error) {
+      console.error('제작 레벨 조회 에러:', error);
+      callback?.({ success: false, error: error.message });
+    }
+  });
+
+  // 제작 수행
+  socket.on('craft', async (data, callback) => {
+    try {
+      const { characterId, recipeId, inventory } = data || {};
+
+      if (!characterId || !recipeId) {
+        return callback?.({ success: false, error: 'characterId and recipeId are required' });
+      }
+
+      // 인벤토리를 Map으로 변환
+      const inventoryMap = new Map(
+        inventory?.map(item => [item.itemId, item.quantity]) || []
+      );
+
+      // 제작 수행
+      const result = await craftingManager.craft(recipeId, characterId, inventoryMap);
+
+      // 인벤토리 상태 업데이트 (socket에 알림)
+      if (result.success) {
+        // 성공 시 결과 아이템 추가
+        socket.emit('inventoryUpdate', {
+          characterId,
+          added: [result.result],
+          removed: result.consumedMaterials
+        });
+      }
+
+      callback?.({ success: true, result });
+    } catch (error) {
+      console.error('제작 수행 에러:', error);
+      callback?.({ success: false, error: error.message });
+    }
+  });
+
+  // 제작 기록 조회
+  socket.on('getCraftingHistory', async (data, callback) => {
+    try {
+      const { characterId, limit } = data || {};
+      if (!characterId) {
+        return callback?.({ success: false, error: 'characterId is required' });
+      }
+
+      const history = await craftingManager.getCraftingHistory(characterId, limit || 10);
+      callback?.({ success: true, history });
+    } catch (error) {
+      console.error('제작 기록 조회 에러:', error);
+      callback?.({ success: false, error: error.message });
+    }
+  });
+
+  // 제작대 목록 조회
+  socket.on('getCraftingTables', async (data, callback) => {
+    try {
+      const { location, level } = data || {};
+      let tables;
+
+      if (location) {
+        tables = await craftingTable.getTablesByLocation(location);
+      } else if (level) {
+        tables = await craftingTable.getTablesByLevel(level);
+      } else {
+        tables = await craftingTable.getAllTables();
+      }
+
+      callback?.({ success: true, tables });
+    } catch (error) {
+      console.error('제작대 목록 조회 에러:', error);
+      callback?.({ success: false, error: error.message });
+    }
+  });
+
+  // ===== Phase 13 종� =====
 
   // 연결 종료
   socket.on('disconnect', () => {
