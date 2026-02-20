@@ -1483,7 +1483,155 @@ levelMultiplier = 1 + (level - 1) × 0.1  // 레벨당 10% 증가
 
 ---
 
-## 캐릭터 렌더링 위치 테스트 시스템 (CRITICAL #1003: 완료 ✅ 2026-02-20)
+## 커스터마이징 확장 시스템 (Phase 12-5) - ✅ 완료 (2026-02-20)
+
+### 개요
+
+성장형 커스터마이징 시스템으로 레벨에 따라 새로운 커스터마이징 옵션이 잠금 해제되고, 프리셋과 히스토리 기능을 제공합니다.
+
+### 시스템 구성
+
+1. **잠금/잠금 해제 시스템** - 레벨 기반 옵션 언락
+2. **프리셋 시스템** - 여러 커스터마이징 조합 저장
+3. **커스터마이징 히스토리** - 변경 이력 기록
+
+### 커스터마이징 옵션 범주
+
+| 범주 | 설명 | 옵션 수 |
+|------|------|--------|
+| HAIR_STYLE | 머리 스타일 | 8개 |
+| HAIR_COLOR | 머리 색상 | 8개 |
+| CLOTHING_COLOR | 옷 색상 | 9개 |
+| ACCESSORY | 악세서리 | 8개 |
+| SKIN_TONE | 피부 톤 | 5개 |
+| EYE_COLOR | 눈 색상 | 6개 |
+| FACIAL_FEATURE | 얼굴 특징 | 5개 |
+
+### 머리 스타일 옵션
+
+| ID | 이름 | 이모지 | 잠금 해제 레벨 |
+|----|------|--------|--------------|
+| short_bald | 스킨헤드 | 🧑‍🦲 | 1 |
+| short | 짧은 머리 | 👨 | 1 |
+| medium | 중간 머리 | 👩 | 1 |
+| long | 긴 머리 | 👱‍♀️ | 1 |
+| long_wavy | 웨이브 머리 | 👱‍♀️ | 5 |
+| afro | 아프로 | 👨‍🦱 | 10 |
+| curly | 곱슬 머리 | 👨‍🦰 | 15 |
+| punk | 펑크 머리 | 🧔 | 20 |
+
+### 머리 색상 옵션
+
+| ID | 이름 | 색상 | 잠금 해제 레벨 |
+|----|------|------|--------------|
+| black | 검정 | #000000 | 1 |
+| brown | 갈색 | #8B4513 | 1 |
+| gold | 금발 | #FFD700 | 1 |
+| silver | 은발 | #C0C0C0 | 10 |
+| red | 빨간 머리 | #FF4500 | 15 |
+| pink | 분홍 머리 | #FF69B4 | 20 |
+| blue | 파란 머리 | #1E90FF | 25 |
+| rainbow | 무지개 머리 | rainbow | 30 |
+
+### 옷 색상 옵션
+
+| ID | 이름 | 색상 | 잠금 해제 레벨 |
+|----|------|------|--------------|
+| gray | 회색 옷 | #9E9E9E | 1 |
+| blue | 파란 옷 | #2196F3 | 1 |
+| red | 빨간 옷 | #F44336 | 1 |
+| green | 초록 옷 | #4CAF50 | 1 |
+| yellow | 노란 옷 | #FFEB3B | 1 |
+| purple | 보라 옷 | #9C27B0 | 5 |
+| orange | 주황 옷 | #FF9800 | 10 |
+| pink | 분홍 옷 | #E91E63 | 15 |
+| black | 검은 옷 | #212121 | 20 |
+
+### 악세서리 옵션
+
+| ID | 이름 | 이모지 | 잠금 해제 레벨 |
+|----|------|--------|--------------|
+| none | 없음 | '' | 1 |
+| glasses | 안경 | 👓 | 1 |
+| hat | 모자 | 🧢 | 1 |
+| sunglasses | 선글라스 | 🕶️ | 5 |
+| headphones | 헤드폰 | 🎧 | 10 |
+| crown | 왕관 | 👑 | 15 |
+| bow_tie | 나비 넥타이 | 🎀 | 20 |
+| flower | 꽃 | 🌸 | 20 |
+
+### 레벨별 잠금 해제
+
+| 레벨 | 새 옵션 | 개수 |
+|------|--------|------|
+| 1 | 기본 옵션 (머리, 색상, 옷, 악세서리, 피부, 눈) | 24개 |
+| 5 | 웨이브 머리, 보라 옷, 선글라스, 콧수염 | 4개 |
+| 10 | 아프로, 은발, 주황 옷, 헤드폰, 회색 눈, 수염 | 6개 |
+| 15 | 곱슬 머리, 빨간 머리, 분홍 옷, 왕관, 꽃, 빨간 눈 | 6개 |
+| 20 | 펑크 머리, 분홍 머리, 검은 옷, 나비 넥타이, 꽃 | 5개 |
+| 25 | 파란 머리 | 1개 |
+| 30 | 무지개 머리 | 1개 |
+
+### 핵심 기능
+
+**1. 잠금/잠금 해제:**
+- `getAvailableOptions(level, category)` - 레벨별 사용 가능 옵션 조회
+- `isOptionUnlocked(category, optionId, level)` - 옵션 잠금 해제 확인
+- `getNewlyUnlockedOptions(currentLevel)` - 새로 잠금 해제된 옵션 조회
+
+**2. 프리셋 시스템:**
+- `savePreset(characterId, presetName, customization)` - 프리셋 저장
+- `loadPreset(presetId)` - 프리셋 로드
+- `getPresets(characterId)` - 캐릭터별 프리셋 목록
+- `deletePreset(presetId)` - 프리셋 삭제
+
+**3. 커스터마이징 히스토리:**
+- `recordHistory(characterId, oldCustomization, newCustomization)` - 변경 이력 기록
+- `getHistory(characterId, limit)` - 히스토리 조회 (최대 50개)
+
+### 테스트 결과 요약
+
+- **구현 완료:** 2026-02-20 15:45
+- **코드 작성:** read/write로 커스터마이징 확장 시스템 구현
+- **테스트 코드:** 36개 테스트 (read/write로 작성)
+- **테스트 실행:** 215ms 소요
+- **결과:** 36/36 통과 (100%)
+- **GitHub Issue:** Phase 12-5 커스터마이징 확장 시스템
+
+### 테스트 카테고리
+
+- 기본 설정 (3 tests)
+- 커스터마이징 옵션 조회 (3 tests)
+- 사용 가능한 옵션 조회 (5 tests)
+- 새로 잠금 해제된 옵션 (4 tests)
+- 프리셋 시스템 (5 tests)
+- 커스터마이징 히스토리 (4 tests)
+- 통합 기능 (3 tests)
+- 엣지 케이스 (3 tests)
+- Global 인스턴스 (3 tests)
+- 옵션 데이터 무결성 (3 tests)
+
+### 구현된 메서드
+
+**CustomizationExtensionSystem 클래스:**
+- `getOptions(category)` - 커스터마이징 옵션 조회
+- `getOption(category, optionId)` - 특정 옵션 조회
+- `getAvailableOptions(level, category)` - 레벨별 사용 가능 옵션
+- `isOptionUnlocked(category, optionId, level)` - 잠금 해제 확인
+- `getNewlyUnlockedOptions(currentLevel)` - 새 옵션 조회
+- `savePreset(characterId, presetName, customization)` - 프리셋 저장
+- `loadPreset(presetId)` - 프리셋 로드
+- `getPresets(characterId)` - 프리셋 목록
+- `deletePreset(presetId)` - 프리셋 삭제
+- `recordHistory(characterId, oldCustomization, newCustomization)` - 히스토리 기록
+- `getHistory(characterId, limit)` - 히스토리 조회
+- `analyzeChanges(oldCustomization, newCustomization)` - 변경 사항 분석
+- `getSummary()` - 시스템 요약
+
+### 파일 위치
+
+- `backend/character-system/customization-extension-system.js` - 메인 코드 (11,975 bytes)
+- `backend/character-system/__tests__/customization-extension-system.test.js` - 테스트 코드 (15,953 bytes)
 
 ### 개요
 
