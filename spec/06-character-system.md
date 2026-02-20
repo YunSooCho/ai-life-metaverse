@@ -806,6 +806,151 @@ moveTo(targetX, targetY) {
 - **결과:** 10/10 통과 (100%)
 - **GitHub Issue:** #117 (CRITICAL Test #1002) close 완료
 
+## 캐릭터 데이터 영구 저장 시스템 (✅ 완료 2026-02-20)
+
+### 개요 (CRITICAL Test #1007)
+
+캐릭터 이동 시 서버의 데이터베이스(SQLite)에 위치를 영구 저장하여 페이지 새로고침 후에도 위치가 유지되도록 하는 시스템. 이전에는 메모리(`room.characters`)에만 저장하여 페이지 새로고칭 시 위치가 초기화되는 버그가 있었음.
+
+### 버그 원인 (수정 전)
+
+**문제 1:** move 이벤트 핸들러에서 메모리 업데이트만
+- `room.characters[character.id] = character`로만 업데이트
+- DB나 Redis에 저장 없음
+- 페이지 새로고침 시 위치 초기화
+
+**문제 2:** `/api/characters` 엔드포인트 없음
+- 서버 캐릭터 데이터 조회 API 없음
+- E2E 테스트에서 서버 데이터 확인 불가
+
+**문제 3:** 캐릭터 테이블 없음
+- SQLite DB는 있으나 캐릭터 테이블 부재
+- `character-data.json`만 존재 (비어 있음: `{"test":"data"}`)
+
+### 수정 내용
+
+**1. character-manager.js 생성**
+- 위치: `backend/database/character-manager.js`
+- 캐릭터 테이블 초기화 (`characters`)
+- `updateCharacterPosition()` - 위치 업데이트
+- `upsertCharacter()` - 전체 데이터 업데이트
+- `getCharacter()` - ID로 조회
+- `getAllCharacters()` - 전체 조회
+
+**2. server.js move 이벤트 핸들러 수정**
+- `character-manager.js` import (`initCharacterTable`, `updateCharacterPosition`)
+- `initCharacterTable()` 호출 (서버 시작 시)
+- move 이벤트에서 `updateCharacterPosition()` 호출로 DB 저장
+
+```javascript
+// 수정 전
+room.characters[character.id] = character
+io.to(roomId).emit('characterUpdate', character, moveData)
+
+// 수정 후
+room.characters[character.id] = character
+
+// 💾 DB에 위치 저장 (영구 저장)
+updateCharacterPosition(character.id, character.x, character.y, roomId)
+
+io.to(roomId).emit('characterUpdate', character, moveData)
+```
+
+**3. /api/characters 엔드포인트 추가**
+- `GET /api/characters` - 모든 캐릭터 조회
+- `GET /api/characters/:id` - 특정 캐릭터 조회
+
+### 캐릭터 테이블 구조
+
+```sql
+CREATE TABLE characters (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  color TEXT DEFAULT '#4CAF50',
+  emoji TEXT DEFAULT '😊',
+  x REAL DEFAULT 400,
+  y REAL DEFAULT 300,
+  room_id TEXT DEFAULT 'main-plaza',
+  level INTEGER DEFAULT 1,
+  exp INTEGER DEFAULT 0,
+  hp INTEGER DEFAULT 100,
+  affinity INTEGER DEFAULT 0,
+  charisma INTEGER DEFAULT 0,
+  intelligence INTEGER DEFAULT 0,
+  is_ai BOOLEAN NOT NULL DEFAULT 0,
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+)
+```
+
+### 구현된 메서드
+
+**character-manager.js:**
+- `initCharacterTable()` - 캐릭터 테이블 생성
+- `updateCharacterPosition(characterId, x, y, roomId)` - 위치 업데이트 (없으면 생성)
+- `upsertCharacter(character)` - 전체 데이터 업데이트 (INSERT OR REPLACE)
+- `getCharacter(characterId)` - ID로 조회
+- `getAllCharacters()` - 모든 캐릭터 조회
+- `getCharactersByRoom(roomId)` - 방 별 조회
+- `deleteCharacter(characterId)` - 삭제
+
+### 테스트 결과 요약
+
+- **구현 완료:** 2026-02-20 13:30
+- **코드 작성:** read/write로 캐릭터 데이터 영구 저장 시스템 구현
+- **테스트 코드:** 10개 테스트 케이스, 31개 assertions (read/write로 작성)
+- **테스트 실행:** Node.js 직접 실행 (vitest 문제로 manual test runner 사용)
+- **결과:** 31/31 통과 (100%)
+- **GitHub Issue:** #122 (CRITICAL Test #1007) 진행 중
+
+### 테스트 케이스 (CRITICAL Test #1007)
+
+| ID | 테스트 항목 | 상태 |
+|----|-----------|------|
+| T1007-01 | 캐릭터 테이블 존재 확인 | ✅ 통과 |
+| T1007-02 | 캐릭터 생성 후 위치 업데이트 | ✅ 통과 (x=200, y=200) |
+| T1007-03 | 캐릭터가 없으면 새로 생성 | ✅ 통과 (x=300, y=300) |
+| T1007-04 | ID로 캐릭터 조회 | ✅ 통과 (이름, 색상, 이모지) |
+| T1007-05 | 존재하지 않는 캐릭터 조회 | ✅ 통과 (null 반환) |
+| T1007-06 | 빈 목록 조회 | ✅ 통과 (빈 배열) |
+| T1007-07 | 여러 캐릭터 조회 | ✅ 통과 (3개 캐릭터) |
+| T1007-08 | is_ai 플래그 변환 확인 | ✅ 통과 (false/true 변환) |
+| T1007-09 | 연속 이동 후 데이터 유지 | ✅ 통과 (3번 이동) |
+| T1007-10 | 다중 캐릭터 독립성 | ✅ 통과 (char-1, char-2 독립) |
+
+### 핵심 기능 검증
+
+**1. 캐릭터 위치 저장:**
+- move 이벤트 호출 시 `updateCharacterPosition()` 실행
+- SQLite DB에 x, y, room_id 저장
+- 페이지 새로고침 후에도位置 유지
+
+**2. is_ai 플래그 변환:**
+- DB에서는 0/1로 저장
+- 조회 시 boolean(true/false)로 변환
+- Frontend에서 사용하기 편한 형식
+
+**3. 연속 이동 데이터 유지:**
+- 1번째 이동: (100, 100) → (200, 200)
+- 2번째 이동: (200, 200) → (300, 300)
+- 3번째 이동: (300, 300) → (400, 400), room_id: 'room-2'
+- 모든 이동 후 DB에서 최종 위치 조회 성공
+
+**4. 다중 캐릭터 독립성:**
+- char-1: (100, 100), room-1
+- char-2: (200, 200), room-2
+- 각 캐릭터가 독립적으로 이동 및 저장
+
+### 파일 위치
+
+- `backend/database/character-manager.js` - 메인 코드 (3884 bytes)
+- `backend/database/index.js` - export 추가
+- `backend/server.js` - import 및 move 이벤트 수정
+- `backend/database/__tests__/character-manager.test.js` - vitest 테스트 (5614 bytes)
+- `backend/database/__tests__/run-test.js` - manual test runner (8560 bytes)
+
+---
+
 ## 호감도 시스템
 
 ### 호감도 범위

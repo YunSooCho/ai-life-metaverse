@@ -22,7 +22,13 @@ import { initializeAgent } from './ai-agent/agent.js'
 //   handleEvent,
 //   getEventSystemStatus
 // } from './event-system/index.js'
-import { initDatabase } from './database/index.js'
+import {
+  initDatabase,
+  initCharacterTable,
+  updateCharacterPosition,
+  getCharacter,
+  getAllCharacters
+} from './database/index.js'
 
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {
@@ -283,6 +289,32 @@ app.get('/api/chat-logs/character/:characterId', (req, res) => {
   }
 })
 
+// ✅ CRITICAL FIX #1007: 캐릭터 데이터 조회 API
+app.get('/api/characters', (req, res) => {
+  try {
+    const characters = getAllCharacters()
+    res.json({ characters, count: characters.length })
+  } catch (error) {
+    console.error('캐릭터 데이터 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get characters' })
+  }
+})
+
+app.get('/api/characters/:id', (req, res) => {
+  const { id } = req.params
+
+  try {
+    const character = getCharacter(id)
+    if (!character) {
+      return res.status(404).json({ error: 'Character not found' })
+    }
+    res.json(character)
+  } catch (error) {
+    console.error('캐릭터 데이터 조회 에러:', error)
+    res.status(500).json({ error: 'Failed to get character' })
+  }
+})
+
 app.get('/api/chat-logs/ai/:charId1/:charId2', (req, res) => {
   const { charId1, charId2 } = req.params
   const { roomId } = req.query
@@ -484,12 +516,20 @@ io.on('connection', (socket) => {
       timestamp: Date.now()
     }
 
-    console.log('🚶 캐릭터 이동:', character.name, 
+    console.log('🚶 캐릭터 이동:', character.name,
       `(${moveData.from.x}, ${moveData.from.y}) → (${moveData.to.x}, ${moveData.to.y})`,
       '방향:', moveData.direction, '→', roomId)
 
-    // 방 내 캐릭터 업데이트
+    // 방 내 캐릭터 업데이트 (메모리)
     room.characters[character.id] = character
+
+    // 💾 DB에 위치 저장 (영구 저장) - CRITICAL FIX #1007
+    try {
+      updateCharacterPosition(character.id, character.x, character.y, roomId)
+      console.log('💾 캐릭터 위치 저장 완료:', character.id, `(${character.x}, ${character.y})`)
+    } catch (error) {
+      console.error('❌ 캐릭터 위치 저장 실패:', error)
+    }
 
     // 방 내에만 브로드캐스트 (애니메이션 데이터 포함)
     io.to(roomId).emit('characterUpdate', character, moveData)
@@ -1278,6 +1318,7 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
   // 데이터베이스 초기화
   try {
     initDatabase()
+    initCharacterTable()
     console.log('🗄️  데이터베이스 초기화 완료')
   } catch (error) {
     console.error('❌ 데이터베이스 초기화 실패:', error)

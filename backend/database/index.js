@@ -21,3 +21,12 @@ export {
   updateMood,
   getRelationshipStats
 } from './ai-relationship-manager.js'
+export {
+  initCharacterTable,
+  updateCharacterPosition,
+  upsertCharacter,
+  getCharacter,
+  getAllCharacters,
+  getCharactersByRoom,
+  deleteCharacter
+} from './character-manager.js'
