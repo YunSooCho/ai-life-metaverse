@@ -981,3 +981,195 @@ actualCooldown = skill.cooldown × (1 - (skillLevel - 1) × 0.05)
 - `backend/character-system/__tests__/skill-system.test.js` - 테스트 코드 (21,351 bytes)
 - [ ] 감정 표현을 채팅에 통합
 - [ ] 아바타 미리보기 UI
+
+---
+
+## 장비 시스템 (Phase 12) - ✅ 완료 (2026-02-20)
+
+### 개요
+
+캐릭터가 장비를 장착하고 관리하는 시스템. 장비 슬롯, 인벤토리, 강화 시스템을 포함.
+
+### 장비 슬롯
+
+| 슬롯 타입 | 설명 | 예시 장비 |
+|-----------|------|----------|
+| WEAPON | 무기 | 기본 검, 강철 검, 마법 스태프 |
+| HEAD | 머리 | 가죽 투구, 마법사 관 |
+| BODY | 몸통 | 가죽 갑옷, 판금 갑옷 |
+| ACCESSORY | 장신구 | 생명의 반지, 속도의 반지 |
+| SPECIAL | 특수 | 그림자 망토 |
+
+### 장비 레어도
+
+| 레어도 | 색상 | 스탯 보너스 |
+|--------|------|------------|
+| COMMON | #95A5A6 (회색) | 1.0x |
+| RARE | #3498DB (파란색) | 1.2x |
+| EPIC | #9B59B6 (보라색) | 1.5x |
+| LEGENDARY | #F39C12 (금색) | 2.0x |
+| MYTHIC | #E74C3C (빨간색) | 2.5x |
+
+### 장비 스탯 타입
+
+| 스탯 | 설명 |
+|------|------|
+| attack | 공격력 |
+| defense | 방어력 |
+| speed | 이동 속도 |
+| health | 생명력 |
+| stamina | 스테미나 |
+| intelligence | 지능 |
+| criticalChance | 크리티컬 확률 |
+| criticalDamage | 크리티컬 데미지 |
+
+### 기본 장비 데이터베이스
+
+**무기:**
+- `sword_basic` (Lv.1, COMMON): 기본 검 (공격력 10, 크리티컬 데미지 5%)
+- `sword_rare` (Lv.1, RARE): 강철 검 (공격력 15, 크리티컬 데미지 8%)
+- `staff_magic` (Lv.1, RARE): 마법 스태프 (공격력 8, 지능 20, 크리티컬 확률 10%)
+
+**머리 장비:**
+- `helmet_leather` (Lv.1, COMMON): 가죽 투구 (방어력 5, 생명력 10)
+- `crown_mage` (Lv.1, EPIC): 마법사 관 (방어력 8, 지능 25, 크리티컬 확률 5%)
+
+**몸통 장비:**
+- `armor_leather` (Lv.1, COMMON): 가죽 갑옷 (방어력 15, 생명력 30)
+- `armor_plate` (Lv.1, RARE): 판금 갑옷 (방어력 25, 생명력 50, 속도 -5)
+
+**장신구:**
+- `ring_hp` (Lv.1, EPIC): 생명의 반지 (생명력 100, 스테미나 20)
+- `ring_speed` (Lv.1, EPIC): 속도의 반지 (속도 20, 크리티컬 확률 8%)
+
+**특수 장비:**
+- `shadow_cloak` (Lv.1, LEGENDARY): 그림자 망토 (속도 30, 크리티컬 확률 15%, 크리티컬 데미지 20%)
+
+### 장비 데이터 구조
+
+```javascript
+{
+  id: 'sword_basic',
+  name: '기본 검',
+  slot: 'weapon',
+  rarity: { name: 'COMMON', color: '#95A5A6', statMultiplier: 1.0 },
+  level: 1,
+  maxLevel: 10,
+  baseStats: {
+    attack: 10,
+    criticalDamage: 0.05
+  },
+  description: '기본적인 검'
+}
+```
+
+### 장비 시스템 기능
+
+**1. 장비 정보:**
+- 데이터베이스에서 장비 정보 조회
+- Deep copy로 정보 반환 (데이터 보호)
+
+**2. 장비 장착/해제:**
+- 장착 슬롯에 장비 할당
+- 장착 중인 장비 교체
+- 장착된 장비 해제
+
+**3. 장비 강화:**
+- 장비 레벨 증가
+- 최대 레벨 제한 (maxLevel 속성)
+- 장착된 장비/인벤토리 장비 강화
+
+**4. 장비 효과 계산:**
+- 장착된 장비의 스탯 합산
+- 레어도 보너스 적용 (statMultiplier)
+- 레벨 보너스 적용 (레벨당 10% 증가)
+
+**5. 인벤토리 관리:**
+- 인벤토리에 장비 추가
+- 인벤토리에서 장비 제거
+- 인벤토리 목록 조회
+
+**6. 장비 스탯 계산:**
+- 단일 장비 스탯 계산 (레어도 × 레벨 보너스)
+- 캐릭터 총 스탟 계산
+
+### 장비 스탯 계산
+
+**효과 스탟 계산:**
+```javascript
+effectiveValue = baseStats × rarityMultiplier × levelMultiplier
+
+levelMultiplier = 1 + (level - 1) × 0.1  // 레벨당 10% 증가
+```
+
+**예시:**
+- 기본 검 (Lv.1, COMMON): 공격력 10 × 1.0 × 1.0 = 10
+- 기본 검 (Lv.3, COMMON): 공격력 10 × 1.0 × 1.2 = 12
+- 강철 검 (Lv.1, RARE): 공격력 15 × 1.2 × 1.0 = 18
+- 강철 검 (Lv.5, RARE): 공격력 15 × 1.2 × 1.4 = 25.2
+
+### 장비 강화 효과
+
+| 레벨 | 보너스 스탯 (레벨당) |
+|------|---------------------|
+| Lv.1 | 0% |
+| Lv.2 | +10% |
+| Lv.3 | +20% |
+| Lv.4 | +30% |
+| Lv.5 | +40% |
+
+### 테스트 결과 요약
+
+- **구현 완료:** 2026-02-20 12:31
+- **코드 작성:** read/write로 장비 시스템 구현
+- **테스트 코드:** 44개 테스트 (read/write로 작성)
+- **테스트 실행:** 181ms 소요
+- **결과:** 44/44 통과 (100%)
+- **GitHub Issue:** #113 Phase 12 진행 중
+
+### 테스트 카테고리
+
+- 기본 설정 (3 tests)
+- 장비 정보 조회 (3 tests)
+- 장비 장착 (4 tests)
+- 장비 해제 (3 tests)
+- 장비 강화 (4 tests)
+- 장비 효과 계산 (5 tests)
+- 인벤토리 관리 (6 tests)
+- 장비 스탯 계산 (4 tests)
+- 장착 슬롯 정보 (2 tests)
+- 요약 정보 (2 tests)
+- 통합 테스트 (4 tests)
+- 엣지 케이스 (4 tests)
+
+### 구현된 메서드
+
+**EquipmentSystem 클래스:**
+- `getEquipmentInfo(itemId)` - 장비 정보 가져오기
+- `equipItem(itemId)` - 장비 장착
+- `unequipSlot(slotType)` - 장비 해제
+- `enhanceEquipment(itemId)` - 장비 강화
+- `getTotalStats()` - 총 스탯 계산
+- `equippedSlots` - 장착된 슬롯 정보
+- `addToInventory(equipment)` - 인벤토리 추가
+- `removeFromInventory(itemId)` - 인벤토리 제거
+- `getInventory()` - 인벤토리 목록
+- `getSummary()` - 요약 정보
+- `calculateStat(equipment, stat)` - 장비 스탯 계산
+
+### 버그 수정 기록
+
+1. **2026-02-20 12:31 - 키 오타 수정**
+   - 'helmet Leather' → 'helmet_leather' (공백 제거)
+
+2. **2026-02-20 12:31 - 파라미터 검증 추가**
+   - `addToInventory()`에 equipment 파라미터 null/undefined 검증 추가
+
+3. **2026-02-20 12:31 - 테스트 케이스 수정**
+   - T26: 장착된 장비 제거 실패 테스트 로직 수정 (인벤토리 추가 후 장착)
+   - T41: 장비 장착 후 인벤토리 추가 성공으로 수정 (인벤토리와 장착 슬롯은 독립적)
+
+### 파일 위치
+
+- `backend/character-system/equipment-system.js` - 메인 코드 (11,455 bytes)
+- `backend/character-system/__tests__/equipment-system.test.js` - 테스트 코드 (17,968 bytes)
