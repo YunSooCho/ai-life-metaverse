@@ -21,9 +21,10 @@ const SkillMenu = ({ socket, characterData, onClose }) => {
   // 학습 가능한 스킬 불러오기
   useEffect(() => {
     if (socket) {
-      socket.emit('getLearnableSkills')
-      socket.emit('getEquippedSkills')
-      socket.emit('getLearnedSkills')
+      // 🔴 FIX: characterId 전달
+      socket.emit('getLearnableSkills', { characterId: characterData?.id })
+      socket.emit('getEquippedSkills', { characterId: characterData?.id })
+      socket.emit('getLearnedSkills', { characterId: characterData?.id })
 
       socket.on('learnableSkills', setLearnableSkills)
       socket.on('equippedSkills', setEquippedSkills)
@@ -39,7 +40,7 @@ const SkillMenu = ({ socket, characterData, onClose }) => {
         socket.off('learnedSkills')
       }
     }
-  }, [socket])
+  }, [socket, characterData?.id])
 
   // 스킬 학습
   const handleLearnSkill = (skillId) => {

@@ -1467,6 +1467,28 @@ io.on('connection', (socket) => {
     socket.emit('learnableSkills', learnableSkills)
   })
 
+  // 스킬 시스템: 장착된 스킬 목록 (🔴 NEW)
+  socket.on('getEquippedSkills', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const summary = skillManager.getSkillSummary(character)
+    socket.emit('equippedSkills', summary.equippedActive || [])
+  })
+
+  // 스킬 시스템: 학습한 스킬 목록 (🔴 NEW)
+  socket.on('getLearnedSkills', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const summary = skillManager.getSkillSummary(character)
+    const learnedSkillIds = character?.skills?.skills || []
+    const learnedSkillsData = learnedSkillIds.map(skillId => skillManager.getSkill(skillId)).filter(Boolean)
+    socket.emit('learnedSkills', {
+      skills: learnedSkillsData,
+      skillLevels: summary.skillLevels || {},
+      skillExp: summary.skillExp || {}
+    })
+  })
+
   // 스킬 시스템: 스킬 학습
   socket.on('learnSkill', (data) => {
     const { characterId, skillId } = data
