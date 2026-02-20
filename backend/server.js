@@ -30,6 +30,11 @@ import {
   getAllCharacters
 } from './database/index.js'
 
+// Phase 12: 캐릭터 시스템 고급화
+import { EvolutionManager } from './character-system/evolution-manager.js'
+import { SkillManager } from './character-system/skill-system.js'
+import { EquipmentSystem } from './character-system/equipment-system.js'
+
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {
   // No-op until event system is properly exported
@@ -180,6 +185,20 @@ rooms[DEFAULT_ROOM_ID] = {
 
 // 캐릭터-방 매핑: { characterId: roomId }
 const characterRooms = {}
+
+// Phase 12: 캐릭터 시스템 고급화 - 인스턴스 초기화
+const evolutionManager = new EvolutionManager(console)
+const skillManager = new SkillManager(console)
+const equipmentSystems = new Map(); // characterId -> EquipmentSystem
+
+// 캐릭터의 장비 시스템 가져오기
+const getCharacterEquipment = (characterId) => {
+  if (!equipmentSystems.has(characterId)) {
+    const equipment = new EquipmentSystem();
+    equipmentSystems.set(characterId, equipment);
+  }
+  return equipmentSystems.get(characterId);
+};
 
 // 프라이빗 메시지 기록 (캐릭터 ID 기준)
 const privateMessages = {}  // { characterId: [messages] }
@@ -1268,6 +1287,208 @@ io.on('connection', (socket) => {
       })
     }
   })
+
+  // ===== Phase 12: 캐릭터 시스템 고급화 이벤트 핸들러 =====
+
+  // 진화 시스템: 진화 가능 여부 확인
+  socket.on('canEvolve', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const result = evolutionManager.canEvolve(character)
+    socket.emit('canEvolveResult', result)
+  })
+
+  // 진화 시스템: 진화 수행
+  socket.on('evolve', (data) => {
+    const { characterId, style } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = evolutionManager.evolve(character, style)
+    socket.emit('evolveResult', result)
+
+    if (result.success) {
+      io.to(roomId).emit('characterUpdate', character)
+      console.log(`🌟 진화 완료: ${character.name} → ${result.stageInfo.name}`)
+    }
+  })
+
+  // 진화 시스템: 스타일 변경
+  socket.on('changeEvolutionStyle', (data) => {
+    const { characterId, style } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = evolutionManager.changeStyle(character, style)
+    socket.emit('changeEvolutionStyleResult', result)
+
+    if (result.success) {
+      io.to(roomId).emit('characterUpdate', character)
+    }
+  })
+
+  // 진화 시스템: 렌더링 정보 가져오기
+  socket.on('getEvolutionRenderInfo', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const renderInfo = evolutionManager.getRenderInfo(character)
+    socket.emit('evolutionRenderInfo', renderInfo)
+  })
+
+  // 진화 시스템: 진화 이력 가져오기
+  socket.on('getEvolutionHistory', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const history = evolutionManager.getEvolutionHistory(character)
+    socket.emit('evolutionHistory', history)
+  })
+
+  // 스킬 시스템: 학습 가능한 스킬 목록
+  socket.on('getLearnableSkills', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const learnableSkills = skillManager.getLearnableSkills(character)
+    socket.emit('learnableSkills', learnableSkills)
+  })
+
+  // 스킬 시스템: 스킬 학습
+  socket.on('learnSkill', (data) => {
+    const { characterId, skillId } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = skillManager.learnSkill(character, skillId)
+    socket.emit('learnSkillResult', result)
+
+    if (result.success) {
+      console.log(`📚 스킬 학습: ${character.name} → ${result.skill.name}`)
+    }
+  })
+
+  // 스킬 시스템: 스킬 장착
+  socket.on('equipSkill', (data) => {
+    const { characterId, skillId } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = skillManager.equipSkill(character, skillId)
+    socket.emit('equipSkillResult', result)
+  })
+
+  // 스킬 시스템: 스킬 해제
+  socket.on('unequipSkill', (data) => {
+    const { characterId, skillId } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = skillManager.unequipSkill(character, skillId)
+    socket.emit('unequipSkillResult', result)
+  })
+
+  // 스킬 시스템: 스킬 사용
+  socket.on('useSkill', (data) => {
+    const { characterId, skillId, target } = data
+    const roomId = characterRooms[characterId]
+    if (!roomId) return
+
+    const character = rooms[roomId].characters[characterId]
+    const result = skillManager.useSkill(character, skillId, target)
+    socket.emit('useSkillResult', result)
+
+    if (result.success) {
+      // 방 전체에 스킬 사용 효과 브로드캐스트
+      io.to(roomId).emit('skillEffect', {
+        characterId,
+        skillId,
+        effects: result.effects
+      })
+    }
+  })
+
+  // 스킬 시스템: 스킬 요약 정보
+  socket.on('getSkillSummary', (data) => {
+    const { characterId } = data
+    const character = characterRooms[characterId] ? rooms[characterRooms[characterId]].characters[characterId] : null
+    const summary = skillManager.getSkillSummary(character)
+    socket.emit('skillSummary', summary)
+  })
+
+  // 장비 시스템: 장비 장착
+  socket.on('equipItem', (data) => {
+    const { characterId, itemId } = data
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.equipItem(itemId)
+    socket.emit('equipItemResult', result)
+
+    if (result.success) {
+      console.log(`🔧 장비 장착: ${result.message}`)
+    }
+  })
+
+  // 장비 시스템: 장비 해제
+  socket.on('unequipItem', (data) => {
+    const { characterId, slotType } = data
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.unequipSlot(slotType)
+    socket.emit('unequipItemResult', result)
+  })
+
+  // 장비 시스템: 장비 강화
+  socket.on('enhanceEquipment', (data) => {
+    const { characterId, itemId } = data
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.enhanceEquipment(itemId)
+    socket.emit('enhanceEquipmentResult', result)
+
+    if (result.success) {
+      console.log(`⬆️ 장비 강화: ${result.message}`)
+    }
+  })
+
+  // 장비 시스템: 장착된 장비 확인
+  socket.on('getEquippedItems', (data) => {
+    const { characterId } = data
+    const equipment = getCharacterEquipment(characterId)
+    socket.emit('equippedItems', equipment.equippedSlots)
+  })
+
+  // 장비 시스템: 총 스탯 계산
+  socket.on('getEquipmentStats', (data) => {
+    const { characterId } = data
+    const equipment = getCharacterEquipment(characterId)
+    const totalStats = equipment.getTotalStats()
+    socket.emit('equipmentStats', totalStats)
+  })
+
+  // 장비 시스템: 인벤토리에 장비 추가
+  socket.on('addToEquipmentInventory', (data) => {
+    const { characterId, equipment } = data
+    const equipSystem = getCharacterEquipment(characterId)
+    const result = equipSystem.addToInventory(equipment)
+    socket.emit('addToEquipmentInventoryResult', result)
+  })
+
+  // 장비 시스템: 인벤토리 목록
+  socket.on('getEquipmentInventory', (data) => {
+    const { characterId } = data
+    const equipment = getCharacterEquipment(characterId)
+    socket.emit('equipmentInventory', equipment.getInventory())
+  })
+
+  // 장비 시스템: 인벤토리에서 장비 제거
+  socket.on('removeFromEquipmentInventory', (data) => {
+    const { characterId, itemId } = data
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.removeFromInventory(itemId)
+    socket.emit('removeFromEquipmentInventoryResult', result)
+  })
+
+  // ===== Phase 12 종료 =====
 
   // 연결 종료
   socket.on('disconnect', () => {
