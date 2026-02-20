@@ -548,10 +548,27 @@ if (chatData?.message) {
 **Props (2026-02-17 업데이트):**
 - `show` (boolean): 표시 여부
 - `rooms` (array): 방 목록
+  - 각 방 구조:
+    ```javascript
+    {
+      id: string,         // 방 ID (예: 'main', 'room-123')
+      name: string,       // 방 이름
+      characters: object  // 접속 캐릭터 { [characterId]: character object }
+      capacity: number,   // 최대 인원 (기본값: 20)
+      chatHistory: array, // 채팅 히스토리
+      affinities: object  // 호감도 데이터
+    }
+    ```
 - `currentRoom` (object): 현재 방 `{ id, name }` - **타입 변경: string → object**
 - `onJoinRoom` (func): 방 입장 핸들러
 - `onCreateRoom` (func): 방 생성 핸들러
 - `onClose` (func): 닫기 핸들러
+
+**인원수 표시 (2026-02-20 업데이트, Issue #127):**
+- 인원수 계산: `Object.keys(room.characters || {}).length`
+- 표시 형식: `{memberCount} 👤`
+- 데이터 소스: 백엔드 Room 객체의 `characters` 속성
+- 주의: `room.id`는 문자열, `room.characters`는 객체 타입
 
 **버그 수정 (2026-02-17, Issue #39):**
 - currentRoom 타입: PropTypes.string → PropTypes.shape({ id, name })
