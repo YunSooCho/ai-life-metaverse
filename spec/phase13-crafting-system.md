@@ -5,8 +5,8 @@
 AI Life Metaverse의 제작 시스템을 구현합니다. 플레이어는 제작 레벨을 올리고, 다양한 아이템을 제작할 수 있습니다.
 
 ## 구현 날짜
-- **Backend:** 2026-02-20 21:00
-- **UI:** TBD
+- **Backend:** 2026-02-20 21:00 ✅
+- **UI:** 2026-02-21 01:35 ✅ (버그 수정 완료)
 
 ## 구현 목표
 
@@ -101,11 +101,68 @@ AI Life Metaverse의 제작 시스템을 구현합니다. 플레이어는 제작
 
 ## 관련 파일
 
+### Backend
 - `backend/managers/RecipeManager.js` (5914 bytes)
 - `backend/managers/CraftingManager.js` (8805 bytes)
 - `backend/managers/CraftingTable.js` (5758 bytes)
 - `backend/__tests__/crafting-system.test.js` (14461 bytes)
 - `backend/server.js` (수정 - import 및 Socket.io 이벤트 핸들러 추가)
+
+### Frontend ✅ (2026-02-21 버그 수정 완료)
+- `frontend/src/components/Crafting.jsx` (버그 수정)
+  - TypeError: undefined.level 수정 (safe navigation operator)
+  - 조건부 렌더링 지원 (socket prop 추가)
+  - defaultProps 제거 (React 19 호환)
+- `frontend/src/components/RecipeList.jsx` (버그 수정)
+  - defaultProps 제거 (React 19 호환)
+- `frontend/src/App.jsx` (버그 수정)
+  - 조건부 렌더링 추가 (showCrafting && <Crafting />)
+- `frontend/src/components/RecipePreview.jsx` (관련 파일)
+- `frontend/src/components/Crafting.css` (스타일)
+
+## 버그 수정 이력 (2026-02-21)
+
+### 버그 #1: TypeError: Cannot read properties of undefined (reading 'level')
+- **위치:** `frontend/src/components/Crafting.jsx:28`
+- **원인:** `levelStats`가 undefined일 때 `.level` 속성 접근 시 에러 발생
+- **수정:**
+  ```javascript
+  // Before
+  const expToNext = Math.floor(100 * Math.pow(1.5, levelStats.level - 1));
+  const progressPercent = (levelStats.exp / expToNext) * 100;
+
+  // After
+  const safeLevel = levelStats?.level ?? 1;
+  const safeExp = levelStats?.exp ?? 0;
+  const expToNext = Math.floor(100 * Math.pow(1.5, safeLevel - 1));
+  const progressPercent = (safeExp / expToNext) * 100;
+  ```
+- **추가:** `fetchCraftingLevel` 함수에 safety check 추가
+
+### 버그 #2: 제작(Crafting) 패널이 닫지 않음
+- **위치:** `frontend/src/App.jsx`, `frontend/src/components/Crafting.jsx`
+- **원인:** App.jsx에서 Crafting 컴포넌트가 항상 렌더링됨 (조건부 렌더링 없음)
+- **수정:**
+  ```javascript
+  // Before
+  <Crafting show={showCrafting} onClose={...} />
+
+  // After
+  {showCrafting && <Crafting onClose={...} />}
+  ```
+- **추가:** Crafting.jsx에서 로컬 socket 제거, prop socket 사용
+
+### 버그 #3: React PropTypes defaultProps 경고
+- **위치:** `frontend/src/components/Crafting.jsx`, `frontend/src/components/RecipeList.jsx`
+- **원인:** React 19에서 defaultProps 지원 예정 제거 경고
+- **수정:**
+  ```javascript
+  // Before
+  Crafting.defaultProps = { craftingLevel: 1, craftingExp: 0 };
+
+  // After
+  const Crafting = ({ craftingLevel = 1, craftingExp = 0, ... }) => { ... }
+  ```
 
 ## GitHub Issues
 
@@ -114,7 +171,7 @@ AI Life Metaverse의 제작 시스템을 구현합니다. 플레이어는 제작
 ## 다음 단계
 
 1. ✅ Backend 시스템 구현 완료
-2. ⏳ Frontend UI 구현 (CraftingPanel, RecipeList, CraftingTableUI)
+2. ✅ Frontend UI 구현 (CraftingPanel, RecipeList, CraftingTableUI) - 버그 수정 완료
 3. ⏳ 기본 레시피 데이터 등록
 4. ⏳ 기본 제작대 데이터 등록
 5. ⏳ Web UI 스펙 업데이트
@@ -128,6 +185,9 @@ AI Life Metaverse의 제작 시스템을 구현합니다. 플레이어는 제작
 - [x] 테스트 코드 작성 (29 tests)
 - [x] 테스트 실행 및 통과 확인
 - [x] Spec 문서 작성
-- [ ] Frontend UI 구현
+- [x] Frontend UI 구현 (버그 수정 완료)
+  - [x] TypeError: undefined.level 수정 (safe navigation 추가)
+  - [x] 조건부 렌더링 추가 (showCrafting)
+  - [x] PropTypes defaultProps 경고 해결
 - [ ] 기본 데이터 등록
 - [ ] Git commit & push
