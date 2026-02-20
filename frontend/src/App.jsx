@@ -18,6 +18,8 @@ import SettingsPanel from './components/SettingsPanel'
 import CharacterCustomizationModal from './components/CharacterCustomizationModal'
 import StatusPanel from './components/StatusPanel'
 import ErrorBoundary from './components/ErrorBoundary'
+import EquipmentMenu from './components/EquipmentMenu'
+import SkillMenu from './components/SkillMenu'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
@@ -115,6 +117,8 @@ function AppContent() {
   const [showSettings, setShowSettings] = useState(false)
   const [showCustomizationModal, setShowCustomizationModal] = useState(false)
   const [showStatus, setShowStatus] = useState(false)
+  const [showEquipment, setShowEquipment] = useState(false)
+  const [showSkillMenu, setShowSkillMenu] = useState(false)
   const [characterCustomization, setCharacterCustomization] = useState({
     hairStyle: 'short',
     clothingColor: 'blue',
@@ -1141,6 +1145,18 @@ function AppContent() {
           >
             👕 커스터마이징
           </button>
+          <button
+            className="room-button"
+            onClick={() => setShowEquipment(prev => !prev)}
+          >
+            🛡️ 장비
+          </button>
+          <button
+            className="room-button"
+            onClick={() => setShowSkillMenu(prev => !prev)}
+          >
+            ⚔️ 스킬
+          </button>
 <button
              className="room-button"
              onClick={() => setShowReward(prev => !prev)}
@@ -1315,6 +1331,48 @@ function AppContent() {
         onClose={() => setShowCustomizationModal(false)}
         onSave={handleCustomizationSave}
       />
+
+      {showEquipment && (
+        <div className="equipment-menu-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <EquipmentMenu />
+          <button
+            onClick={() => setShowEquipment(false)}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              padding: '8px 16px',
+              backgroundColor: '#E74C3C',
+              color: '#ECF0F1',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            닫기
+          </button>
+        </div>
+      )}
+
+      {showSkillMenu && (
+        <SkillMenu
+          socket={socket}
+          characterData={myCharacter}
+          onClose={() => setShowSkillMenu(false)}
+        />
+      )}
      </div>
   )
 }

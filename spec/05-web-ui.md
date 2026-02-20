@@ -1861,3 +1861,186 @@ socket.on('useSkillResult', result)
 - ⏳ 스킬 레벨업 시 애니메이션
 - ⏳ 툴팁 스타일 개선
 - ⏳ 쿨타임 실시간 업데이트 (polling)
+
+---
+
+## 🗡️ Phase 14: 장비 시스템 UI (EquipmentSystem) (2026-02-20 진행 중)
+
+### 개요
+장비 시스템의 완전한 UI 구현 - Backend는 이미 완전 구현되었고 Frontend UI만 필요합니다.
+
+### 현재 상태
+- ✅ Backend: EquipmentSystem 완전 구현 (5슬롯/5레어도/강화)
+- ✅ 백엔드 테스트: 14/14 통과
+- ❌ Frontend: UI가 전혀 없음
+
+### 장비 슬롯 구조 (5개)
+
+| 슬롯 ID | 이름 | 설명 | 대표 장비 |
+|---------|------|------|----------|
+| weapon | 무기 | 공격력 향상 | 장검, 활, 마법봉 |
+| head | 머리 | 방어력/HP 향상 | 투구, 모자, 헬멧 |
+| body | 몸통 | 방어력 향상 | 갑옷, 방패, 망토 |
+| accessory | 장신구 | 특수 효과 | 목걸이, 반지, 아뮬렛 |
+| special | 특수 | 특정 장비 전용 | 날개, 망토, 보석 |
+
+### 장비 레어도 색상
+
+| 레어도 | 색상 | 확률 강화 | 색상 코드 |
+|--------|------|-----------|----------|
+| Common (일반) | 회색 | 90% | #9e9e9e |
+| Uncommon (보통) | 초록 | 75% | #4caf50 |
+| Rare (희소) | 파랑 | 60% | #2196f3 |
+| Epic (영웅) | 보라 | 45% | #9c27b0 |
+| Legendary (전설) | 주황 | 30% | #ff9800 |
+
+### 필요한 UI 컴포넌트
+
+#### EquipmentMenu.jsx - 장비 메뉴 UI
+- **위치:** `frontend/src/components/EquipmentMenu.jsx`
+- **주요 기능:**
+  - 장비 슬롯 5개 표시 (무기/머리/몸통/장신구/특수)
+  - 장비 장착/해제 버튼
+  - 장비 스탯 정보 표시
+  - 장비 강화 UI
+- **Props:**
+  ```javascript
+  {
+    visible: boolean,           // 표시 여부
+    character: object,          // 캐릭터 데이터
+    equipment: {
+      weapon: object|null,
+      head: object|null,
+      body: object|null,
+      accessory: object|null,
+      special: object|null
+    },
+    onClose: () => void,
+    onEquip: (slotId, itemId) => void,
+    onUnequip: (slotId) => void
+  }
+  ```
+- **스타일:** 픽셀 아트 레트로 스타일 (pixel-theme.css)
+
+#### EquipmentSlot.jsx - 장비 슬롯 UI
+- **위치:** `frontend/src/components/EquipmentSlot.jsx`
+- **주요 기능:**
+  - 장비 아이콘 표시
+  - 장비 레어도 표시 (색상 구분)
+  - 장비 이름/레벨 표시
+  - 빈 슬롯 표시
+- **Props:**
+  ```javascript
+  {
+    slotId: string,             // 슬롯 ID (weapon/head/body/accessory/special)
+    slotName: string,           // 슬롯 이름
+    equipment: object|null,     // 장비 데이터
+    onClick: () => void
+  }
+  ```
+- **스타일:** 레어도별 보더 색상
+  - Common: #9e9e9e
+  - Uncommon: #4caf50
+  - Rare: #2196f3
+  - Epic: #9c27b0
+  - Legendary: #ff9800
+
+#### Equipment Enhance UI - 장비 강화 UI
+- **위치:** `EquipmentMenu.jsx 내부`
+- **주요 기능:**
+  - 강화 버튼
+  - 강화 확률 표시
+  - 강화 비용 표시
+  - 강화 결과 애니메이션 (성공/실패)
+- **강화 확률:**
+  - 레어도 Common → Uncommon: 90%
+  - 레어도 Uncommon → Rare: 75%
+  - 레어도 Rare → Epic: 60%
+  - 레어도 Epic → Legendary: 45%
+  - 레어도 Legendary +1: 30%
+- **강화 비용:** 레벨 × 100 골드
+
+### 백엔드 통합 (이미 구현됨)
+
+**위치:** `backend/character-system/equipment-system.js`
+
+**Server.js 이벤트 핸들러:**
+```javascript
+// 장비 데이터 불러오기
+socket.on('getEquipment', (data) => { ... })
+socket.on('equipmentData', (equipment) => { ... })
+
+// 장비 장착
+socket.on('equipItem', (data) => { ... })
+socket.on('equipItemResult', result)
+
+// 장비 해제
+socket.on('unequipItem', (data) => { ... })
+socket.on('unequipItemResult', result)
+
+// 장비 강화
+socket.on('enhanceEquipment', (data) => { ... })
+socket.on('enhanceEquipmentResult', result)
+```
+
+**장비 데이터 구조 (백엔드):**
+```javascript
+{
+  equipment: {
+    weapon: {
+      id: 'item_sword_1',
+      name: '장검',
+      rarity: 'Common',
+      level: 1,
+      stats: {
+        attack: 10,
+        defense: 2,
+        speed: 0,
+        hp: 0,
+        mp: 0
+      }
+    },
+    head: null,
+    body: null,
+    accessory: null,
+    special: null
+  },
+  enhanceCount: 0,
+  lastEnhanceTime: null
+}
+```
+
+### 기능 연계
+- **Inventory.jsx:** 장비 장착/해제 기능 추가
+- **Character.jsx:** 장비 시각화 (장비가 보이도록)
+- **StatusPanel.jsx:** 장비 스탯 표시
+
+### 테스트 (계획)
+
+**테스트 파일:**
+- `EquipmentMenu.test.jsx` - 장비 메뉴 UI
+- `EquipmentSlot.test.jsx` - 장비 슬롯 UI
+
+**테스트 항목:**
+- 기본 렌더링
+- 빈 슬롯 표시
+- 장비 슬롯 표시 (5개)
+- 레어도 색상 표시
+- 장착/해제 버튼
+- 강화 버튼
+- Socket 이벤트 등록/해제
+
+### GitHub Issue
+- **#129:** [ui] #1402: 장비 시스템 UI (EquipmentSystem) - 높은 우선순위 ✅ Phase 14 완료 대기
+
+### 예상 소요
+4-6시간 (read/write 작업 + 테스트)
+
+### 관련 파일
+- `backend/character-system/equipment-system.js`
+- `frontend/src/components/Inventory.jsx`
+- `frontend/src/components/Character.jsx`
+
+---
+
+*마지막 업데이트: 2026-02-20 19:30 (Phase 14 장비 시스템 UI Spec 추가)*
