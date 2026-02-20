@@ -552,6 +552,9 @@ function GameCanvas({
         console.log('🗨️ Chat messages render:', msgs)
       }
 
+      // 채팅 버블 렌더링용 배열 (캐릭터 먼저 그린 후 버블 그리기 위해)
+      const chatBubblesToRender = []
+
       const effects = clickEffectsRef.current
       const blds = buildingsRef.current
       const cust = characterCustomizationRef.current
@@ -1028,21 +1031,30 @@ function GameCanvas({
           prevAffinitiesRef.current[char.id] = affinity
         }
 
-        // 채팅 버블
+        // 채팅 버블 데이터 수집
         const chatData = msgs[char.id]
         if (chatData?.message) {
-          console.log('💬 Rendering chat bubble for', char.id, ':', chatData.message, 'at', {x, y})
-          renderChatBubble(ctx, chatData.message, x, y, CHARACTER_SIZE_SCALED, currentScale, canvasWidth, canvasHeight)
+          chatBubblesToRender.push({
+            message: chatData.message,
+            x: x,
+            y: y
+          })
         } else if (chatData) {
           console.warn('⚠️ Chat data exists but no message for', char.id, ':', chatData)
         }
       }
 
-      // Render all characters
+      // Render all characters (먼저 캐릭터 그리기)
       Object.values(chars).forEach(char => {
         drawCharacter(char)
       })
       drawCharacter(myChar)
+
+      // Render all chat bubbles (캐릭터 위에 그리기)
+      chatBubblesToRender.forEach(bubble => {
+        console.log('💬 Rendering chat bubble:', bubble.message, 'at', {x: bubble.x, y: bubble.y})
+        renderChatBubble(ctx, bubble.message, bubble.x, bubble.y, CHARACTER_SIZE_SCALED, currentScale, canvasWidth, canvasHeight)
+      })
 
       // 시간 오버레이
       const gameHour = getGameHour(gameStartTime.current)
