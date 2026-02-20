@@ -847,5 +847,137 @@ moveTo(targetX, targetY) {
 - [ ] 픽셀아트 스프라이트를 GameCanvas에 통합
 - [ ] 애니메이션 시스템 구현 (idle/walk)
 - [ ] 방향 전환 (상/하/좌/우)
+
+---
+
+## 스킬 시스템 (Phase 12) - ✅ 완료 (2026-02-20)
+
+### 스킬 타입
+
+| 타입 | 설명 | 예시 |
+|------|------|------|
+| ACTIVE | 발동형 스킬 (사용 시 발동) | 베기, 힐, 대시 |
+| PASSIVE | 자동 효과 스킬 (상시 효과) | 크리티컬 히트, 민첩함, 생명력 |
+
+### 스킬 범주
+
+| 범주 | 설명 | 예시 스킬 |
+|------|------|---------|
+| COMBAT | 전투 (데미지, 공격력 증가) | 베기, 파워 스트라이크, 크리티컬 히트 |
+| MOVEMENT | 이동 (속도 증가, 순간이동) | 대시, 속도 부스트, 민첩함 |
+| SUPPORT | 보조 (힐, 버프, 디버프) | 힐, 방어력 강화, 생명력 |
+
+### 기본 스킬 목록
+
+**전투 스킬:**
+- `slash` (Lv.1): 전방의 적에게 물리 공격 (10-20 데미지, 쿨타임 3초)
+- `power_strike` (Lv.10): 강력한 일격 (30-50 데미지, 쿨타임 8초)
+- `critical_hit` (Lv.5, PASSIVE): 크리티컬 확률 10% 증가
+
+**이동 스킬:**
+- `dash` (Lv.1): 짧은 거리 이동 (3칸 순간이동, 쿨타임 5초)
+- `speed_boost` (Lv.8): 이동 속도 30% 증가 (10초, 쿨타임 30초)
+- `agility` (Lv.3, PASSIVE): 기본 이동 속도 15% 증가
+
+**보조 스킬:**
+- `heal` (Lv.1): HP 회복 (20-40 회복, 쿨타임 10초)
+- `defense_boost` (Lv.7): 방어력 20% 증가 (15초, 쿨타임 25초)
+- `vitality` (Lv.2, PASSIVE): 최대 HP 20% 증가
+
+### 스킬 데이터 구조
+
+```javascript
+{
+  characterId: 'player1',
+  skills: {
+    skills: ['slash', 'heal', 'criticial_hit'],           // 소유 스킬 ID 목록
+    skillLevels: { slash: 2, heal: 1, critical_hit: 1 }, // 스킬 레벨
+    skillExp: { slash: 150, heal: 0, critical_hit: 0 },  // 스킬 경험치
+    skillCooldowns: { slash: 1708543300000 },            // 쿨타임 종료 시간
+    activeSlots: 5,                                      // 액티브 스킬 슬롯
+    equippedActive: ['slash', 'heal'],                   // 장착된 액티브 스킬
+    passiveSkills: ['critical_hit'],                     // 패시브 스킬
+    activeEffects: []                                    // 활성화된 버프/디버프
+  }
+}
+```
+
+### 스킬 시스템 기능
+
+**1. 스킬 학습:**
+- 레벨 조건 확인
+- 중복 학습 방지
+- 패시브 스킬 자동 활성화
+
+**2. 스킬 레벨업:**
+- 경험치 기반 레벨업 (100 × 현재 레벨)
+- 레벨당 10% 효과 증가
+- 쿨타임 5% 감소 (액티브 스킬)
+
+**3. 스킬 장착/해제:**
+- 액티브 스킬 슬롯 관리 (기본 5개)
+- 패시브 스킬 자동 활성화 (수동 장착 불가)
+
+**4. 스킬 사용:**
+- 쿨타임 관리
+- 효과 계산 (데미지, 힐, 버프, 이동)
+- 액티브 효과 등록 (지속 효과)
+
+**5. 패시브 스킬 효과:**
+- 자동 스탯 보정 계산
+- 캐릭터 총 스탯 계산 (패시브 + 액티브)
+
+### 쿨타임 시스템
+
+**쿨타임 계산:**
+```javascript
+actualCooldown = skill.cooldown × (1 - (skillLevel - 1) × 0.05)
+```
+
+- Lv.1: 100% 쿨타임
+- Lv.5: 80% 쿨타임 (레벨당 5% 감소)
+
+### 스킬 레벨 효과
+
+| 레벨 | 데미지 증가 | 쿨타임 감소 |
+|------|------------|------------|
+| Lv.1 | 0% | 0% |
+| Lv.2 | 10% | 5% |
+| Lv.3 | 20% | 10% |
+| Lv.4 | 30% | 15% |
+| Lv.5 | 40% | 20% |
+
+### 테스트 결과 요약
+
+- **구현 완료:** 2026-02-20 12:02
+- **코드 작성:** read/write로 스킬 시스템 구현
+- **테스트 코드:** 49개 테스트 (read/write로 작성)
+- **테스트 실행:** 213ms 소요
+- **결과:** 49/49 통과 (100%)
+- **GitHub Issue:** #113 Phase 12 진행 중
+
+### 구현된 메서드
+
+**SkillManager 클래스:**
+- `getSkill(skillId)` - 스킬 정보 가져오기
+- `getAllSkills()` - 모든 스킬 목록
+- `getAvailableSkills(level)` - 레벨별 사용 가능 스킬
+- `canLearnSkill(characterData, skillId)` - 학습 가능 여부 확인
+- `learnSkill(characterData, skillId)` - 스킬 학습
+- `levelUpSkill(characterData, skillId, expGained)` - 스킬 레벨업
+- `canUseSkill(characterData, skillId)` - 사용 가능 여부 확인
+- `useSkill(characterData, skillId, target)` - 스킬 사용
+- `equipSkill(characterData, skillId)` - 스킬 장착
+- `unequipSkill(characterData, skillId)` - 스킬 장착 해제
+- `updateCooldowns(characterData)` - 쿨타임 업데이트
+- `calculatePassiveEffects(characterData)` - 패시브 효과 계산
+- `calculateTotalStats(characterData, baseStats)` - 총 스탯 계산
+- `getSkillSummary(characterData)` - 스킬 요약 정보
+- `getLearnableSkills(characterData)` - 학습 가능 스킬
+
+### 파일 위치
+
+- `backend/character-system/skill-system.js` - 메인 코드 (18,055 bytes)
+- `backend/character-system/__tests__/skill-system.test.js` - 테스트 코드 (21,351 bytes)
 - [ ] 감정 표현을 채팅에 통합
 - [ ] 아바타 미리보기 UI
