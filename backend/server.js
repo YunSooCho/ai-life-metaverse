@@ -36,9 +36,9 @@ import { SkillManager } from './character-system/skill-system.js'
 import { EquipmentSystem } from './character-system/equipment-system.js'
 
 // Phase 13: 제작 시스템
-import { RecipeManager } from './managers/RecipeManager.js'
-import { CraftingManager } from './managers/CraftingManager.js'
-import { CraftingTable } from './managers/CraftingTable.js'
+import RecipeManager from './managers/RecipeManager.js'
+import CraftingManager from './managers/CraftingManager.js'
+import CraftingTable from './managers/CraftingTable.js'
 
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {

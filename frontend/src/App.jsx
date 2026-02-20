@@ -66,6 +66,17 @@ function AppContent() {
         affinity: 10,
         charisma: 5,
         intelligence: 5
+      },
+      // 🔴 FIX: 스킬 시스템 데이터 추가 (Issue #128)
+      skills: {
+        skills: [],              // 소유 스킬 ID 목록
+        skillLevels: {},         // 스킬 레벨
+        skillExp: {},            // 스킬 경험치
+        skillCooldowns: {},      // 쿨타임 상태
+        activeSlots: 5,          // 액티브 스킬 슬롯
+        equippedActive: [],      // 장착된 액티브 스킬
+        passiveSkills: [],       // 패시브 스킬
+        activeEffects: []        // 활성화된 효과
       }
     }
     return char

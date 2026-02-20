@@ -1,6 +1,6 @@
 // CraftingManager - 제작 로직 시스템
 
-const RecipeManager = require('./RecipeManager');
+import RecipeManager from './RecipeManager.js';
 
 class CraftingManager {
   constructor(redisClient) {
@@ -286,4 +286,4 @@ class CraftingManager {
   }
 }
 
-module.exports = CraftingManager;
+export default CraftingManager;

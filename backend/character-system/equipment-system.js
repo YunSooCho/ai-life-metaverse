@@ -515,10 +515,4 @@ class EquipmentSystem {
 // 내보내기
 // ============================================================================
 
-module.exports = {
-  EquipmentSystem,
-  SlotTypes,
-  Rarities,
-  StatTypes,
-  EquipmentDatabase
-};
+export { EquipmentSystem, SlotTypes, Rarities, StatTypes, EquipmentDatabase }

@@ -49,8 +49,8 @@ const SkillMenu = ({ socket, characterData, onClose }) => {
       socket.once('learnSkillResult', (result) => {
         if (result.success) {
           // 학습 후 목록 갱신
-          socket.emit('getLearnableSkills')
-          socket.emit('getLearnedSkills')
+          socket.emit('getLearnableSkills', { characterId: characterData.id })
+          socket.emit('getLearnedSkills', { characterId: characterData.id })
         }
       })
     }
@@ -62,8 +62,8 @@ const SkillMenu = ({ socket, characterData, onClose }) => {
       socket.emit('equipSkill', { characterId: characterData.id, skillId })
       socket.once('equipSkillResult', (result) => {
         if (result.success) {
-          socket.emit('getEquippedSkills')
-          socket.emit('getLearnedSkills')
+          socket.emit('getEquippedSkills', { characterId: characterData.id })
+          socket.emit('getLearnedSkills', { characterId: characterData.id })
         }
       })
     }
@@ -75,8 +75,8 @@ const SkillMenu = ({ socket, characterData, onClose }) => {
       socket.emit('unequipSkill', { characterId: characterData.id, skillId })
       socket.once('unequipSkillResult', (result) => {
         if (result.success) {
-          socket.emit('getEquippedSkills')
-          socket.emit('getLearnedSkills')
+          socket.emit('getEquippedSkills', { characterId: characterData.id })
+          socket.emit('getLearnedSkills', { characterId: characterData.id })
         }
       })
     }

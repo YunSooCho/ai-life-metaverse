@@ -213,4 +213,4 @@ class CraftingTable {
   }
 }
 
-module.exports = CraftingTable;
+export default CraftingTable;
