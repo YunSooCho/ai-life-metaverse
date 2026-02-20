@@ -172,6 +172,7 @@ const activeBuildingVisits = {}
 const rooms = {}  // { roomId: { id, name, characters: {}, chatHistory: [], affinities: {}, capacity: 20 } }
 const DEFAULT_ROOM_ID = 'main'
 const DEFAULT_ROOM_CAPACITY = 20
+const DEFAULT_CHARACTER_ID = 'player-' // 플레이어 접두사 (장비 시스템 임시용)
 
 // 기본 방 생성
 rooms[DEFAULT_ROOM_ID] = {
@@ -415,6 +416,108 @@ app.get('/api/rooms', (req, res) => {
   }))
   res.json({ rooms: activeRooms })
 })
+
+// ===== 장비 시스템 HTTP API =====
+
+// 장착된 장비 목록 조회
+app.get('/api/equipment/slots/:characterId?', (req, res) => {
+  try {
+    const characterId = req.params.characterId || DEFAULT_CHARACTER_ID
+    const equipment = getCharacterEquipment(characterId)
+    res.json({ success: true, data: { slots: equipment.equippedSlots } })
+  } catch (error) {
+    console.error('장착된 장비 조회 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to get equipped slots' })
+  }
+})
+
+// 장비 장착
+app.post('/api/equipment/equip', express.json(), (req, res) => {
+  try {
+    const characterId = DEFAULT_CHARACTER_ID // 임시로 기본 캐릭터 ID 사용
+    const { itemId } = req.body
+
+    if (!itemId) {
+      return res.status(400).json({ success: false, message: 'itemId is required' })
+    }
+
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.equipItem(itemId)
+
+    res.json({ success: result.success, message: result.message })
+  } catch (error) {
+    console.error('장비 장착 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to equip item' })
+  }
+})
+
+// 장비 해제
+app.post('/api/equipment/unequip', express.json(), (req, res) => {
+  try {
+    const characterId = DEFAULT_CHARACTER_ID // 임시로 기본 캐릭터 ID 사용
+    const { slotType } = req.body
+
+    if (!slotType) {
+      return res.status(400).json({ success: false, message: 'slotType is required' })
+    }
+
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.unequipSlot(slotType)
+
+    res.json({ success: result.success, message: result.message })
+  } catch (error) {
+    console.error('장비 해제 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to unequip item' })
+  }
+})
+
+// 장비 강화
+app.post('/api/equipment/enhance', express.json(), (req, res) => {
+  try {
+    const characterId = DEFAULT_CHARACTER_ID // 임시로 기본 캐릭터 ID 사용
+    const { itemId } = req.body
+
+    if (!itemId) {
+      return res.status(400).json({ success: false, message: 'itemId is required' })
+    }
+
+    const equipment = getCharacterEquipment(characterId)
+    const result = equipment.enhanceEquipment(itemId)
+
+    res.json({ success: result.success, message: result.message, newLevel: result.newLevel })
+  } catch (error) {
+    console.error('장비 강화 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to enhance equipment' })
+  }
+})
+
+// 총 스탯 조회
+app.get('/api/equipment/stats/:characterId?', (req, res) => {
+  try {
+    const characterId = req.params.characterId || DEFAULT_CHARACTER_ID
+    const equipment = getCharacterEquipment(characterId)
+    const totalStats = equipment.getTotalStats()
+    res.json({ success: true, data: totalStats })
+  } catch (error) {
+    console.error('총 스탯 조회 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to get equipment stats' })
+  }
+})
+
+// 인벤토리 목록 조회
+app.get('/api/equipment/inventory/:characterId?', (req, res) => {
+  try {
+    const characterId = req.params.characterId || DEFAULT_CHARACTER_ID
+    const equipment = getCharacterEquipment(characterId)
+    const inventory = equipment.getInventory()
+    res.json({ success: true, data: inventory })
+  } catch (error) {
+    console.error('인벤토리 조회 에러:', error)
+    res.status(500).json({ success: false, message: 'Failed to get inventory' })
+  }
+})
+
+// ===== 장비 시스템 HTTP API 종료 =====
 
 // 방 유틸리티 함수
 function getRoom(roomId) {
