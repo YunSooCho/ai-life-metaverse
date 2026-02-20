@@ -13,6 +13,7 @@ import MiniMap from './components/MiniMap'
 import Inventory from './components/Inventory'
 import Reward from './components/Reward'
 import Quest from './components/Quest'
+import Crafting from './components/Crafting'
 import LanguageSelector from './components/LanguageSelector'
 import SettingsPanel from './components/SettingsPanel'
 import CharacterCustomizationModal from './components/CharacterCustomizationModal'
@@ -109,6 +110,7 @@ function AppContent() {
 
   const [inventory, setInventory] = useState({})
   const [showInventory, setShowInventory] = useState(false)
+  const [showCrafting, setShowCrafting] = useState(false)
   const [showReward, setShowReward] = useState(false)
   const [claimedRewards, setClaimedRewards] = useState([])
   
@@ -1165,6 +1167,12 @@ function AppContent() {
           >
             👥 친구
           </button>
+          <button
+            className="room-button"
+            onClick={() => setShowCrafting(prev => !prev)}
+          >
+            🔨 제작
+          </button>
 <button
              className="room-button"
              onClick={() => setShowReward(prev => !prev)}
@@ -1323,6 +1331,13 @@ function AppContent() {
         onClaimReward={handleClaimQuestReward}
         onClose={() => setShowQuest(false)}
        />
+
+      <Crafting
+        show={showCrafting}
+        onClose={() => setShowCrafting(false)}
+        characterId={myCharacter.id}
+        socket={socket}
+      />
 
       {showSettings && (
         <SettingsPanel onClose={() => setShowSettings(false)} />
