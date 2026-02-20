@@ -57,7 +57,7 @@ export default function RoomMenu({
           {rooms.map((room) => {
             // currentRoom이 object인 경우 id 속성으로 비교
             const isActive = currentRoom ? room.id === currentRoom.id : false
-            const memberCount = room.members?.length || 0
+            const memberCount = Object.keys(room.characters || {}).length
 
             return (
               <button
@@ -85,7 +85,7 @@ RoomMenu.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      members: PropTypes.array
+      characters: PropTypes.object
     })
   ).isRequired,
   currentRoom: PropTypes.shape({
