@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import io from 'socket.io-client';
 import RecipeList from './RecipeList';
 import RecipePreview from './RecipePreview';
-import { useTranslation } from 'react-i18next';
+import { useI18n } from '../i18n/I18nContext';
 import './Crafting.css';
 
 const socket = io('http://localhost:4000', {
@@ -14,7 +14,10 @@ const socket = io('http://localhost:4000', {
  * Crafting Component - 제작 시스템 메인 UI
  */
 const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
-  const { t } = useTranslation('crafting');
+  const { t } = useI18n();
+
+  // crafting 네임스페이스 번역 helper
+  const tc = (key) => t(`ui.crafting.${key}`);
 
   const [recipes, setRecipes] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
@@ -146,14 +149,14 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
     <div className="crafting-panel">
       {/* 헤더 */}
       <div className="crafting-header">
-        <h2 className="pixel-font">{t('title')}</h2>
+        <h2 className="pixel-font">{tc('title')}</h2>
         <button className="pixel-button close-btn" onClick={onClose}>×</button>
       </div>
 
       {/* 제작 레벨 표시 */}
       <div className="crafting-level">
         <div className="level-info">
-          <span className="pixel-font level-label">{t('level')}: {levelStats.level}</span>
+          <span className="pixel-font level-label">{tc('level')}: {levelStats.level}</span>
           <span className="pixel-font exp-label">
             EXP: {levelStats.exp} / {expToNext}
           </span>
@@ -166,7 +169,7 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
       {/* 제작대 선택 */}
       {craftingTables.length > 1 && (
         <div className="crafting-tables">
-          <h3 className="pixel-font">{t('craftingTable')}</h3>
+          <h3 className="pixel-font">{tc('craftingTable') || '제작대'}</h3>
           <div className="table-list">
             {craftingTables.map(table => (
               <button
@@ -196,7 +199,7 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
           selectedRecipe={selectedRecipe}
           onCraft={handleCraft}
           isCrafting={isCrafting}
-          t={t}
+          t={tc}
         />
 
         {/* 레시피 미리보기 */}
@@ -208,7 +211,7 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
             table={selectedTable}
             onCraft={() => handleCraft(selectedRecipe)}
             isCrafting={isCrafting}
-            t={t}
+            t={tc}
           />
         )}
       </div>
@@ -216,7 +219,7 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
       {/* 닫기 버튼 */}
       <div className="crafting-footer">
         <button className="pixel-button secondary" onClick={onClose}>
-          {t('close')}
+          {tc('close')}
         </button>
       </div>
     </div>
