@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import io from 'socket.io-client';
 import RecipeList from './RecipeList';
 import RecipePreview from './RecipePreview';
 import { useI18n } from '../i18n/I18nContext';
 import './Crafting.css';
 
-const socket = io('http://localhost:4000', {
-  transports: ['websocket', 'polling']
-});
-
 /**
  * Crafting Component - 제작 시스템 메인 UI
  */
-const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
+const Crafting = ({ craftingLevel = 1, craftingExp = 0, characterId, onClose, socket }) => {
   const { t } = useI18n();
 
   // crafting 네임스페이스 번역 helper
@@ -32,9 +27,11 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
     expToNext: 100
   });
 
-  // 레벨 계산
-  const expToNext = Math.floor(100 * Math.pow(1.5, levelStats.level - 1));
-  const progressPercent = (levelStats.exp / expToNext) * 100;
+  // 레벨 계산 (안전장치: levelStats가 undefined인지 확인)
+  const safeLevel = levelStats?.level ?? 1;
+  const safeExp = levelStats?.exp ?? 0;
+  const expToNext = Math.floor(100 * Math.pow(1.5, safeLevel - 1));
+  const progressPercent = (safeExp / expToNext) * 100;
 
   // 레시피 목록 불러오기
   useEffect(() => {
@@ -63,8 +60,11 @@ const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
 
   const fetchCraftingLevel = () => {
     socket.emit('getCraftingLevel', { characterId }, (response) => {
-      if (response.success) {
+      if (response.success && response.levelStats) {
         setLevelStats(response.levelStats);
+      } else {
+        // fallback: 기본값 유지
+        console.warn('fetchCraftingLevel: Invalid response, keeping default levelStats');
       }
     });
   };
@@ -230,12 +230,8 @@ Crafting.propTypes = {
   craftingLevel: PropTypes.number,
   craftingExp: PropTypes.number,
   characterId: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired
-};
-
-Crafting.defaultProps = {
-  craftingLevel: 1,
-  craftingExp: 0
+  onClose: PropTypes.func.isRequired,
+  socket: PropTypes.object.isRequired
 };
 
 export default Crafting;

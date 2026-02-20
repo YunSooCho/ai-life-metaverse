@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 /**
  * RecipeList Component - 레시피 목록 UI
  */
-const RecipeList = ({ recipes, level, inventory, onRecipeSelect, selectedRecipe, onCraft, isCrafting, t }) => {
+const RecipeList = ({ recipes, level, inventory, onRecipeSelect, selectedRecipe = null, onCraft, isCrafting, t }) => {
   // 레시피 제작 가능 여부 확인
   const canCraftRecipe = (recipe) => {
     // 레벨 확인
@@ -151,10 +151,6 @@ RecipeList.propTypes = {
   onCraft: PropTypes.func.isRequired,
   isCrafting: PropTypes.bool.isRequired,
   t: PropTypes.func.isRequired
-};
-
-RecipeList.defaultProps = {
-  selectedRecipe: null
 };
 
 export default RecipeList;

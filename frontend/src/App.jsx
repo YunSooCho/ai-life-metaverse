@@ -1343,12 +1343,13 @@ function AppContent() {
         onClose={() => setShowQuest(false)}
        />
 
-      <Crafting
-        show={showCrafting}
-        onClose={() => setShowCrafting(false)}
-        characterId={myCharacter.id}
-        socket={socket}
-      />
+      {showCrafting && (
+        <Crafting
+          onClose={() => setShowCrafting(false)}
+          characterId={myCharacter.id}
+          socket={socket}
+        />
+      )}
 
       {showSettings && (
         <SettingsPanel onClose={() => setShowSettings(false)} />
