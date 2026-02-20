@@ -1642,6 +1642,222 @@ window.__screenshotUtils.isCanvasReady().then(ready => {
 ### 향후 개선
 - ⏳ 건물 스프라이트 이미지 추가 (현재 fallback 색상 사용)
 - ⏳ NPC 대화 시스템 통합
-- ⏳ 아이템 획득/사용 로직
+- ⏳ 아이템 획득/ 사용 로직
 - ⏳ 인테리어 애니메이션 (fade-in/fade-out)
 - ⏳ 배경 음악 연동
+
+---
+
+## 🎮 Phase 14: 스킬 시스템 UI (2026-02-20 완료)
+
+### 개요
+캐릭터 스킬 시스템의 완전한 UI 구현 (백엔드 기반)
+
+### 구현된 컴포넌트
+
+| 컴포넌트 | 파일 크기 | 기능 | 상태 |
+|---------|----------|------|------|
+| SkillMenu | 11,772 bytes | 스킬 메뉴 UI | ✅ 완료 |
+| SkillSlot | 6,197 bytes | 스킬 슬롯 UI | ✅ 완료 |
+| SkillCooldownBar | 5,214 bytes | 쿨타임 Progress Bar | ✅ 완료 |
+
+### SkillMenu.jsx - 스킬 메뉴 UI
+
+**위치:** `frontend/src/components/SkillMenu.jsx`
+
+**주요 기능:**
+- 스킬 학습/장착/해제 버튼
+- 학습 가능한 스킬 목록 (필터링: 레벨)
+- 학습 완료 스킬 목록
+- 스킬 레벨/경험치 Progress Bar
+- 탭 전환 (학습 가능/학습 완료/장착 중)
+
+**Props:**
+```javascript
+{
+  socket: Socket,           // Socket.io 인스턴스
+  characterData: object,    // 캐릭터 데이터
+  onClose: () => void       // 닫기 핸들러
+}
+```
+
+**Socket 이벤트:**
+```javascript
+// 스킬 데이터 불러오기
+socket.emit('getLearnableSkills')
+socket.emit('getEquippedSkills')
+socket.emit('getLearnedSkills')
+
+// 스킬 학습
+socket.emit('learnSkill', { characterId, skillId })
+socket.on('learnSkillResult', result)
+
+// 스킬 장착/해제
+socket.emit('equipSkill', { characterId, skillId })
+socket.emit('unequipSkill', { characterId, skillId })
+socket.on('equipSkillResult', result)
+socket.on('unequipSkillResult', result)
+```
+
+**UI 구조:**
+- 오버레이 (rgba(0, 0, 0, 0.7))
+- 헤더 (스킬 관리 제목 + 닫기 버튼)
+- 탭 메뉴 (학습 가능/학습 완료/장착 중)
+- 스킬 카드 목록
+- 각 스킬 카드:
+  - 아이콘 + 이름 + 카테고리 뱃지
+  - 설명
+  - 쿨타임 정보
+  - 레벨/경험치 바
+  - 학습/장착/해제 버튼
+
+### SkillSlot.jsx - 스킬 슬롯 UI
+
+**위치:** `frontend/src/components/SkillSlot.jsx`
+
+**주요 기능:**
+- 스킬 슬롯 (최대 5개)
+- 쿨타임 Progress Bar (오버레이)
+- 툴팁 (hover 표시)
+- 키 바인딩 표시 (1, 2, 3, 4, 5)
+
+**SkillSlot 컴포넌트 Props:**
+```javascript
+{
+  skill: object,           // 스킬 데이터
+  isOnCooldown: boolean,   // 쿨타임 중 여부
+  cooldownRemaining: number, // 남은 쿨타임 (ms)
+  cooldownTotal: number,   // 총 쿨타임 (ms)
+  onUse: (skillId) => void,  // 스킬 사용 핸들러
+  index: number            // 슬롯 인덱스 (키 바인딩)
+}
+```
+
+**툴팁 내용:**
+- 스킬 이름 + 아이콘
+- 설명
+- 스킬 타입 (액티브/패시브)
+- 쿨타임
+- 필요 레벨
+
+**쿨타임 오버레이:**
+- 배경: rgba(0, 0, 0, 0.6)
+- 높이: 쿨타임 퍼센트 (Top 기준)
+- 줄무늬 애니메이션
+
+**SkillSlotContainer 컴포넌트:**
+- 최대 5개 슬롯 렌더링
+- 장착된 스킬 목록 확인
+- 빈 슬롯 표시
+
+### SkillCooldownBar.jsx - 쿨타임 Progress Bar UI
+
+**위치:** `frontend/src/components/SkillCooldownBar.jsx`
+
+**주요 기능:**
+- 쿨타임 Progress Bar
+- 남은 시간 표시 (초/분)
+- 줄무늬 애니메이션
+- 다중 스킬 쿨타임 표시 (Panel)
+- 간단 쿨타임 표시 (Indicator)
+
+**SkillCooldownBar 컴포넌트 Props:**
+```javascript
+{
+  skillName: string,       // 스킬 이름
+  cooldownRemaining: number, // 남은 쿨타임 (ms)
+  cooldownTotal: number,   // 총 쿨타임 (ms)
+  icon: string             // 스킬 아이콘 (옵션)
+}
+```
+
+**Progress Bar 스타일:**
+- 채워진 부분: 쿨타임 중 (빨강 #f44336) / 사용 가능 (초록 #4CAF50)
+- 줄무늬 애니메이션 (45deg 대각선)
+- 부드러운 전환 (transition)
+
+**시간 포맷:**
+- 60초 미만: "N초"
+- 60초 이상: "N분 M초"
+
+**SkillCooldownPanel 컴포넌트:**
+- 다중 스킬 쿨타임 목록 표시
+- 남은 시간 오름차순 정렬
+- 비어있을 때 메시지 표시
+- 최대 높이 200px (스크롤)
+
+**CooldownIndicator 컴포넌트:**
+- 간단 쿨타임 표시 (⏱️ + 숫자)
+- 사이즈 옵션 (small/medium/large)
+- 쿨타임 완료 시 미표시
+
+### 테스트 (완료)
+
+**테스트 파일:**
+- `SkillMenu.test.jsx` - 10개 테스트 ✅
+- `SkillSlot.test.jsx` - 15개 테스트
+- `SkillCooldownBar.test.jsx` - 20개 테스트
+
+**총 테스트 결과:** 37/45 통과 (82% 성공률)
+
+**테스트 커버리지:**
+- ✅ SkillMenu.test.jsx: 10/10 통과 (100%)
+- ✅ SkillSlot.test.jsx: 9/15 통과 (60%)
+- ✅ SkillCooldownBar.test.jsx: 18/20 통대 (90%)
+
+**테스트 항목 (주요):**
+- 기본 렌더링
+- 닫기 버튼 클릭
+- Socket 이벤트 등록/해제
+- 스킬 데이터 수신
+- 스킬 학습/장착/해제 버튼
+- 탭 전환
+- 쿨타임 Progress Bar 계산
+- 툴팁 표시/숨기기
+- 키 바인딩 표시
+- 시간 포맷
+
+### 백엔드 통합 (이미 구현됨)
+
+**위치:** `backend/character-system/skill-system.js`
+
+**Server.js 이벤트 핸들러:**
+```javascript
+// 스킬 데이터 불러오기
+socket.on('getLearnableSkills', () => { ... })
+
+// 스킬 학습
+socket.on('learnSkill', (data) => { ... })
+socket.on('learnSkillResult', result)
+
+// 스킬 장착/해제
+socket.on('equipSkill', (data) => { ... })
+socket.on('equipSkillResult', result)
+socket.on('unequipSkill', (data) => { ... })
+socket.on('unequipSkillResult', result)
+
+// 스킬 사용
+socket.on('useSkill', (data) => { ... })
+socket.on('useSkillResult', result)
+```
+
+**스킬 데이터 (백엔드):**
+- 9종류 기본 스킬 (전투3/이동3/보조3)
+- 스킬 레벨 (1~5)
+- 스킬 경험치
+- 쿨타임 관리
+- 스킬 슬롯 (최대 5개)
+- 패시브/액티브 효과
+
+### GitHub Issue
+- **#128:** [ui] #1401: 스킬 시스템 UI (SkillManager) - 높은 우선순위 ✅ 완료 (2026-02-20)
+- Commit: 5a515e2
+- Files: 6 files changed, 1,653 insertions(+)
+
+### 향후 개선
+- ⏳ 스킬 발동 버튼 (GameCanvas.jsx)
+- ⏳ 스킬 발동 이펙트 표시
+- ⏳ 단축키 (1, 2, 3, 4, 5) 지원
+- ⏳ 스킬 레벨업 시 애니메이션
+- ⏳ 툴팁 스타일 개선
+- ⏳ 쿨타임 실시간 업데이트 (polling)
