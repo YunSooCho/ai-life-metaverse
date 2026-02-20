@@ -237,6 +237,7 @@ function GameCanvas({
     charactersRef.current = characters
     affinitiesRef.current = affinities
     chatMessagesRef.current = chatMessages
+    console.log('💾 chatMessagesRef sync:', chatMessages)
     clickEffectsRef.current = clickEffects
     buildingsRef.current = buildings
     characterCustomizationRef.current = characterCustomization
@@ -545,6 +546,12 @@ function GameCanvas({
       const chars = charactersRef.current
       const affs = affinitiesRef.current
       const msgs = chatMessagesRef.current
+
+      // Debug: 채팅 메시지 확인 (Issue #126)
+      if (Object.keys(msgs).length > 0) {
+        console.log('🗨️ Chat messages render:', msgs)
+      }
+
       const effects = clickEffectsRef.current
       const blds = buildingsRef.current
       const cust = characterCustomizationRef.current
@@ -1024,7 +1031,10 @@ function GameCanvas({
         // 채팅 버블
         const chatData = msgs[char.id]
         if (chatData?.message) {
-          renderChatBubble(ctx, chatData.message, x, y, CHARACTER_SIZE_SCALED, currentScale)
+          console.log('💬 Rendering chat bubble for', char.id, ':', chatData.message, 'at', {x, y})
+          renderChatBubble(ctx, chatData.message, x, y, CHARACTER_SIZE_SCALED, currentScale, canvasWidth, canvasHeight)
+        } else if (chatData) {
+          console.warn('⚠️ Chat data exists but no message for', char.id, ':', chatData)
         }
       }
 
@@ -1268,7 +1278,12 @@ function GameCanvas({
 /**
  * 채팅 버블 렌더링
  */
-function renderChatBubble(ctx, messageText, x, y, charSize, scale) {
+function renderChatBubble(ctx, messageText, x, y, charSize, scale, canvasWidth, canvasHeight) {
+  // Debug: 버블 렌더링 로그
+  console.log('🗨️ renderChatBubble called:', { messageText, x, y, charSize, scale, canvasWidth, canvasHeight })
+
+  ctx.save() // ✅ FIX: 캔버스 상태 저장 (Issue #126)
+
   const bubbleMaxWidth = 140 * scale
   const bubblePadding = 10 * scale
   const bubbleFontSize = 11 * scale
@@ -1292,7 +1307,7 @@ function renderChatBubble(ctx, messageText, x, y, charSize, scale) {
   lines.push(currentLine)
 
   const lineHeight = bubbleFontSize * 1.5
-  const bubbleHeight = (lines.length * lineHeight) + (bubblePadding * 2)
+  const bubbleHeight = (lines.length * lineHeight) + (bubblePadding * 2) + (12 * scale) // 꼬리 높이 포함
   const bubbleWidth = Math.min(
     bubbleMaxWidth,
     Math.max(
@@ -1301,24 +1316,54 @@ function renderChatBubble(ctx, messageText, x, y, charSize, scale) {
     )
   )
 
-  const bubbleX = x - (bubbleWidth / 2)
-  const bubbleY = y - charSize - bubbleHeight - (12 * scale)
+  let bubbleX = x - (bubbleWidth / 2)
+  let bubbleY = y - charSize - bubbleHeight - (5 * scale)
+
+  // ✅ FIX: 캔버스 범위 체크 (버그 #126)
+  // 상단 범위 체크
+  if (bubbleY < 0) {
+    bubbleY = y + charSize + (10 * scale)
+    console.log('⚠️ Bubble clipped to top, repositioning below character')
+  }
+
+  // 좌측 범위 체크
+  if (bubbleX < 0) {
+    bubbleX = 10 * scale
+  }
+
+  // 우측 범위 체크
+  if (bubbleX + bubbleWidth > canvasWidth) {
+    bubbleX = canvasWidth - bubbleWidth - (10 * scale)
+  }
+
+  // Debug: 최종 버블 좌표
+  console.log('🗨️ Final bubble coords:', { bubbleX, bubbleY, bubbleWidth, bubbleHeight, inBounds: bubbleY >= 0 && bubbleY + bubbleHeight <= canvasHeight })
 
   // 버블 배경
   ctx.fillStyle = '#ffffff'
   ctx.imageSmoothingEnabled = false
-  ctx.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight)
+  ctx.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight - (12 * scale))
 
   // 테두리
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 2
-  ctx.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight)
+  ctx.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight - (12 * scale))
 
-  // 꼬리
+  // 꼬리 (캐릭터 쪽으로 향하도록)
   const tailWidth = 12 * scale
-  const tailHeight = 12 * scale
-  const tailX = x - (tailWidth / 2)
-  const tailY = bubbleY + bubbleHeight
+  const tailHeight = 8 * scale
+  let tailX, tailY
+
+  // 버블이 캐릭터 위에 있는지 아래에 있는지에 따라 꼬리 위치 결정
+  if (bubbleY < y - charSize) {
+    // 버블이 캐릭터 위에 있음 -> 꼬리는 버블 아래
+    tailX = x - (tailWidth / 2)
+    tailY = bubbleY + bubbleHeight - (12 * scale)
+  } else {
+    // 버블이 캐릭터 아래에 있음 -> 꼬리는 버블 위
+    tailX = x - (tailWidth / 2)
+    tailY = bubbleY - tailHeight
+  }
 
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(tailX, tailY, tailWidth, tailHeight)
@@ -1338,6 +1383,8 @@ function renderChatBubble(ctx, messageText, x, y, charSize, scale) {
       bubbleY + bubblePadding + (index * lineHeight)
     )
   })
+
+  ctx.restore() // ✅ FIX: 캔버스 상태 복원 (Issue #126)
 }
 
 function getAffinityColor(affinity) {
