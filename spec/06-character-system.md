@@ -1944,3 +1944,193 @@ if (!system.equippedTitle && title.rarity) {
 
 - `backend/character-system/title-system.js` - 메인 코드 (10,915 bytes)
 - `backend/character-system/__tests__/title-system.test.js` - 테스트 코드 (15,959 bytes)
+---
+
+## 장비 시스템 UI (Frontend) - ✅ 완료 (2026-02-20 18:25)
+
+### 개요
+
+장비 시스템의 Frontend UI로 장비 슬롯, 인벤토리, 강화 기능을 사용자가 제어할 수 있는 컴포넌트.
+
+### UI 컴포넌트
+
+| 컴포넌트 | 설명 | 파일 |
+|----------|------|------|
+| EquipmentSlot | 개별 장비 슬롯 UI | `frontend/src/components/EquipmentSlot.jsx` |
+| EquipmentMenu | 장비 메뉴 UI (메인) | `frontend/src/components/EquipmentMenu.jsx` |
+
+### EquipmentSlot.jsx - 장비 슬롯 UI
+
+**기능:**
+- 장비 아이콘 표시 (이모지로 임시 대체)
+- 장비 레어도 색상 테두리
+- 장비 이름/레벨 표시
+- 장비 장착/해제 버튼
+- 장비 강화 버튼 (+1)
+- 최대 레벨 도달 시 MAX 배지
+- 호버 효과 (확대 + 그림자)
+
+**슬롯 타입 아이콘:**
+- 무기 (weapon): ⚔️
+- 머리 (head): 👑
+- 몸통 (body): 🛡️
+- 장신구 (accessory): 💍
+- 특수 (special): ✨
+
+**레어도 색상:**
+- COMMON: #95A5A6 (회색)
+- RARE: #3498DB (파란색)
+- EPIC: #9B59B6 (보라색)
+- LEGENDARY: #F39C12 (金色)
+- MYTHIC: #E74C3C (빨간색)
+
+**Props:**
+- `slotType`: 슬롯 타입 (weapon/head/body/accessory/special)
+- `equipment`: 장비 정보 (null이면 빈 슬롯)
+- `onEquip`: 장착 버튼 클릭 핸들러
+- `onUnequip`: 해제 버튼 클릭 핸들러
+- `onEnhance`: 강화 버튼 클릭 핸들러
+- `isEquipped`: 장착 여부 (부울)
+
+**테스트:** 11 tests passed ✅
+
+### EquipmentMenu.jsx - 장비 메뉴 UI
+
+**기능:**
+- 5개 장비 슬롯 배치 (2열 그리드)
+- 총 스탯 효과 표시 (오른쪽 패널)
+- 인벤토리 모달
+- 선택된 장비 상세 정보
+- 장비 장착/해제 API 호출
+- 장비 강화 API 호출
+
+**API 엔드포인트:**
+- `GET /api/equipment/slots` - 장착된 장비 목록
+- `POST /api/equipment/equip` - 장비 장착
+- `POST /api/equipment/unequip` - 장비 해제
+- `POST /api/equipment/enhance` - 장비 강화
+- `GET /api/equipment/stats` - 총 스탯
+- `GET /api/equipment/inventory` - 인벤토리
+
+**UI 레이아웃:**
+```
+[장비 메뉴]
+┌─────────────────────────────────────┬────────────────┐
+│  [장착된 장비]    [👜 인벤토리]    │  [총 스탯]    │
+│  ┌────────┬────────┐               │                │
+│  │ 무기   │ 머리   │               │  공격력: +10.0│
+│  │ ⚔️    │  👑    │               │  방어력: +5.0  │
+│  └────────┴────────┘               │  속도:   +2.0  │
+│  ┌────────┬────────┐               │                │
+│  │ 몸통   │ 장신구 │               │  [선택된 장비] │
+│  │ 🛡️    │  💍    │               │  이름: 기본 검 │
+│  └────────┴────────┘               │  레벨: 1/10    │
+│  ┌───────────────┐               │  레어도: COMMON │
+│  │   특수       │               │  슬롯: 무기    │
+│  │   ✨         │               │  설명: 기본 검 │
+│  └───────────────┘               │                │
+└─────────────────────────────────────┴────────────────┘
+```
+
+**인벤토리 모달:**
+- 전체 인벤토리 아이템 그리드 (2열)
+- 클릭으로 장비 선택
+- 장착 가능한 슬롯 확인
+- 레어도/레벨 표시
+
+**테스트:** 10 tests passed ✅
+
+### Backend API 수정 (server.js)
+
+**추가된 API 엔드포인트:**
+```javascript
+// 장착된 장비 목록 조회
+app.get('/api/equipment/slots/:characterId?', (req, res) => { ... });
+
+// 장비 장착
+app.post('/api/equipment/equip', express.json(), (req, res) => { ... });
+
+// 장비 해제
+app.post('/api/equipment/unequip', express.json(), (req, res) => { ... });
+
+// 장비 강화
+app.post('/api/equipment/enhance', express.json(), (req, res) => { ... });
+
+// 총 스탯 조회
+app.get('/api/equipment/stats/:characterId?', (req, res) => { ... });
+
+// 인벤토리 목록 조회
+app.get('/api/equipment/inventory/:characterId?', (req, res) => { ... });
+```
+
+**상수 추가:**
+- `DEFAULT_CHARACTER_ID`: 'player-' (임시 플레이어 ID 접두사)
+
+### 테스트 결과 요약
+
+- **구현 완료:** 2026-02-20 18:25
+- **코드 작성:** read/write로 UI 구현
+  - EquipmentSlot.jsx: 259 lines
+  - EquipmentMenu.jsx: 435 lines
+  - backend/server.js API 추가
+- **테스트 코드:**
+  - EquipmentSlot.test.jsx: 11 tests (read/write)
+  - EquipmentMenu.test.jsx: 10 tests (read/write)
+- **테스트 실행:** 21/21 통과 (100%)
+- **Git Commit:** c9df399
+- **GitHub Issue:** #129 (장비 시스템 UI) close 완료
+
+### 테스트 케이스
+
+**EquipmentSlot (11 tests):**
+1. 빈 슬롯 렌더링
+2. 장착된 장비 렌더링
+3. 장비 아이콘 올바르게 표시
+4. 레어도 배지 표시
+5. 빈 슬롯 클릭 시 onEquip 호출
+6. 장착된 장비 클릭 시 onUnequip 호출
+7. 강화 버튼 표시
+8. 최대 레벨 도달 시 MAX 배지 표시
+9. 강화 버튼 클릭 시 onEnhance 호출
+10. 호버 시 슬롯 확대
+11. 레어도에 따른 테두리 색상
+
+**EquipmentMenu (10 tests):**
+1. 장비 메뉴 렌더링
+2. 인벤토리 버튼 표시
+3. 장착 성공 시 메시지 표시
+4. 해제 성공 시 메시지 표시
+5. 강화 성공 시 레벨 증가
+6. 최대 레벨 도달 시 강화 불가
+7. 인벤토리 버튼 클릭 시 모달 표시
+8. 빈 인벤토리 시 비어있다고 표시
+9. 데이터 로드 실패 시 에러 기록
+10. API 호출 실패 시 메시지 표시
+
+### 파일 위치
+
+- `frontend/src/components/EquipmentSlot.jsx` - 장비 슬롯 UI (259 lines)
+- `frontend/src/components/EquipmentSlot.test.jsx` - 테스트 (281 lines)
+- `frontend/src/components/EquipmentMenu.jsx` - 장비 메뉴 UI (435 lines)
+- `frontend/src/components/EquipmentMenu.test.jsx` - 테스트 (306 lines)
+- `backend/server.js` - API 엔드포인트 추가
+
+### 사용자 경험
+
+1. **장비 메뉴 접속:** 메인 UI에서 장비 메뉴 클릭
+2. **장착된 장비 확인:** 5개 슬롯에 현재 장착된 장비 표시
+3. **인벤토리 열기:** "인벤토리" 버튼 클릭
+4. **장비 선택:** 인벤토리에서 장비 클릭 (선택 상태)
+5. **장비 장착:** 슬롯 클릭 → 장착 API 호출 → 슬롯 업데이트
+6. **장비 해제:** 장착된 장비 클릭 → 해제 API 호출 → 슬롯 비움
+7. **장비 강화:** 장착된 장비의 "강화 (+1)" 버튼 클릭 → 강화 API 호출 → 레벨 증가
+8. **총 스탯 확인:** 오른쪽 패널에서 스탯 보너스 확인
+
+### 디자인 특징
+
+- 레트로 게임 스타일 (픽셀 아트 테마)
+- 호버 효과 (확대 + 그림자)
+- 레어도 색상 테두리 (시각적 강조)
+- 반응형 레이아웃 (2열 그리드)
+- 모달 닫기 버튼
+- 선택된 장비 상세 정보 패널
