@@ -1,183 +1,238 @@
-import React, { useState, useEffect } from 'react'
-import { useI18n } from '../i18n/I18nContext'
-import RecipeList from './RecipeList'
-import RecipePreview from './RecipePreview'
-import './Crafting.css'
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import io from 'socket.io-client';
+import RecipeList from './RecipeList';
+import RecipePreview from './RecipePreview';
+import { useTranslation } from 'react-i18next';
+import './Crafting.css';
+
+const socket = io('http://localhost:4000', {
+  transports: ['websocket', 'polling']
+});
 
 /**
- * 제작 시스템 메인 UI 컴포넌트
- * JRPG 스타일 픽셀 UI로 제작 기능 구현
+ * Crafting Component - 제작 시스템 메인 UI
  */
-export default function Crafting({ show, onClose, characterId, socket }) {
-  const { t } = useI18n()
-  const [selectedRecipe, setSelectedRecipe] = useState(null)
-  const [craftingLevel, setCraftingLevel] = useState({ level: 1, exp: 0, expToNext: 100 })
-  const [recipes, setRecipes] = useState([])
-  const [inventory, setInventory] = useState({})
-  const [craftingHistory, setCraftingHistory] = useState([])
-  const [notification, setNotification] = useState(null)
+const Crafting = ({ craftingLevel, craftingExp, characterId, onClose }) => {
+  const { t } = useTranslation('crafting');
 
+  const [recipes, setRecipes] = useState([]);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [craftingTables, setCraftingTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [isCrafting, setIsCrafting] = useState(false);
+  const [craftingHistory, setCraftingHistory] = useState([]);
+  const [inventory, setInventory] = useState({});
+  const [levelStats, setLevelStats] = useState({
+    level: 1,
+    exp: 0,
+    expToNext: 100
+  });
+
+  // 레벨 계산
+  const expToNext = Math.floor(100 * Math.pow(1.5, levelStats.level - 1));
+  const progressPercent = (levelStats.exp / expToNext) * 100;
+
+  // 레시피 목록 불러오기
   useEffect(() => {
-    if (show && characterId) {
-      loadCraftingData()
+    if (characterId) {
+      fetchRecipes();
+      fetchCraftingLevel();
+      fetchCraftingTables();
+      
+      socket.on('craftingResult', handleCraftingResult);
+      socket.on('craftingError', handleCraftingError);
     }
-  }, [show, characterId])
-
-  useEffect(() => {
-    if (!socket) return
-
-    // 제작 이벤트 리스너
-    socket.on('craftingResult', handleCraftingResult)
-    socket.on('inventoryUpdate', (data) => {
-      setInventory(data.inventory || {})
-    })
 
     return () => {
-      socket.off('craftingResult', handleCraftingResult)
-      socket.off('inventoryUpdate')
-    }
-  }, [socket])
+      socket.off('craftingResult', handleCraftingResult);
+      socket.off('craftingError', handleCraftingError);
+    };
+  }, [characterId]);
 
-  const loadCraftingData = () => {
-    if (!socket) return
-
-    // 제작 레벨 조회
-    socket.emit('getCraftingLevel', { characterId }, (response) => {
-      if (response.success) {
-        setCraftingLevel(response.data)
-      }
-    })
-
-    // 레시피 목록 조회
+  const fetchRecipes = () => {
     socket.emit('getRecipes', { characterId }, (response) => {
       if (response.success) {
-        setRecipes(response.data || [])
+        setRecipes(response.recipes);
       }
-    })
+    });
+  };
 
-    // 인벤토리 조회
+  const fetchCraftingLevel = () => {
+    socket.emit('getCraftingLevel', { characterId }, (response) => {
+      if (response.success) {
+        setLevelStats(response.levelStats);
+      }
+    });
+  };
+
+  const fetchCraftingTables = () => {
+    socket.emit('getCraftingTables', { characterId }, (response) => {
+      if (response.success) {
+        setCraftingTables(response.tables);
+        if (response.tables.length > 0) {
+          setSelectedTable(response.tables[0]);
+        }
+      }
+    });
+  };
+
+  const fetchInventory = () => {
+    // Inventory 컴포넌트와 통합 필요
     socket.emit('getInventory', { characterId }, (response) => {
       if (response.success) {
-        setInventory(response.inventory || {})
+        setInventory(response.inventory);
       }
-    })
-
-    // 제작 기록 조회
-    socket.emit('getCraftingHistory', { characterId }, (response) => {
-      if (response.success) {
-        setCraftingHistory(response.data || [])
-      }
-    })
-  }
+    });
+  };
 
   const handleCraftingResult = (data) => {
-    if (data.success) {
-      showNotification(t('ui.crafting.craftingSuccess'), 'success')
-      loadCraftingData() // 데이터 갱신
-    } else {
-      showNotification(data.message || t('ui.crafting.craftingFailed'), 'error')
+    setIsCrafting(false);
+    
+    // 제작 성공/실패 메시지
+    const result = data.success ? 'crafting.success' : 'crafting.failure';
+    
+    // 기록 추가
+    const historyEntry = {
+      recipeId: data.recipeId,
+      success: data.success,
+      resultItems: data.resultItems,
+      timestamp: new Date().toISOString()
+    };
+    
+    setCraftingHistory([historyEntry, ...craftingHistory]);
+    
+    // 레벨/경험치 갱신
+    if (data.levelStats) {
+      setLevelStats(data.levelStats);
     }
-  }
+    
+    // 인벤토리 갱신
+    fetchInventory();
+    
+    // 알림 표시
+    alert(result);
+  };
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
-  }
+  const handleCraftingError = (error) => {
+    setIsCrafting(false);
+    alert(`Error: ${error.message}`);
+  };
 
-  const handleCraft = (recipeId) => {
-    if (!socket || !characterId) return
+  // 제작 실행
+  const handleCraft = (recipe) => {
+    if (!selectedTable) {
+      alert('crafting.noTable');
+      return;
+    }
 
-    socket.emit('craft', { characterId, recipeId }, (response) => {
-      if (response.success) {
-        // 결과는 craftingResult 이벤트로 받음
-      } else {
-        showNotification(response.message || t('ui.crafting.craftingFailed'), 'error')
+    if (isCrafting) return;
+
+    setIsCrafting(true);
+    
+    socket.emit('craft', {
+      characterId,
+      recipeId: recipe.id,
+      tableId: selectedTable.id
+    }, (response) => {
+      if (!response.success) {
+        setIsCrafting(false);
+        alert(`Error: ${response.error}`);
       }
-    })
-  }
-
-  if (!show) return null
-
-  const expPercentage = craftingLevel.expToNext > 0
-    ? Math.floor((craftingLevel.exp / craftingLevel.expToNext) * 100)
-    : 0
+    });
+  };
 
   return (
-    <div className="crafting-overlay pixel-overlay" onClick={onClose}>
-      <div className="crafting-panel pixel-panel pixel-pop" onClick={(e) => e.stopPropagation()}>
+    <div className="crafting-panel">
+      {/* 헤더 */}
+      <div className="crafting-header">
+        <h2 className="pixel-font">{t('title')}</h2>
+        <button className="pixel-button close-btn" onClick={onClose}>×</button>
+      </div>
 
-        {/* 헤더 */}
-        <div className="crafting-header pixel-panel-header pixel-text-lg pixel-font">
-          <h2>🔨 {t('ui.crafting.title')}</h2>
-          <button className="close-button pixel-button pixel-button-red" onClick={onClose}>
-            ✕
-          </button>
+      {/* 제작 레벨 표시 */}
+      <div className="crafting-level">
+        <div className="level-info">
+          <span className="pixel-font level-label">{t('level')}: {levelStats.level}</span>
+          <span className="pixel-font exp-label">
+            EXP: {levelStats.exp} / {expToNext}
+          </span>
         </div>
-
-        {/* 제작 레벨 & 경험치 바 */}
-        <div className="crafting-level-section pixel-panel-body pixel-font">
-          <div className="level-display pixel-text-md">
-            <span className="level-icon">⚒️</span>
-            <span className="level-text">
-              {t('ui.crafting.level')}: {craftingLevel.level}
-            </span>
-            <span className="exp-text">
-              {craftingLevel.exp} / {craftingLevel.expToNext}
-            </span>
-          </div>
-          <div className="exp-bar-container">
-            <div
-              className="exp-bar-fill"
-              style={{ width: `${expPercentage}%` }}
-            ></div>
-            <div className="exp-bar-percentage">{expPercentage}%</div>
-          </div>
+        <div className="exp-bar-container">
+          <div className="exp-bar" style={{ width: `${progressPercent}%` }}></div>
         </div>
+      </div>
 
-        {/* 메인 컨텐츠 */}
-        <div className="crafting-content">
-          {/* 레시피 목록 */}
-          <div className="crafting-recipes-section">
-            <div className="pixel-panel-header pixel-text-md pixel-font">
-              <h3>📜 {t('ui.crafting.recipes')}</h3>
-            </div>
-            <RecipeList
-              recipes={recipes}
-              inventory={inventory}
-              craftingLevel={craftingLevel.level}
-              selectedRecipe={selectedRecipe}
-              onSelectRecipe={setSelectedRecipe}
-            />
-          </div>
-
-          {/* 레시피 미리보기 / 제작 버튼 */}
-          <div className="crafting-preview-section">
-            <div className="pixel-panel-header pixel-text-md pixel-font">
-              <h3>👀 {t('ui.crafting.preview')}</h3>
-            </div>
-            {selectedRecipe ? (
-              <RecipePreview
-                recipe={selectedRecipe}
-                inventory={inventory}
-                craftingLevel={craftingLevel.level}
-                onCraft={() => handleCraft(selectedRecipe.id)}
-              />
-            ) : (
-              <div className="empty-preview pixel-font pixel-text-md">
-                <p>{t('ui.crafting.selectRecipe')}</p>
-              </div>
-            )}
+      {/* 제작대 선택 */}
+      {craftingTables.length > 1 && (
+        <div className="crafting-tables">
+          <h3 className="pixel-font">{t('craftingTable')}</h3>
+          <div className="table-list">
+            {craftingTables.map(table => (
+              <button
+                key={table.id}
+                className={`pixel-button table-item ${selectedTable?.id === table.id ? 'active' : ''}`}
+                onClick={() => setSelectedTable(table)}
+              >
+                <span className="table-name">{table.name}</span>
+                <span className="table-bonus">
+                  {table.bonus.expBoost && <span>EXP+{table.bonus.expBoost}</span>}
+                  {table.bonus.failRateReduction && <span>FAIL-{table.bonus.failRateReduction}</span>}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* 알림 */}
-        {notification && (
-          <div className={`crafting-notification ${notification.type} pixel-font`}>
-            {notification.message}
-          </div>
+      {/* 메인 콘텐츠 */}
+      <div className="crafting-content">
+        {/* 레시피 목록 */}
+        <RecipeList
+          recipes={recipes}
+          level={levelStats.level}
+          inventory={inventory}
+          onRecipeSelect={setSelectedRecipe}
+          selectedRecipe={selectedRecipe}
+          onCraft={handleCraft}
+          isCrafting={isCrafting}
+          t={t}
+        />
+
+        {/* 레시피 미리보기 */}
+        {selectedRecipe && (
+          <RecipePreview
+            recipe={selectedRecipe}
+            inventory={inventory}
+            level={levelStats.level}
+            table={selectedTable}
+            onCraft={() => handleCraft(selectedRecipe)}
+            isCrafting={isCrafting}
+            t={t}
+          />
         )}
+      </div>
 
+      {/* 닫기 버튼 */}
+      <div className="crafting-footer">
+        <button className="pixel-button secondary" onClick={onClose}>
+          {t('close')}
+        </button>
       </div>
     </div>
-  )
-}
+  );
+};
+
+Crafting.propTypes = {
+  craftingLevel: PropTypes.number,
+  craftingExp: PropTypes.number,
+  characterId: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired
+};
+
+Crafting.defaultProps = {
+  craftingLevel: 1,
+  craftingExp: 0
+};
+
+export default Crafting;

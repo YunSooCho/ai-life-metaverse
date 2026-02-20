@@ -163,6 +163,51 @@
       "coin": "Coin",
       "giftBox": "Gift Box",
       "experiencePotion": "EXP Potion"
+    },
+    "crafting": {
+      "title": "Crafting",
+      "level": "Crafting Level",
+      "recipes": "Recipe List",
+      "preview": "Preview",
+      "selectRecipe": "Select a recipe",
+      "noRecipes": "No recipes available",
+      "canCraft": "Can Craft",
+      "cannotCraft": "Cannot Craft",
+      "requiredLevel": "Required Level",
+      "difficulty": "Difficulty",
+      "successRate": "Success Rate",
+      "materials": "Materials",
+      "noMaterials": "No materials required",
+      "result": "Result",
+      "missingMaterials": "Missing Materials",
+      "craft": "Craft",
+      "crafting": "Crafting",
+      "craftingSuccess": "Crafting Success!",
+      "craftingFailed": "Crafting Failed!",
+      "disabled": "Disabled",
+      "levelRequired": "Required Level",
+      "materialsInsufficient": "Insufficient Materials"
+    },
+    "friends": {
+      "title": "Friends List",
+      "onlineCount": "Online",
+      "filterAll": "All",
+      "filterOnline": "Online",
+      "filterOffline": "Offline",
+      "searchPlaceholder": "Search friends...",
+      "confirmDelete": "Are you sure you want to delete this friend?",
+      "removeFailed": "Failed to remove friend",
+      "noResults": "No search results",
+      "noFriends": "No friends",
+      "noFriendsInCategory": "No friends in this category",
+      "online": "Online",
+      "offline": "Offline",
+      "since": "Added:",
+      "chat": "Chat",
+      "remove": "Remove Friend"
+    },
+    "common": {
+      "loading": "Loading..."
     }
   }
 }

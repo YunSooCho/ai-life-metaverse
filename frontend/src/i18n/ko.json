@@ -187,6 +187,27 @@
       "disabled": "사용 불가",
       "levelRequired": "필요 레벨",
       "materialsInsufficient": "재료 부족"
+    },
+    "friends": {
+      "title": "친구 목록",
+      "onlineCount": "온라인",
+      "filterAll": "전체",
+      "filterOnline": "온라인",
+      "filterOffline": "오프라인",
+      "searchPlaceholder": "친구 검색...",
+      "confirmDelete": "정말로 친구를 삭제하시겠습니까?",
+      "removeFailed": "친구 삭제에 실패했습니다",
+      "noResults": "검색 결과가 없습니다",
+      "noFriends": "친구가 없습니다",
+      "noFriendsInCategory": "해당 카테고리에 친구가 없습니다",
+      "online": "온라인",
+      "offline": "오프라인",
+      "since": "추가:",
+      "chat": "채팅",
+      "remove": "친구 삭제"
+    },
+    "common": {
+      "loading": "로딩 중..."
     }
   }
 }

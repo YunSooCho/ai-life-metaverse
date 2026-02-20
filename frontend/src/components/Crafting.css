@@ -1,232 +1,629 @@
-/* Crafting.css - 제작 시스템 메인 UI 스타일 */
-/* JRPG 스타일 픽셀 아트 디자인 */
-
-.crafting-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-}
+/* 제작 시스템 UI 스타일 - Pixel Art 테마 */
 
 .crafting-panel {
-  background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-  border: 4px solid #ffd700;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  width: 100%;
-  max-width: 1000px;
-  height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background-color: var(--bg-panel);
+  border: 3px solid var(--border-medium);
+  border-radius: 4px;
+  padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+  font-family: 'Press Start 2P', 'DungGeunMo', monospace;
+  color: var(--text-primary);
+  position: relative;
 }
 
+/* 헤더 */
 .crafting-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #1a1a2e;
-  border-bottom: 3px solid #ffd700;
+  border-bottom: 2px solid var(--border-dark);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .crafting-header h2 {
   margin: 0;
-  color: #ffd700;
-  text-shadow: 2px 2px 0 #000;
+  font-size: 16px;
+  color: var(--text-highlight);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
-.crafting-header .close-button {
-  width: 36px;
-  height: 36px;
-  background: #ef4444;
-  border: 2px solid #ff6b6b;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+.close-btn {
+  background: var(--btn-danger);
+  color: var(--text-primary);
+  border: 2px solid var(--border-dark);
+  padding: 4px 12px;
+  font-size: 14px;
   cursor: pointer;
+}
+
+.close-btn:hover {
+  background: var(--btn-danger-hover);
+}
+
+/* 제작 레벨 */
+.crafting-level {
+  background: var(--bg-light);
+  border: 2px solid var(--border-dark);
+  padding: 12px;
+  margin-bottom: 16px;
   border-radius: 4px;
 }
 
-.crafting-header .close-button:hover {
-  background: #dc2626;
-  transform: scale(1.1);
-}
-
-/* 제작 레벨 섹션 */
-.crafting-level-section {
-  padding: 16px 20px;
-  background: #16162a;
-  border-bottom: 2px solid #3b3b5c;
-}
-
-.level-display {
+.level-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  color: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  font-size: 10px;
 }
 
-.level-icon {
-  font-size: 20px;
+.level-label {
+  color: var(--text-highlight);
 }
 
-.level-text {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.exp-text {
-  color: #a0aec0;
-  font-size: 14px;
+.exp-label {
+  color: var(--text-accent);
 }
 
 .exp-bar-container {
-  position: relative;
-  height: 24px;
-  background: #1e1e2e;
-  border: 2px solid #3b3b5c;
-  border-radius: 4px;
+  background: var(--bg-dark);
+  border: 2px solid var(--border-dark);
+  height: 16px;
+  border-radius: 2px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.exp-bar-fill {
+.exp-bar {
+  background: linear-gradient(90deg, var(--btn-warning) 0%, var(--btn-success) 100%);
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
   transition: width 0.3s ease;
-  position: relative;
+  box-shadow: 0 0 8px var(--text-glow);
 }
 
-.exp-bar-fill::after {
-  content: '';
-  position: absolute;
+/* 제작대 선택 */
+.crafting-tables {
+  background: var(--bg-light);
+  border: 2px solid var(--border-dark);
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.crafting-tables h3 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: var(--text-success);
+}
+
+.table-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-item {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-medium);
+  padding: 8px;
+  text-align: left;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.table-item:hover {
+  background: var(--bg-light);
+  border-color: var(--border-accent);
+}
+
+.table-item.active {
+  background: var(--bg-success);
+  border-color: var(--border-success);
+  color: var(--text-primary);
+}
+
+.table-name {
+  font-weight: bold;
+}
+
+.table-bonus {
+  font-size: 8px;
+  color: var(--text-accent);
+}
+
+/* 메인 콘텐츠 */
+.crafting-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-height: 300px;
+}
+
+/* 레시피 목록 */
+.recipe-list {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-dark);
+  padding: 12px;
+  border-radius: 4px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.recipe-list h3 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: var(--text-accent);
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 4px,
-    rgba(255, 255, 255, 0.1) 4px,
-    rgba(255, 255, 255, 0.1) 8px
-  );
+  background: var(--bg-panel);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-dark);
 }
 
-.exp-bar-percentage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
+.no-recipes {
+  padding: 20px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.recipe-category {
+  margin-bottom: 12px;
+}
+
+.category-title {
+  margin: 0 0 8px 0;
+  font-size: 10px;
+  color: var(--text-warning);
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border-medium);
+}
+
+.recipe-item {
+  background: var(--bg-light);
+  border: 2px solid var(--border-medium);
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recipe-item:hover {
+  background: var(--bg-panel);
+  border-color: var(--border-highlight);
+  transform: translateY(-1px);
+}
+
+.recipe-item.selected {
+  background: var(--bg-success);
+  border-color: var(--border-success);
+  box-shadow: 0 0 8px var(--text-glow);
+}
+
+.recipe-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recipe-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+  border: 2px solid var(--border-dark);
+  border-radius: 2px;
+  font-size: 16px;
+}
+
+.recipe-badge {
+  background: var(--btn-primary);
+  color: var(--text-primary);
+  font-size: 8px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.recipe-badge.easy {
+  background: var(--btn-success);
+}
+
+.recipe-badge.normal {
+  background: var(--btn-primary);
+}
+
+.recipe-badge.hard {
+  background: var(--btn-warning);
+}
+
+.recipe-badge.expert {
+  background: var(--btn-danger);
+}
+
+.recipe-info {
+  flex: 1;
+}
+
+.recipe-name {
+  margin: 0;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.recipe-description {
+  margin: 0;
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.recipe-level {
+  font-size: 8px;
+  margin-top: 2px;
+}
+
+.level-locked {
+  color: var(--text-danger);
+}
+
+.level-unlocked {
+  color: var(--text-success);
+}
+
+.recipe-status {
+  margin-top: 2px;
+  font-size: 8px;
+}
+
+.status-missing {
+  color: var(--text-warning);
+}
+
+.status-locked {
+  color: var(--text-danger);
+}
+
+/* 레시피 미리보기 */
+.recipe-preview {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-dark);
+  padding: 12px;
+  border-radius: 4px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.recipe-preview h3 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: var(--text-accent);
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-dark);
+}
+
+.result-preview {
+  display: flex;
+  gap: 12px;
+  background: var(--bg-light);
+  border: 2px solid var(--border-medium);
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+
+.result-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+  border: 2px solid var(--border-highlight);
+  border-radius: 4px;
+  font-size: 24px;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-name {
+  margin: 0;
   font-size: 12px;
   font-weight: bold;
-  text-shadow: 1px 1px 0 #000;
-  z-index: 2;
+  color: var(--text-highlight);
+  margin-bottom: 4px;
 }
 
-/* 제작 컨텐츠 */
-.crafting-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.crafting-recipes-section {
-  flex: 1;
-  padding: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.crafting-recipes-section .pixel-panel-header {
-  padding: 12px;
-  background: #1a1a2e;
-  border: 2px solid #3b3b5c;
-  border-radius: 4px 4px 0 0;
-  margin-bottom: 8px;
-}
-
-.crafting-recipes-section h3 {
+.result-description {
   margin: 0;
-  color: #ffd700;
-  font-size: 16px;
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
 }
 
-.crafting-preview-section {
-  flex: 0 0 400px;
-  padding: 16px;
-  overflow: hidden;
+.recipe-difficulty {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 8px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.recipe-difficulty.easy {
+  background: var(--btn-success);
+}
+
+.recipe-difficulty.normal {
+  background: var(--btn-primary);
+}
+
+.recipe-difficulty.hard {
+  background: var(--btn-warning);
+}
+
+.recipe-difficulty.expert {
+  background: var(--btn-danger);
+}
+
+.result-details,
+.materials-list,
+.crafting-info {
+  margin-bottom: 12px;
+}
+
+.result-details h4,
+.materials-list h4,
+.crafting-info h4 {
+  margin: 0 0 6px 0;
+  font-size: 10px;
+  color: var(--text-warning);
+}
+
+.result-items,
+.material-items {
+  background: var(--bg-light);
+  border: 1px solid var(--border-medium);
+  padding: 6px;
+  border-radius: 2px;
+}
+
+.result-item,
+.material-item {
   display: flex;
-  flex-direction: column;
-  background: #12121e;
-  border-left: 2px solid #3b3b5c;
-}
-
-.crafting-preview-section .pixel-panel-header {
-  padding: 12px;
-  background: #1a1a2e;
-  border: 2px solid #3b3b5c;
-  border-radius: 4px 4px 0 0;
-  margin-bottom: 8px;
-}
-
-.crafting-preview-section h3 {
-  margin: 0;
-  color: #ffd700;
-  font-size: 16px;
-}
-
-.empty-preview {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+  gap: 8px;
+  padding: 4px;
+  margin-bottom: 2px;
   align-items: center;
-  color: #6b7280;
-  padding: 20px;
 }
 
-/* 알림 */
-.crafting-notification {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 16px;
-  border: 2px solid;
-  border-radius: 4px;
+.material-item:last-child {
+  margin-bottom: 0;
+}
+
+.material-icon,
+.item-icon {
   font-size: 14px;
-  animation: slideUp 0.3s ease;
 }
 
-.crafting-notification.success {
-  background: #064e3b;
-  border-color: #10b981;
-  color: #10b981;
+.material-name,
+.item-name {
+  flex: 1;
+  font-size: 9px;
 }
 
-.crafting-notification.error {
-  background: #7f1d1d;
-  border-color: #ef4444;
-  color: #ef4444;
+.material-quantity,
+.item-quantity {
+  font-size: 9px;
+  font-weight: bold;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
+.quantity.enough {
+  color: var(--text-success);
+}
+
+.quantity.missing {
+  color: var(--text-danger);
+}
+
+.quantity-range {
+  font-size: 8px;
+  color: var(--text-muted);
+}
+
+.missing-icon {
+  color: var(--text-warning);
+  margin-left: 4px;
+}
+
+.material-item.sufficient {
+  border-left: 3px solid var(--border-success);
+}
+
+.material-item.insufficient {
+  border-left: 3px solid var(--border-danger);
+  background: rgba(230, 57, 70, 0.1);
+}
+
+.crafting-info {
+  background: var(--bg-light);
+  border: 1px solid var(--border-medium);
+  padding: 8px;
+  border-radius: 2px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  margin-bottom: 4px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  color: var(--text-muted);
+}
+
+.info-value {
+  font-weight: bold;
+}
+
+.info-value.success {
+  color: var(--text-success);
+}
+
+.info-value.failure {
+  color: var(--text-danger);
+}
+
+.info-value.exp {
+  color: var(--text-accent);
+}
+
+.info-value.table {
+  color: var(--text-highlight);
+}
+
+/* 픽셀 버튼 */
+.pixel-button {
+  background: var(--btn-primary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-dark);
+  padding: 6px 12px;
+  font-family: 'Press Start 2P', 'DungGeunMo', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1);
+}
+
+.pixel-button:hover:not(.disabled) {
+  background: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pixel-button:active:not(.disabled) {
+  background: var(--btn-primary-active);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.3),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.1);
+}
+
+.pixel-button.secondary {
+  background: var(--btn-secondary);
+}
+
+.pixel-button.secondary:hover:not(.disabled) {
+  background: var(--btn-secondary-hover);
+}
+
+.pixel-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.craft-mini {
+  padding: 4px 8px;
+  font-size: 8px;
+  min-width: 40px;
+}
+
+.craft-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 10px;
+  margin-top: 8px;
+}
+
+/* 푸터 */
+.crafting-footer {
+  margin-top: 12px;
+  border-top: 2px solid var(--border-dark);
+  padding-top: 12px;
+}
+
+.crafting-footer .pixel-button {
+  width: 100%;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .crafting-content {
+    grid-template-columns: 1fr;
   }
-  to {
+
+  .crafting-panel {
+    max-height: 500px;
+  }
+
+  .recipe-list,
+  .recipe-preview {
+    max-height: 200px;
+  }
+}
+
+/* 애니메이션 */
+@keyframes crafting {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
   }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.recipe-item.crafting {
+  animation: crafting 1s infinite;
+}
+
+.result-icon.sparkling::after {
+  content: '✨';
+  position: absolute;
+  animation: sparkle 1.5s infinite;
 }

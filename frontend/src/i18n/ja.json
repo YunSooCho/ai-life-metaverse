@@ -163,6 +163,51 @@
       "coin": "コイン",
       "giftBox": "ギフトボックス",
       "experiencePotion": "経験値ポーション"
+    },
+    "crafting": {
+      "title": "クラフト",
+      "level": "クラフトレベル",
+      "recipes": "レシピ一覧",
+      "preview": "プレビュー",
+      "selectRecipe": "レシピを選択してください",
+      "noRecipes": "クラフト可能なレシピがありません",
+      "canCraft": "クラフト可能",
+      "cannotCraft": "クラフト不可",
+      "requiredLevel": "必要レベル",
+      "difficulty": "難易度",
+      "successRate": "成功率",
+      "materials": "材料",
+      "noMaterials": "必要な材料がありません",
+      "result": "結果物",
+      "missingMaterials": "不足した材料",
+      "craft": "クラフトする",
+      "crafting": "クラフト中",
+      "craftingSuccess": "クラフト成功！",
+      "craftingFailed": "クラフト失敗！",
+      "disabled": "使用不可",
+      "levelRequired": "必要レベル",
+      "materialsInsufficient": "材料不足"
+    },
+    "friends": {
+      "title": "友達リスト",
+      "onlineCount": "オンライン",
+      "filterAll": "全て",
+      "filterOnline": "オンライン",
+      "filterOffline": "オフライン",
+      "searchPlaceholder": "友達を検索...",
+      "confirmDelete": "本当に友達を削除しますか？",
+      "removeFailed": "友達の削除に失敗しました",
+      "noResults": "検索結果がありません",
+      "noFriends": "友達がいません",
+      "noFriendsInCategory": "このカテゴリに友達がいません",
+      "online": "オンライン",
+      "offline": "オフライン",
+      "since": "追加:",
+      "chat": "チャット",
+      "remove": "友達削除"
+    },
+    "common": {
+      "loading": "読み込み中..."
     }
   }
 }

@@ -1,154 +1,160 @@
-import React from 'react'
-import { useI18n } from '../i18n/I18nContext'
-import './RecipeList.css'
+import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
- * 레시피 목록 컴포넌트
- * 제작 가능한 레시피 목록 표시
+ * RecipeList Component - 레시피 목록 UI
  */
-export default function RecipeList({ recipes, inventory, craftingLevel, selectedRecipe, onSelectRecipe }) {
-  const { t } = useI18n()
-
+const RecipeList = ({ recipes, level, inventory, onRecipeSelect, selectedRecipe, onCraft, isCrafting, t }) => {
+  // 레시피 제작 가능 여부 확인
   const canCraftRecipe = (recipe) => {
-    if (!recipe.materials || recipe.materials.length === 0) return false
-
     // 레벨 확인
-    if (recipe.requiredLevel > craftingLevel) return false
+    if (level < recipe.requiredLevel) {
+      return false;
+    }
 
     // 재료 확인
     for (const material of recipe.materials) {
-      const availableQuantity = inventory[material.itemId] || 0
-      if (availableQuantity < material.quantity) {
-        return false
+      const materialCount = inventory[material.itemId] || 0;
+      if (materialCount < material.quantity) {
+        return false;
       }
     }
 
-    return true
-  }
+    return true;
+  };
 
-  const getMissingMaterials = (recipe) => {
-    if (!recipe.materials || recipe.materials.length === 0) return []
-
-    const missing = []
+  // 재료 부족 여부 확인
+  const hasMissingMaterials = (recipe) => {
     for (const material of recipe.materials) {
-      const availableQuantity = inventory[material.itemId] || 0
-      if (availableQuantity < material.quantity) {
-        missing.push({
-          ...material,
-          missing: material.quantity - availableQuantity
-        })
+      const materialCount = inventory[material.itemId] || 0;
+      if (materialCount < material.quantity) {
+        return true;
       }
     }
+    return false;
+  };
 
-    return missing
-  }
+  // 레시피 정렬 (카테고리 > 레벨 > 이름)
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    if (a.category !== b.category) return a.category.localeCompare(b.category);
+    if (a.requiredLevel !== b.requiredLevel) return a.requiredLevel - b.requiredLevel;
+    return a.name.localeCompare(b.name);
+  });
 
-  const getRecipeIcon = (category) => {
-    const icons = {
-      equipment: '⚔️',
-      consumable: '🧪',
-      material: '🪨',
-      general: '📦'
+  // 카테고리별 그룹화
+  const groupedRecipes = sortedRecipes.reduce((groups, recipe) => {
+    const category = recipe.category || 'other';
+    if (!groups[category]) {
+      groups[category] = [];
     }
-    return icons[category] || '📦'
-  }
+    groups[category].push(recipe);
+    return groups;
+  }, {});
 
-  const getDifficultyColor = (difficulty) => {
-    const colors = {
-      easy: '#4ade80',      // Green
-      normal: '#60a5fa',    // Blue
-      hard: '#f59e0b',      // Orange
-      expert: '#ef4444'     // Red
-    }
-    return colors[difficulty] || '#9ca3af'
-  }
-
-  if (!recipes || recipes.length === 0) {
-    return (
-      <div className="recipe-list-empty pixel-font pixel-text-md">
-        <p>{t('ui.crafting.noRecipes')}</p>
-      </div>
-    )
-  }
+  const categoryNames = {
+    equipment: t('categories.equipment') || '장비',
+    consumable: t('categories.consumable') || '소모품',
+    material: t('categories.material') || '재료',
+    special: t('categories.special') || '특수',
+    other: t('categories.other') || '기타'
+  };
 
   return (
-    <div className="recipe-list pixel-scroll">
-      {recipes.map((recipe) => {
-        const canCraft = canCraftRecipe(recipe)
-        const missingMaterials = getMissingMaterials(recipe)
-        const isSelected = selectedRecipe?.id === recipe.id
+    <div className="recipe-list">
+      <h3 className="pixel-font">{t('recipeList')}</h3>
+      
+      {sortedRecipes.length === 0 ? (
+        <div className="no-recipes">{t('noRecipes')}</div>
+      ) : (
+        Object.keys(groupedRecipes).map(category => (
+          <div key={category} className="recipe-category">
+            <h4 className="pixel-font category-title">
+              {categoryNames[category] || category}
+            </h4>
+            {groupedRecipes[category].map(recipe => {
+              const canCraft = canCraftRecipe(recipe);
+              const missingMaterials = hasMissingMaterials(recipe);
+              const isSelected = selectedRecipe?.id === recipe.id;
 
-        return (
-          <div
-            key={recipe.id}
-            className={`recipe-item pixel-panel-body pixel-font ${isSelected ? 'selected' : ''} ${!canCraft ? 'disabled' : ''}`}
-            onClick={() => canCraft && onSelectRecipe(recipe)}
-          >
-            {/* 레시피 헤더 */}
-            <div className="recipe-header">
-              <div className="recipe-icon">
-                {getRecipeIcon(recipe.category)}
-              </div>
-              <div className="recipe-info">
-                <div className="recipe-name pixel-text-md">
-                  {recipe.name}
-                </div>
-                <div className="recipe-details pixel-text-sm">
-                  <span className="recipe-level">
-                    ⚒️ {t('ui.crafting.requiredLevel')}: {recipe.requiredLevel}
-                  </span>
-                  <span
-                    className="recipe-difficulty"
-                    style={{ color: getDifficultyColor(recipe.difficulty) }}
+              return (
+                <div
+                  key={recipe.id}
+                  className={`recipe-item ${isSelected ? 'selected' : ''} ${!canCraft ? 'disabled' : ''}`}
+                  onClick={() => canCraft && onRecipeSelect(recipe)}
+                >
+                  {/* 레시피 아이콘 */}
+                  <div className="recipe-icon">
+                    <div className={`recipe-badge ${recipe.difficulty}`}>
+                      {recipe.requiredLevel}
+                    </div>
+                  </div>
+
+                  {/* 레시피 정보 */}
+                  <div className="recipe-info">
+                    <h5 className="recipe-name">{recipe.name}</h5>
+                    <p className="recipe-description">{recipe.description}</p>
+
+                    {/* 레벨 표시 */}
+                    <div className="recipe-level">
+                      {level < recipe.requiredLevel ? (
+                        <span className="level-locked">
+                          ⚠️ {t('levelRequired')}: {recipe.requiredLevel}
+                        </span>
+                      ) : (
+                        <span className="level-unlocked">
+                          ✅ {t('level')}: {recipe.requiredLevel}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 제작 가능 상태 */}
+                    {!canCraft && (
+                      <div className="recipe-status">
+                        {missingMaterials ? (
+                          <span className="status-missing">{t('missingMaterials')}</span>
+                        ) : (
+                          <span className="status-locked">{t('levelTooLow')}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 제작 버튼 */}
+                  <button
+                    className={`pixel-button craft-mini ${isCrafting ? 'disabled' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (canCraft && !isCrafting) {
+                        onCraft(recipe);
+                      }
+                    }}
+                    disabled={!canCraft || isCrafting}
                   >
-                    {recipe.difficulty.toUpperCase()}
-                  </span>
+                    {isCrafting ? '...' : t('craft')}
+                  </button>
                 </div>
-              </div>
-              <div className="recipe-status">
-                {canCraft ? (
-                  <span className="status-available pixel-text-sm">
-                    ✓ {t('ui.crafting.canCraft')}
-                  </span>
-                ) : (
-                  <span className="status-unavailable pixel-text-sm">
-                    ✕ {t('ui.crafting.cannotCraft')}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* 레시피 설명 */}
-            <div className="recipe-description pixel-text-sm">
-              {recipe.description}
-            </div>
-
-            {/* 결과물 */}
-            {recipe.result && (
-              <div className="recipe-result">
-                <span className="result-icon">→</span>
-                <span className="result-name pixel-text-sm">
-                  {recipe.result.itemId} × {recipe.result.minQuantity || recipe.result.quantity}
-                </span>
-              </div>
-            )}
-
-            {/* 제작 불가능 사유 */}
-            {!canCraft && missingMaterials.length > 0 && (
-              <div className="recipe-missing pixel-text-sm">
-                <span className="missing-label">
-                  {t('ui.crafting.missingMaterials')}:
-                </span>
-                {missingMaterials.map((material, idx) => (
-                  <span key={idx} className="missing-item">
-                    {material.itemId} (-{material.missing})
-                  </span>
-                ))}
-              </div>
-            )}
+              );
+            })}
           </div>
-        )
-      })}
+        ))
+      )}
     </div>
-  )
-}
+  );
+};
+
+RecipeList.propTypes = {
+  recipes: PropTypes.array.isRequired,
+  level: PropTypes.number.isRequired,
+  inventory: PropTypes.object.isRequired,
+  onRecipeSelect: PropTypes.func.isRequired,
+  selectedRecipe: PropTypes.object,
+  onCraft: PropTypes.func.isRequired,
+  isCrafting: PropTypes.bool.isRequired,
+  t: PropTypes.func.isRequired
+};
+
+RecipeList.defaultProps = {
+  selectedRecipe: null
+};
+
+export default RecipeList;

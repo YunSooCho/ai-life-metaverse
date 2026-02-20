@@ -2270,9 +2270,229 @@ socket.emit('removeFriend', {
 })
 ```
 
+---
+
+## Phase 13: 제작 시스템 UI (CraftingSystem)
+
+### 개요
+
+플레이어가 레시피를 사용하여 아이템을 제작할 수 있는 UI 시스템입니다. Backend의 RecipeManager, CraftingManager, CraftingTable와 연동합니다.
+
+### 구현 날짜
+
+- **Backend:** 2026-02-20 21:00 ✅
+- **Frontend UI:** 2026-02-20 23:00 ✅
+
+### 컴포넌트 구조
+
+```
+Crafting (Main)
+├── RecipeList (레시피 목록)
+│   └── RecipeItem (하위 레시피)
+└── RecipePreview (레시피 미리보기)
+```
+
+### 1. Crafting Component - 제작 메인 UI
+
+**파일:** `frontend/src/components/Crafting.jsx` (6508 bytes)
+
+**기능:**
+- 제작 레벨 및 경험치 시각화 (Progress Bar)
+- 제작대 목록 표시 및 선택
+- 제작 성공/실패 메시지 표시
+- 제작 기록 저장
+- Socket.io 이벤트 연동
+
+**주요 State:**
+```javascript
+{
+  recipes: [],           // 레시피 목록
+  selectedRecipe: null,  // 선택된 레시피
+  craftingTables: [],    // 제작대 목록
+  selectedTable: null,   // 선택된 제작대
+  isCrafting: false,     // 제작 중 여부
+  craftingHistory: [],   // 제작 기록
+  inventory: {},         // 인벤토리
+  levelStats: {          // 레벨/경험치
+    level: 1,
+    exp: 0,
+    expToNext: 100
+  }
+}
+```
+
+**레벨 계산:**
+```javascript
+expToNext = Math.floor(100 * Math.pow(1.5, level - 1))
+progressPercent = (levelStats.exp / expToNext) * 100
+```
+
+**Socket Events:**
+- `getRecipes` - 레시피 목록 요청
+- `getCraftingLevel` - 제작 레벨 요청
+- `getCraftingTables` - 제작대 목록 요청
+- `craft` - 제작 수행
+- `craftingResult` - 제작 결과 수신
+- `craftingError` - 제작 에러 수신
+
+### 2. RecipeList Component - 레시피 목록 UI
+
+**파일:** `frontend/src/components/RecipeList.jsx` (5227 bytes)
+
+**기능:**
+- 레시피 목록 카테고리별 그룹화
+- 레시피 제작 가능 여부 확인 (레벨/재료)
+- 레시피 난이도 배지 표시
+- 제작 가능/불가능 시각화
+- 레시피 선택 및 제작 버튼
+
+**레시피 정렬 우선순위:**
+1. 카테고리 (equipment > consumable > material > special > other)
+2. 레벨 (낮은 순)
+3. 이름 (알파벳 순)
+
+**제작 가능 여부 확인:**
+```javascript
+function canCraftRecipe(recipe) {
+  // 1. 레벨 확인
+  if (level < recipe.requiredLevel) return false;
+
+  // 2. 재료 확인
+  for (const material of recipe.materials) {
+    const materialCount = inventory[material.itemId] || 0;
+    if (materialCount < material.quantity) return false;
+  }
+
+  return true;
+}
+```
+
+**레시피 카테고리:**
+- `equipment` - 장비
+- `consumable` - 소모품
+- `material` - 재료
+- `special` - 특수
+- `other` - 기타
+
+### 3. RecipePreview Component - 레시피 미리보기 UI
+
+**파일:** `frontend/src/components/RecipePreview.jsx` (5766 bytes)
+
+**기능:**
+- 결과물 아이콘 및 정보 표시
+- 재료 목록 및 보유량 표시
+- 제작 가능/불가능 시각화 (색상)
+- 성공/실패 확률 계산
+- 경험치 획득량 계산
+- 제작 시간 표시
+- 제작대 보너스 적용
+
+**실패 확률 계산:**
+```javascript
+failureRate = Math.max(0, baseFailureRate - (levelDiff * -0.05))
+
+// 제작대 보너스 적용
+if (table?.bonus?.failRateReduction) {
+  failureRate *= (1 - table.bonus.failRateReduction);
+}
+```
+
+**경험치 획득량 계산:**
+```javascript
+difficultyMultipliers = {
+  easy: 0.5,
+  normal: 1.0,
+  hard: 1.5,
+  expert: 2.0
+}
+
+expGain = 20 * difficultyMultipliers[recipe.difficulty] * recipe.requiredLevel
+
+// 제작대 보너스 적용
+if (table?.bonus?.expBoost) {
+  expGain *= (1 + table.bonus.expBoost);
+}
+```
+
+### CSS 스타일
+
+**파일:** `frontend/src/components/Crafting.css` (10576 bytes)
+
+**주요 스타일:**
+- 픽셀 아트 테마 (Pixel Art Theme)
+- 레벨/경험치 바 시각화
+- 제작 가능/불가능 상태 시각화
+- 반응형 디자인 (모바일 지원)
+- 애니메이션 효과 (crafting, sparkle)
+
+**색상 팔레트사용:**
+- `--bg-panel`: 패널 배경
+- `--btn-primary`: 기본 버튼
+- `--btn-success`: 성공 상태
+- `--btn-warning`: 경고 상태
+- `--btn-danger`: 실패/삭제 버튼
+- `--border-medium`: 보더 색상
+
 ### 테스트
 
-**파일:** `frontend/src/components/__tests__/FriendList.test.jsx`
+**테스트 파일:**
+- `frontend/src/components/Crafting.test.jsx` (4422 bytes)
+- `frontend/src/components/RecipeList.test.jsx` (7140 bytes)
+- `frontend/src/components/RecipePreview.test.jsx` (9447 bytes)
+
+**Crafting 테스트 항목 (7개):**
+1. 제작 패널 렌더링 시 레시피 목록 불러옴
+2. 레벨과 경험치 표시
+3. 닫기 버튼 클릭 시 onClose 호출
+4. 소켓 이벤트 리스너 등록/제거
+5. 제작 성공 시 결과 표시
+6. 제작 실패 시 에러 표시
+7. 레벨업 시 경험치 바 올바르게 표시
+
+**RecipeList 테스트 항목 (12개):**
+1. 레시피 목록 올바르게 렌더링
+2. 카테고리별 그룹화
+3. 레벨 부족 시 비활성화
+4. 재료 부족 시 비활성화
+5. 제작 가능 시 활성 상태
+6. 레시피 클릭 시 onRecipeSelect 호출
+7. 제작 버튼 클릭 시 onCraft 호출
+8. 제작 중일 때 버튼 비활성화
+9. 빈 목록 시 메시지 표시
+10. 레벨 배지 표시
+11. 선택된 레시피 강조
+12. 스타일 및 시각화 확인
+
+**RecipePreview 테스트 항목 (20개):**
+1. 레시피 미리보기 올바르게 렌더링
+2. 난이도 올바르게 표시
+3. 결과물 올바르게 표시
+4. 재료 목록 표시 (재료 충분)
+5. 재료 목록 표시 (재료 부족)
+6. 성공 확률 계산 및 표시
+7. 실패 확률 계산 및 표시
+8. 경험치 획득량 계산 및 표시
+9. 제작 시간 표시
+10. 테이블 이름 표시
+11. 제작 버튼 클릭 시 onCraft 호출
+12. 제작 가능 시 버튼 활성화
+13. 레벨 부족 시 버튼 비활성화
+14. 재료 부족 시 버튼 비활성화
+15. 제작 중일 때 버튼 비활성화
+16. 레벨 차이에 따른 실패 확률 감소
+17. 난이도에 따른 경험치 배수 적용
+
+**테스트 실행:**
+```bash
+npm test -- --run frontend/src/components/Crafting.test.jsx
+npm test -- --run frontend/src/components/RecipeList.test.jsx
+npm test -- --run frontend/src/components/RecipePreview.test.jsx
+```
+
+### GitHub Issue
+- **#130:** [ui] #1403: 제작 시스템 UI (Crafting) - 높은 우선순위 ✅ 구현 완료 (2026-02-20 23:00)
+
+### 테스트
 
 **테스트 항목 (80개):**
 - 기본 렌더링: 3개
@@ -2292,6 +2512,6 @@ npm test -- --run frontend/src/components/__tests__/FriendList.test.jsx
 
 ### GitHub Issue
 - **#131:** [ui] #1404: 친구 시스템 UI (FriendManager) - 중간 우선순위 ✅ 완료 (2026-02-20)
-- **#130:** [ui] #1403: 제작 시스템 UI (Crafting) - 높은 우선순위 ⏸️ Backend 미구현
+- **#130:** [ui] #1403: 제작 시스템 UI (Crafting) - 높은 우선순위 ✅ 구현 완료 (2026-02-20 23:00)
 
-*마지막 업데이트: 2026-02-20 20:45 (Phase 14 친구 시스템 UI Spec 추가)*
+*마지막 업데이트: 2026-02-20 23:00 (Phase 13 제작 시스템 UI 구현 완료)*
