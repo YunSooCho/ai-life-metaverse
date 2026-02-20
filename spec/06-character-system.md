@@ -214,11 +214,15 @@ Pink: #FFB6C1
 }
 ```
 
-### 대화 로직
+### 대화 로직 (Issue #105: 완료 ✅ 2026-02-20)
 
 1. 사용자 메시지 수신
-2. GLM-4.7 API로 응답 생성
-3. 응답 전송 (`chatBroadcast` 이벤트)
+2. 감정 시스템으로 메시지 분석 및 감정 상태 업데이트
+3. 맥락 관리자로 대화 컨텍스트 및 플레이어 동작 기록
+4. 개인성 시스템으로 응답 스타일 적용
+5. GLM-4.7 API로 응답 생성 (감정 + 개인성 + 맥락 프롬프트 포함)
+6. 응답 전송 (`chatBroadcast` 이벤트)
+7. 개인성 후처리로 톤, 말투, 길이 조정
 
 ### 상호작용 타입
 
@@ -226,6 +230,375 @@ Pink: #FFB6C1
 - **선물 (gift)**: 호감도 +10
 - **친하기 (befriend)**: 호감도 +20
 - **싸우기 (fight)**: 호감도 -15
+
+## 고급 대화 시스템 (Issue #105: 완료 ✅ 2026-02-20)
+
+### 개요
+
+AI 캐릭터가 감정, 개인성, 맥락을 인식하여 더 자연스럽게 대화하는 고급 시스템. GLM-4.7 API와 통합하여 인간 같은 대화 경험 제공.
+
+### 시스템 구성
+
+1. **감정 시스템 (`emotion-system.js`)**
+2. **개인성 시스템 (`personality-system.js`)**
+3. **맥락 관리자 (`context-manager.js`)**
+4. **고급 대화 시스템 (`conversation.js`)**
+
+---
+
+## 감정 시스템 (Issue #105: 완료 ✅ 2026-02-20)
+
+### 감정 타입
+
+| 타입 | 설명 | 초기 강도 | 최대 강도 |
+|------|------|----------|----------|
+| happy | 기쁨, 즐거움 | 0.0 | 1.0 |
+| sad | 슬픔, 우울 | 0.0 | 1.0 |
+| angry | 화남, 분노 | 0.0 | 1.0 |
+| joy | 환희, 기쁨 | 0.3 | 1.0 |
+| calm | 차분함 | 0.5 | 1.0 |
+| anxious | 불안, 걱정 | 0.0 | 0.8 |
+
+### 감정 상태 데이터 구조
+
+```javascript
+{
+  characterId: 'ai-yuri',
+  emotion: {
+    happy: 0.8,
+    sad: 0.1,
+    angry: 0.0,
+    joy: 0.6,
+    calm: 0.4,
+    anxious: 0.2
+  },
+  lastUpdated: 1708543200000
+}
+```
+
+### 핵심 메서드
+
+**EmotionSystem 클래스:**
+- `detectEmotion(message)`: 메시지에서 감정 감지
+- `amplifyEmotion(emotionType, amount)`: 감정 강화
+- `decayEmotions()`: 시간 경과에 따른 감정 자연 감소
+- `getDominantEmotion()`: 가장 강한 감정 반환
+- `recordEmotionChange(emotionType, oldIntensity, newIntensity)`: 감정 변화 기록
+
+### 감정 감지 로직
+
+**키워드 기반 감정 분석:**
+
+| 감정 | 키워드 (일본어/한국어) | 가중치 |
+|------|----------------------|--------|
+| happy | 嬉しい, 기뻐, 축하해, 좋아, 楽しい | +0.3 |
+| sad | 悲しい, 슬퍼, 미안, 죄송, 寂しい | +0.3 |
+| angry | 怒り, 화나, 싫어, 짜증, うざい | +0.4 |
+| joy | 嬉しい, 大好き, 와우, 멋져, 最高 | +0.3 |
+| calm | 平静, 괜찮아, 안심, まあまあ | +0.2 |
+| anxious | 心配, 불안, 두려워, 怖い, 恐怖 | +0.2 |
+
+### 감정 자연 감소
+
+- 매 5분마다 감정 강도 자연 감소
+- 감소 속도: 0.05 per 5분
+- 최소 감정 강도: 0.0
+
+### 구현 파일
+
+- `backend/ai/emotion-system.js` - 감정 시스템
+- `backend/ai/__tests__/emotion-system.test.js` - 테스트 (18 tests)
+
+---
+
+## 개인성 시스템 (Issue #105: 완료 ✅ 2026-02-20)
+
+### 개인성 타입
+
+| 타입 | 설명 | 말하기 스타일 | 토픽 선호 |
+|------|------|--------------|----------|
+| extrovert | 외향형 | 활발, 직설적, 친근 | 자유 주제, 사회적 이슈 |
+| introvert | 내향형 | 조심스럽, 침착, 사색적 | 독서, 취미, 생각 |
+| emotional | 감정형 | 감정 풍부, 비유적, 따뜻 | 감정, 인간관계, 이야기 |
+| rational | 이성형 | 논리적, 간결, 사실적 | 팩트, 분석, 문제 해결 |
+| creative | 창의형 | 독창적, 유머러스, 예술적 | 아이디어, 예술, 창의성 |
+| realistic | 현실형 | 실용적, 구체적, 현실적 | 현실 문제, 실용성 |
+
+### 개인성 스크립트 데이터 구조
+
+```javascript
+{
+  id: 'ai-yuri',
+  personality: 'emotional',
+  speakingStyleModifiers: {
+    tone: 'warm',
+    formality: 'polite',
+    expressiveness: 'high',
+    emotionality: 0.8
+  },
+  preferredTopics: ['emotion', 'relationships', 'stories'],
+  speakingLength: 'moderate'
+}
+```
+
+### 말하기 스타일 수정자
+
+| 수정자 | 옵션 | 설명 |
+|--------|------|------|
+| tone | warm, cool, neutral, enthusiastic | 대화 톤 |
+| formality | formal, polite, casual, intimate | 예의 수준 |
+| expressiveness | low, moderate, high | 감정 표현 정도 |
+| emotionality | 0.0 ~ 1.0 | 감정 섞는 비율 |
+| brevity | very short, short, moderate, long, very long | 대화 길이 |
+
+### 개인성 기반 토픽 추천
+
+| 개인성 | 추천 토픽 |
+|--------|----------|
+| extrovert | social, entertainment, current events |
+| introvert | books, quiet activities, personal thoughts |
+| emotional | feelings, relationships, stories |
+| rational | facts, analysis, problem solving |
+| creative | ideas, art, hobbies |
+| realistic | practical matters, everyday life |
+
+### 핵심 메서드
+
+**PersonalitySystem 클래스:**
+- `applyPersonalityToResponse(response, personality)`: 개인성 적용
+- `getSpeakingModifiers(personalityType)`: 말하기 스타일 수정자 반환
+- `suggestTopics(personalityType, context)`: 토픽 추천
+- `adjustResponseLength(response, length)`: 응답 길이 조정
+- `addEmotionalColor(response, emotionality, emotion)`: 감정 색상 추가
+
+### 응답 길이 조정
+
+| 길이 | 최대 글자 수 (일본어) | 최대 글자 수 (한국어) |
+|------|----------------------|----------------------|
+| very short | 10 | 10 |
+| short | 20 | 20 |
+| moderate | 40 | 40 |
+| long | 70 | 70 |
+| very long | 100 | 100 |
+
+### 구현 파일
+
+- `backend/ai/personality-system.js` - 개인성 시스템
+- `backend/ai/__tests__/personality-system.test.js` - 테스트 (45 tests)
+
+---
+
+## 맥락 관리자 (Issue #105: 완료 ✅ 2026-02-20)
+
+### 개요
+
+대화 컨텍스트 및 플레이어 동작을 기록하고 관리하는 시스템.
+
+### 대화 컨텍스트 데이터 구조
+
+```javascript
+{
+  characterId: 'ai-yuri',
+  messageHistory: [
+    {
+      id: 'msg-001',
+      sender: 'player',
+      content: '안녕하세요!',
+      timestamp: 1708543200000,
+      emotion: 'neutral'
+    }
+  ],
+  conversationState: 'active',
+  currentTopic: 'greeting',
+  lastInteraction: 1708543200000,
+  atmosphere: 'positive'
+}
+```
+
+### 플레이어 동작 기록
+
+```javascript
+{
+  playerId: 'player-001',
+  actions: [
+    {
+      type: 'character move',
+      data: { from: { x: 100, y: 100 }, to: { x: 150, y: 150 } },
+      timestamp: 1708543200000
+    }
+  ],
+  lastUpdate: 1708543200000
+}
+```
+
+### 대화 분위기
+
+| 분위기 | 설명 | 조건 |
+|--------|------|------|
+| positive | 긍정적 | 긍정적 메시지 3개 이상 |
+| negative | 부정적 | 부정적 메시지 3개 이상 |
+| neutral | 중립 | 기본 상태 |
+
+### 핵심 메서드
+
+**ContextManager 클래스:**
+- `recordMessage(characterId, message)`: 메시지 기록
+- `recordPlayerAction(playerId, actionType, data)`: 플레이어 동작 기록
+- `extractTopics(messageHistory)`: 토픽 추출
+- `analyzeAtmosphere(messageHistory)`: 대화 분위기 분석
+- `getContextualPrompt(characterId, currentPlayerAction)`: 맥락 기반 프롬프트 생성
+- `updateConversationState(characterId, state)`: 대화 상태 업데이트
+
+### 토픽 추출 로직
+
+**자주 등장하는 키워드 기반 추출:**
+1. 마지막 10개 메시지에서 키워드 추출
+2. 빈도 기반 토픽 결정
+3. 토픽 우선순위 최신순 정렬
+
+### 시간대 및 위치 기반 프롬프트
+
+```javascript
+{
+  timeOfDay: 'morning',  // morning, afternoon, evening, night
+  location: 'cafe',      // cafe, library, park, home
+  prompt: '朝のカフェでまったり会話しよう'
+}
+```
+
+### 구현 파일
+
+- `backend/ai/context-manager.js` - 맥락 관리자
+- `backend/ai/__tests__/context-manager.test.js` - 테스트 (60 tests)
+
+---
+
+## 고급 대화 시스템 (Issue #105: 완료 ✅ 2026-02-20)
+
+### 개요
+
+감정, 개인성, 맥락을 통합하여 자연스러운 AI 대화를 제공하는 메인 시스템.
+
+### 시스템 통합 구조
+
+```
+사용자 메시지
+    ↓
+[감정 시스템] 감정 감지 및 상태 업데이트
+    ↓
+[맥락 관리자] 컨텍스트 기록 및 토픽 추출
+    ↓
+[개인성 시스템] 개인성 적용
+    ↓
+[GLM-4.7 API] 응답 생성 (감정 + 개인성 + 맥락 프롬프트)
+    ↓
+[개인성 후처리] 톤, 말투, 길이 조정
+    ↓
+완성된 응답
+```
+
+### 캐릭별 개인성 설정
+
+```javascript
+{
+  'ai-yuri': {
+    personality: 'emotional',
+    speakingLength: 'moderate',
+    tone: 'warm'
+  },
+  'ai-hikari': {
+    personality: 'introvert',
+    speakingLength: 'short',
+    tone: 'calm'
+  }
+}
+```
+
+### 감정 프롬프트 생성
+
+```javascript
+// 감정 상태를 프롬프트로 변환
+const emotionPrompt = emotionSystem.generateEmotionPrompt(emotionState);
+// 예: "현재 기분: 기쁨 (0.8), 차분함 (0.4)"
+```
+
+### 개인성 프롬프트 생성
+
+```javascript
+// 개인성을 프롬프트로 변환
+const personalityPrompt = personalitySystem.generatePersonalityPrompt(personalityType);
+// 예: "성격: 감정형, 말투: 따뜻하고 친절, 길이: 적당"
+```
+
+### 감정 상태 변경 로직
+
+**채팅 내용 기반 감정 변화:**
+
+| 메시지 내용 | 감정 변화 |
+|------------|----------|
+| 긍정적 메시지 (기뻐, 좋아 등) | happy +0.3, joy +0.2 |
+| 부정적 메시지 (싫어, 미안 등) | sad +0.3, anxious +0.1 |
+| 화난 메시지 (화나, 짜증) | angry +0.4, anxious +0.2 |
+| 차분한 메시지 (괜찮아, 안심) | calm +0.2, anxious -0.1 |
+
+### 플레이어 동작 분석
+
+| 동작 | 감정 변화 | 설명 |
+|------|----------|------|
+| 근접 이동 | calm +0.1 | 플레이어가 다가옴 |
+| 선물 주기 | happy +0.4 | 선물 받음 |
+| 떠남 | sad +0.2 | 플레이어가 떠남 |
+| 공격 | angry +0.5 | 공격당함 |
+
+### 개인성 기반 응답 후처리
+
+**톤 적용:**
+- warm: "〜しますよ", "〜ですね" (상냥한 말투)
+- cool: "〜だ", "〜した" (간결한 말투)
+- neutral: 기본 형태
+- enthusiastic: "〜！", "〜よ！" (활기찬 말투)
+
+**예의 수준 적용:**
+- formal: "です", "ます" (상당히 정중)
+- polite: "〜かな？", "〜だね" (정중하게)
+- casual: "〜だよ", "〜ね" (친근하게)
+- intimate: "〜", "〜よ" (가까운 사이)
+
+### 핵심 메서드
+
+**ConversationSystem 클래스:**
+- `generateResponse(characterId, message, playerId)`: 응답 생성
+- `updateEmotionalState(characterId, message)`: 감정 상태 업데이트
+- `analyzePlayerBehavior(characterId, action)`: 플레이어 동작 분석
+- `applyPersonalityPostprocessing(response, personality)`: 개인성 후처리
+- `getConversationContext(characterId)`: 대화 컨텍스트 반환
+
+### GLM-4.7 API 프롬프트 구성
+
+```javascript
+const prompt = `
+당신은 AI 캐릭터 ${characterName}입니다.
+
+[감정 상태]
+${emotionPrompt}
+
+[성격]
+${personalityPrompt}
+
+[대화 맥락]
+${contextPrompt}
+
+[플레이어 메시지]
+${message}
+
+자연스럽게 응답하세요.
+`;
+```
+
+### 구현 파일
+
+- `backend/conversation.js` - 고급 대화 시스템
+- `backend/__tests__/conversation.test.js` - 테스트 (40 tests)
 
 ## AI 캐릭터 자동 이동 시스템 (✅ 구현 완료 2026-02-18)
 
@@ -320,6 +693,118 @@ BUILDING_LOCATIONS = {
 - `exit(charId)`: 건물 퇴장
 - `isOccupying(charId)`: 캐릭터가 건물에 있는지 확인
 - `getCharacterBuilding(charId)`: 캐릭터 현재 건물 확인
+
+## 캐릭터 이동 테스트 시스템 (✅ 완료 2026-02-20)
+
+### 개요 (CRITICAL Test #1002)
+
+캐릭터 연속 이동 시 캐릭터 이동 시스템의 안정성을 검증하기 위한 CRITICAL 레벨 테스트. 이동 경로 추적, 히스토리 기록, 맵 경계 처리, 건물 충돌 처리, 서버 동기화 등의 기능을 검증.
+
+### 테스트 파일
+
+**위치:** `frontend/src/utils/__tests__/characterContinuousMovement.test.js`
+
+**테스트 케이스 총 10개 (전부 통과 ✅):**
+
+| ID | 테스트 항목 | 상태 |
+|----|-----------|------|
+| T1002-01 | 캐릭터 단일 이동 테스트 | ✅ 통과 |
+| T1002-02 | 캐릭터 연속 이동 (2단계) | ✅ 통과 |
+| T1002-03 | 캐릭터 연속 이동 (5단계) | ✅ 통과 |
+| T1002-04 | 연속 이동 시 서버 동기화 | ✅ 통과 |
+| T1002-05 | 맵 경계 이동 클램핑 | ✅ 통과 |
+| T1002-06 | 건물 충돌 이동 차단 | ✅ 통과 |
+| T1002-07 | 이동 히스토리 순서 | ✅ 통과 |
+| T1002-08 | 동시 접속 캐릭터 독립성 | ✅ 통과 |
+| T1002-09 | AI 캐릭터 연속 이동 | ✅ 통과 |
+| T1002-10 | AI 캐릭터 인터랙션 중 이동 중지 | ✅ 통과 |
+
+### 핵심 기능 검증
+
+**1. 연속 이동 경로 추적:**
+- 이동 경로 큐 (`movementPath`)를 이용한 다단계 이동 지원
+- 각 이동 시작 시 히스토리 기록 (이동 전/후 위치 포함)
+- 모든 이동 완료 후 `isMoving` 플래그 해제
+
+**2. 맵 경계 클램핑:**
+- 맵 크기: width 800px, height 600px
+- 경계 밖으로 이동 요청 시 자동 클램핑 (충돌이 아니므로 허용)
+- `Math.max(0, Math.min(MAP_SIZE.width, targetX))`로 처리
+
+**3. 건물 충돌 감지 및 차단:**
+- 건물 위치 데이터:
+  - shop: (300, 300) ~ (400, 400)
+  - cafe: (500, 200) ~ (580, 280)
+  - library: (100, 400) ~ (220, 480)
+- 충돌 감지 함수: `checkBuildingCollision(x, y)`
+- 충돌 발생 시 Promise reject하여 이동 차단
+
+**4. 서버 동기화 검증:**
+- 각 이동 완료 후 `getPosition()` 호출
+- Socket.io `movement` 이벤트로 서버에 위치 전송
+- 전송 데이터 포함: `{ id, x, y, roomId }`
+
+**5. 히스토리 순서 검증:**
+- 이동 순서대로 `history`에 기록
+- timestamp 순서 검증 (`history[n].timestamp <= history[n+1].timestamp`)
+- 각 항목: `{ timestamp, fromX, fromY, toX, toY }`
+
+**6. 다중 캐릭터 독립성:**
+- 여러 캐릭터(`player1`, `player2`, `ai_yuri`) 별도 인스턴스
+- 동시 이동 시 각 캐릭터가 독립적으로 움직임
+- AI 캐릭터 스케줄 이동도 동일한 로직으로 처리
+
+### 구현된 알고리즘
+
+**충돌 감지:**
+```javascript
+function checkBuildingCollision(x, y) {
+  for (const building of BUILDINGS) {
+    if (x >= building.x && x < building.x + building.width &&
+        y >= building.y && y < building.y + building.height) {
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+**이동 로직:**
+```javascript
+moveTo(targetX, targetY) {
+  return new Promise((resolve, reject) => {
+    if (checkBuildingCollision(targetX, targetY)) {
+      reject(new Error('Collision detected'));
+      return;
+    }
+
+    const startPos = { x: this.x, y: this.y };
+
+    setTimeout(() => {
+      this.x = Math.max(0, Math.min(MAP_SIZE.width, targetX));
+      this.y = Math.max(0, Math.min(MAP_SIZE.height, targetY));
+
+      this.history.push({
+        timestamp: Date.now(),
+        fromX: startPos.x,
+        fromY: startPos.y,
+        toX: this.x,
+        toY: this.y
+      });
+
+      resolve();
+    }, 100);
+  });
+}
+```
+
+### 테스트 결과 요약
+
+- **테스트 파일 생성:** 2026-02-20 10:00
+- **코드 작성:** vitest 호환 테스트 코드 (read/write로 작성)
+- **테스트 실행:** 1.9초 소요
+- **결과:** 10/10 통과 (100%)
+- **GitHub Issue:** #117 (CRITICAL Test #1002) close 완료
 
 ## 호감도 시스템
 
