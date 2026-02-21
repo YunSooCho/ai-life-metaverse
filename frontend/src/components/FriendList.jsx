@@ -24,6 +24,14 @@ function FriendList({
   characterId
 }) {
   const { t } = useI18n();
+
+  // Translation helper with namespace support
+  const tc = (key) => {
+    if (!key.startsWith('ui.')) {
+      key = `ui.friends.${key}`;
+    }
+    return t(key);
+  };
   const [friendsWithStatus, setFriendsWithStatus] = useState(friends);
   const [filter, setFilter] = useState('all'); // 'all', 'online', 'offline'
   const [searchQuery, setSearchQuery] = useState('');

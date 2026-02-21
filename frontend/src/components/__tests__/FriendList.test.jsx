@@ -4,13 +4,55 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { I18nProvider } from '../../i18n/I18nContext';
 import FriendList from '../FriendList';
 
-// useI18n Mock
-const mockT = vi.fn((key) => key);
+// 테스트용 번역 데이터
+const testTranslations = {
+  ui: {
+    friends: {
+      title: 'Friends',
+      onlineCount: 'Online: {count}',
+      filterAll: 'All',
+      filterOnline: 'Online',
+      filterOffline: 'Offline',
+      searchPlaceholder: 'Search friends...',
+      loading: 'Loading friends...',
+      noFriends: 'No friends found',
+      removeFriend: 'Remove',
+      removeConfirm: 'Are you sure you want to remove this friend?'
+    }
+  },
+  common: {
+    loading: 'Loading...',
+    close: 'Close'
+  }
+};
+
+// Simple t function for tests
+const createT = (translations) => (key) => {
+  const keys = key.split('.');
+  let value = translations;
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  return typeof value === 'string' ? value : key;
+};
+
+const mockT = createT(testTranslations);
+
 vi.mock('../../i18n/I18nContext', () => ({
   useI18n: () => ({ t: mockT })
 }));
+
+// 테스트용 렌더러 wrapper
+const renderWithI18n = (ui) => {
+  return render(
+    <I18nProvider>
+      {ui}
+    </I18nProvider>
+  );
+};
 
 describe('FriendList Component', () => {
   const mockSocket = {
