@@ -48,7 +48,7 @@ class SoundManager {
   }
 
   /**
-   * 사운드 파일 로드 (AudioContext 또는 Audio Element)
+   * 사운드 파일 로드 (Graceful degradation: 파일 없어도 게임 진행)
    */
   loadSound(name, url, type = 'sfx') {
     return new Promise((resolve, reject) => {
@@ -62,8 +62,10 @@ class SoundManager {
       })
 
       audio.addEventListener('error', (err) => {
-        console.error(`Failed to load sound: ${name}`, err)
-        reject(err)
+        // Silent fallback - 콘솔 에러 출력만 하고 resolve하여 게임 진행 허용
+        console.warn(`[Sound] Failed to load sound: ${name} - file not found (${url})`)
+        this.sounds[name] = null // null로 표시하여 로드 실패 기록
+        resolve(null)
       })
     })
   }
@@ -75,8 +77,12 @@ class SoundManager {
     if (this.isMuted) return null
 
     const sound = this.sounds[name]
-    if (!sound || sound.type !== 'sfx') {
-      console.warn(`Sound not found or not SFX: ${name}`)
+    if (!sound || sound.audio === null) {
+      // Silent fallback - 사운드 없으면 조용히 무시
+      return null
+    }
+
+    if (sound.type !== 'sfx') {
       return null
     }
 
@@ -84,7 +90,7 @@ class SoundManager {
     audio.volume = Math.min(1, Math.max(0, volume)) * this.sfxVolume * this.masterVolume
 
     audio.play().catch(err => {
-      console.warn(`Failed to play sound: ${name}`, err)
+      // Silent fallback
     })
 
     return audio
@@ -97,8 +103,12 @@ class SoundManager {
     if (this.isMuted) return
 
     const sound = this.sounds[name]
-    if (!sound || sound.type !== 'bgm') {
-      console.warn(`Sound not found or not BGM: ${name}`)
+    if (!sound || sound.audio === null) {
+      // Silent fallback
+      return
+    }
+
+    if (sound.type !== 'bgm') {
       return
     }
 
@@ -111,7 +121,7 @@ class SoundManager {
     this.bgmAudio.volume = 0 // 시작 시 음소거 (fade in)
 
     this.bgmAudio.play().catch(err => {
-      console.warn(`Failed to play BGM: ${name}`, err)
+      // Silent fallback
     })
 
     // Fade in
@@ -161,8 +171,8 @@ class SoundManager {
     this.stopWeatherSound(fadeInMs)
 
     const sound = this.sounds[soundName]
-    if (!sound || sound.type !== 'weather') {
-      console.warn(`Weather sound not found: ${soundName}`)
+    if (!sound || sound.audio === null || sound.type !== 'weather') {
+      // Silent fallback
       return
     }
 
@@ -171,7 +181,7 @@ class SoundManager {
     this.weatherAudio.volume = 0
 
     this.weatherAudio.play().catch(err => {
-      console.warn(`Failed to play weather sound: ${soundName}`, err)
+      // Silent fallback
     })
 
     this.fadeAudio(this.weatherAudio, 0, this.weatherVolume * this.masterVolume, fadeInMs)
@@ -290,24 +300,44 @@ class SoundManager {
   }
 
   async initialize() {
-    // BGM
-    await this.loadSound('main_theme', BGM_URLS.MAIN, 'bgm')
-    await this.loadSound('day_theme', BGM_URLS.DAY, 'bgm')
-    await this.loadSound('night_theme', BGM_URLS.NIGHT, 'bgm')
+    // BGM (Promise.all로 병렬 로드, 실패해도 계속 진행)
+    try {
+      await Promise.all([
+        this.loadSound('main_theme', BGM_URLS.MAIN, 'bgm'),
+        this.loadSound('day_theme', BGM_URLS.DAY, 'bgm'),
+        this.loadSound('night_theme', BGM_URLS.NIGHT, 'bgm')
+      ])
+    } catch (err) {
+      // silent fallback
+    }
 
     // 효과음
-    await this.loadSound('button_click', SFX_URLS.BUTTON_CLICK, 'sfx')
-    await this.loadSound('move', SFX_URLS.MOVE, 'sfx')
-    await this.loadSound('notification', SFX_URLS.NOTIFICATION, 'sfx')
-    await this.loadSound('quest_complete', SFX_URLS.QUEST_COMPLETE, 'sfx')
-    await this.loadSound('item_pickup', SFX_URLS.ITEM_PICKUP, 'sfx')
-    await this.loadSound('door_open', SFX_URLS.DOOR_OPEN, 'sfx')
+    try {
+      await Promise.all([
+        this.loadSound('button_click', SFX_URLS.BUTTON_CLICK, 'sfx'),
+        this.loadSound('move', SFX_URLS.MOVE, 'sfx'),
+        this.loadSound('notification', SFX_URLS.NOTIFICATION, 'sfx'),
+        this.loadSound('quest_complete', SFX_URLS.QUEST_COMPLETE, 'sfx'),
+        this.loadSound('item_pickup', SFX_URLS.ITEM_PICKUP, 'sfx'),
+        this.loadSound('door_open', SFX_URLS.DOOR_OPEN, 'sfx')
+      ])
+    } catch (err) {
+      // silent fallback
+    }
 
     // 날씨 사운드
-    await this.loadSound('rain_ambient', WEATHER_URLS.RAIN, 'weather')
-    await this.loadSound('snow_ambient', WEATHER_URLS.SNOW, 'weather')
+    try {
+      await Promise.all([
+        this.loadSound('rain_ambient', WEATHER_URLS.RAIN, 'weather'),
+        this.loadSound('snow_ambient', WEATHER_URLS.SNOW, 'weather')
+      ])
+    } catch (err) {
+      // silent fallback
+    }
 
-    console.log('SoundManager initialized successfully')
+    console.log('[Sound] SoundManager initialized (some sounds may be missing)')
+
+    // 암묵적으로 Promise 반환 (async 함수는 항상 Promise 반환)
   }
 }
 
@@ -322,7 +352,9 @@ export function useSoundManager() {
     soundManager.initialize().then(() => {
       setIsInitialized(true)
     }).catch(err => {
-      console.error('Failed to initialize SoundManager:', err)
+      // Silent fallback - 사운드 초기화 실패해도 게임 진행
+      console.warn('[Sound] Failed to initialize SoundManager, continuing without sounds')
+      setIsInitialized(true) // 초기화 완료로 간주
     })
 
     return () => {

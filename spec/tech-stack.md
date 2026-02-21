@@ -26,7 +26,7 @@
 | Node.js | 22+ | 런타임 |
 | Express | 4+ | HTTP 서버 |
 | Socket.io | 4+ | 실시간 WebSocket 통신 |
-| CORS | - | 크로스 오리진 허용 |
+| CORS | Latest | 크로스 오리진 허용 (localhost:3000, 10.76.29.91:3000) |
 
 ### 데이터 저장
 - **현재:** 인메모리 (서버 재시작 시 초기화)

@@ -1,8 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { I18nProvider } from '../i18n/I18nContext';
 import FriendRequest from './FriendRequest';
 import '@testing-library/jest-dom';
+
+// Mock useI18n Hook
+vi.mock('../i18n/I18nContext', () => ({
+  useI18n: () => ({
+    t: (key) => {
+      const translations = {
+        'ui.friends.requests': '친구 요청',
+        'ui.friends.pendingCount': '보류 중 요청',
+        'ui.friends.noPendingRequests': '보류 중인 요청이 없습니다',
+        'ui.friends.accept': '수락',
+        'ui.friends.reject': '거절',
+        'ui.friends.confirmReject': '{name} 요청을 거절하시겠습니까?',
+        'ui.friends.acceptFailed': '친구 요청 수락에 실패했습니다',
+        'ui.friends.rejectFailed': '친구 요청 거절에 실패했습니다',
+        'ui.common.loading': '로딩 중...'
+      };
+      return translations[key] || key;
+    },
+    language: 'ko',
+    changeLanguage: vi.fn(),
+    languages: { ko: '한국어', ja: '日本語', en: 'English' }
+  })
+}));
 
 // Mock socket - 기본 응답
 const createMockSocket = (responses = {}) => ({
@@ -53,9 +75,7 @@ describe('FriendRequest', () => {
 
   const renderComponent = (props = {}) => {
     return render(
-      <I18nProvider>
-        <FriendRequest {...defaultProps} {...props} />
-      </I18nProvider>
+      <FriendRequest {...defaultProps} {...props} />
     );
   };
 

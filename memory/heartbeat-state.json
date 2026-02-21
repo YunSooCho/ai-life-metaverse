@@ -1,42 +1,51 @@
 {
-  "lastHeartbeat": "2026-02-21T15:30:00+09:00",
+  "lastHeartbeat": "2026-02-21T16:30:00+09:00",
   "currentPhase": 15,
-  "currentTask": "Phase 15: 친구 시스템 UI - E2E 브라우저 테스트 3/3 회 완료",
+  "currentTask": "Phase 15: 친구 시스템 UI - CORS 버그 수정 완료",
   "completedToday": [
     "서비스 상태 확인 (Backend: 200 OK, Frontend: 200 OK)",
     "GitHub Issues 확인 (11개 - 최소 3개 규칙 준수)",
-    "E2E 브라우저 테스트 (3/3 회) - S01~S09 완료 ✅",
-    "S01: 초기 로딩 완료 ✅",
-    "S02: GameCanvas 확인 ✅",
-    "S03: 시간/날씨 HUD 확인 ✅",
-    "S04: 캐릭터 이동 테스트 ✅",
-    "S05: 채팅 시스템 테스트 ✅",
-    "S06: 방 메뉴 테스트 ✅",
-    "S07: 인벤토리 테스트 ✅",
-    "S08: 보상 센터 테스트 ✅",
-    "S09: 퀘스트 로그 테스트 ✅",
-    "S10: 캐릭터 인터랙션 (브라우저 문제로 중단)",
-    "브라우저 문제 대응: 중지 후 재시작 완료",
-    "콘솔 에러 확인: main_theme 로드 실패 (기존 이슈 #41)",
-    "memory/2026-02-21-1530-heartbeat.md 생성"
+    "CORS 버그 발견 (Issue #141)",
+    "CORS 미들웨어 추가 (server.js)",
+    "테스트 코드 작성 (server.cors.test.js - 4테스트)",
+    "테스트 실행 (4/4 통과)",
+    "실제 브라우저 테스트 (이벤트 로드 성공)",
+    "Git commit & push (bf74c36)",
+    "Issue #141 close",
+    "Spec 최신화 (tech-stack.md)",
+    "E2E 시나리오 S11 (이벤트 로그) 테스트 완료",
+    "E2E 시나리오 S15 (콘솔 에러) 확인 - CORS 에러 해제"
   ],
   "nextTasks": [
-    "E2E 브라우저 테스트 계속 (S10~S15)",
-    "S10: 캐릭터 인터랙션 메뉴 테스트 완료",
-    "S11: 이벤트 로그 테스트",
-    "S12: 토스트 알림 테스트",
-    "S13: NPC 자동 행동 테스트",
-    "S14: 픽셀 아트 스타일 테스트",
-    "S15: 콘솔 에러 추가 확인",
+    "AI 캐릭터 스폰 버그 수정",
     "main_theme 사운드 파일 배치 (Issue #41)",
-    "Git commit & push (필요 시)",
-    "Spec 최신화",
-    "텔레그램으로 작업 결과 전송"
+    "E2E 시나리오 완료 (S10: 캐릭터 인터랙션)",
+    "E2E 시나리오 완료 (S13: NPC 자동 행동)",
+    "E2E 시나리오 완료 (S14: 픽셀 아트 스타일)",
+    "Spec 최신화 (나머지 파일)",
+    "GitHub Issues 관리 (현재 11개)"
   ],
   "issuesBlocked": [],
-  "bugsFound": [],
-  "bugsFixed": [],
-  "e2eCounter": 3,
-  "lastE2E": "2026-02-21T15:30:00+09:00",
-  "testCoverage": "9/15 (60%) - Phase 15 친구 시스템 UI"
+  "bugsFound": [
+    {
+      "issue": 141,
+      "title": "[bug] CORS 에러 - 이벤트 로드 실패",
+      "status": "CLOSED ✅",
+      "fixedAt": "2026-02-21T16:30:00+09:00"
+    }
+  ],
+  "bugsFixed": [
+    141
+  ],
+  "e2eCounter": 4,
+  "lastE2E": "2026-02-21T16:30:00+09:00",
+  "testCoverage": "11/15 (73%) - Phase 15 친구 시스템 UI",
+  "pmRulesVersion": "v3.2",
+  "pmRulesCompliance": {
+    "rule1_readWrite": true,
+    "rule2_testCode": true,
+    "rule3_testExecution": true,
+    "rule4_minIssues": true,
+    "rule5_specUpdate": true
+  }
 }
