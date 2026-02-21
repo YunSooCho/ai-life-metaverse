@@ -4,6 +4,9 @@ import { translations as allTranslations } from './translations.js'
 // 기본 언어
 const DEFAULT_LANGUAGE = 'ko'
 
+// 테스트 환경 감지
+const isTestEnv = typeof global !== 'undefined' && global.testTranslations
+
 // 지원하는 언어 목록 (내부 상수로 유지 - Vite Fast Refresh 호환성)
 const LANGUAGES = {
   ko: '한국어',
@@ -92,8 +95,15 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
     return initialLanguage
   })
 
-  // 번역 캐시 (초기 로드) - allTranslations가 비어있으면 fallback 사용
+  // 번역 캐시 (초기 로드)
+  // 테스트 환경에서는 global.testTranslations 사용, 그 외에는 allTranslations 또는 fallback
   const [translationsCache, setTranslationsCache] = useState(() => {
+    // 테스트 환경에서는 global.testTranslations 사용
+    if (isTestEnv && global.testTranslations) {
+      return global.testTranslations
+    }
+
+    // allTranslations가 비어있으면 fallback 사용
     if (Object.keys(allTranslations || {}).length === 0) {
       return fallbackTranslations
     }
