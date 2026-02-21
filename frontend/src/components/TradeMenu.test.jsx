@@ -20,6 +20,13 @@ describe('TradeMenu', () => {
 
     vi.clearAllMocks();
     vi.clearAllTimers();
+
+    // fetch mock 초기화 (기본 응답 설정)
+    fetch.mockReset();
+    fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: [] }),
+    });
   });
 
   describe('렌더링', () => {

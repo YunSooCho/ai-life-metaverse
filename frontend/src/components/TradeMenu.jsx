@@ -39,9 +39,12 @@ const TradeMenu = ({ socket, characterId, onClose }) => {
       const data = await res.json();
       if (data.success) {
         setActiveTrades(data.data || []);
+      } else {
+        setActiveTrades([]); // API 실패 시 빈 배열로 설정
       }
     } catch (error) {
       console.error('활성 거래 불러오기 실패:', error);
+      setActiveTrades([]); // 에러 발생 시 빈 배열로 설정
     }
   };
 
@@ -51,9 +54,12 @@ const TradeMenu = ({ socket, characterId, onClose }) => {
       const data = await res.json();
       if (data.success) {
         setPendingRequests(data.data || []);
+      } else {
+        setPendingRequests([]); // API 실패 시 빈 배열로 설정
       }
     } catch (error) {
       console.error('거래 요청 불러오기 실패:', error);
+      setPendingRequests([]); // 에러 발생 시 빈 배열로 설정
     }
   };
 
@@ -63,9 +69,12 @@ const TradeMenu = ({ socket, characterId, onClose }) => {
       const data = await res.json();
       if (data.success) {
         setCoins(data.data.balance || 0);
+      } else {
+        setCoins(0); // API 실패 시 0으로 설정
       }
     } catch (error) {
       console.error('코인 잔액 불러오기 실패:', error);
+      setCoins(0); // 에러 발생 시 0으로 설정
     }
   };
 
@@ -224,7 +233,7 @@ const TradeMenu = ({ socket, characterId, onClose }) => {
         {/* 대기 중인 거래 요청 */}
         <div className="trade-section">
           <h3 className="trade-section-title">📥 대기 중인 요청</h3>
-          {pendingRequests.length === 0 ? (
+          {!Array.isArray(pendingRequests) || pendingRequests.length === 0 ? (
             <div className="trade-empty">대기 중인 요청이 없습니다</div>
           ) : (
             <div className="trade-list">
@@ -268,7 +277,7 @@ const TradeMenu = ({ socket, characterId, onClose }) => {
         {/* 활성 거래 */}
         <div className="trade-section">
           <h3 className="trade-section-title">⚡ 활성 거래</h3>
-          {activeTrades.length === 0 ? (
+          {!Array.isArray(activeTrades) || activeTrades.length === 0 ? (
             <div className="trade-empty">활성 거래가 없습니다</div>
           ) : (
             <div className="trade-list">
