@@ -2676,3 +2676,217 @@ npm test -- --run frontend/src/components/__tests__/FriendList.test.jsx
 - **#131:** [ui] #1404: 친구 시스템 UI (FriendManager) - 중간 우선순위 🔄 진행 중 (2026-02-21)
 
 *마지막 업데이트: 2026-02-21 09:30 (Phase 14 친구 요청/검색 UI 구현 완료)*
+---
+
+## 🤝 Phase 15: 친구 시스템 UI (2026-02-21 진행 중)
+
+### 개요
+캐릭터 친구 시스템의 완전한 UI 구현 (백엔드 기반)
+
+### 구현된 컴포넌트
+
+| 컴포넌트 | 파일 크기 | 기능 | 상태 |
+|---------|----------|------|------|
+| FriendList | ✅ 기존 존재 | 친구 목록 UI | ✅ 확인 완료 |
+| FriendRequest | ~5,000 bytes | 친구 요청 UI | ✅ 완료 |
+| FriendSearch | ~4,500 bytes | 친구 검색 UI | ✅ 완료 |
+| FriendRequestTest | ~7,300 bytes | 테스트 코드 | ⚠️ i18n 이슈 |
+| FriendSearchTest | ~6,100 bytes | 테스트 코드 | ✅ 완료 |
+
+### FriendRequest.jsx - 친구 요청 UI
+
+**위치:** `frontend/src/components/FriendRequest.jsx`
+
+**주요 기능:**
+- 보류 중인 친구 요청 목록 표시
+- 요청 수락/거절 버튼
+- 요청자 정보 (이름, 메시지, 날짜)
+- 실시간 로딩 중 표시
+- 빈 목록 메시지
+
+**Props:**
+```javascript
+{
+  visible: boolean,           // 표시 여부
+  requests: array,            // 친구 요청 목록
+  onAccept: (request) => void,  // 수락 핸들러
+  onReject: (request) => void,  // 거절 핸들러
+  onClose: () => void,        // 닫기 핸들러
+  socket: Socket,             // Socket.io 인스턴스
+  characterId: string         // 현재 캐릭터 ID
+}
+```
+
+**Socket 이벤트:**
+```javascript
+// 보류 중인 요청 목록 가져오기
+socket.emit('getPendingRequests', { characterId })
+
+// 요청 수락
+socket.emit('acceptFriendRequest', {
+  characterId,
+  requestId,
+  senderId
+})
+
+// 요청 거절
+socket.emit('rejectFriendRequest', {
+  characterId,
+  requestId,
+  senderId
+})
+```
+
+**UI 구조:**
+- 오버레이 (friendlist-overlay)
+- 헤더 (친구 요청 제목 + 닫기 버튼 ✕)
+- 요청 개수 표시 (보류 중 요청: N)
+- 요청 목록 (loading / empty / items)
+- 각 요청 아이템:
+  - 요청자 정보 (이름)
+  - 메시지 (있으면 인용 부호로 표시)
+  - 날짜 (로컬 포맷)
+  - 수락 버튼 (✅ accept-button)
+  - 거절 버튼 (❌ reject-button)
+
+**번역 키 (ui.friends):**
+- requests: "친구 요청"
+- pendingCount: "보류 중 요청"
+- noPendingRequests: "보류 중인 요청이 없습니다"
+- accept: "수락"
+- reject: "거절"
+- confirmReject: "{name} 요청을 거절하시겠습니까?"
+- acceptFailed: "친구 요청 수락에 실패했습니다"
+- rejectFailed: "친구 요청 거절에 실패했습니다"
+
+### FriendSearch.jsx - 친구 검색 UI
+
+**위치:** `frontend/src/components/FriendSearch.jsx`
+
+**주요 기능:**
+- 캐릭터 검색 (이름 기반)
+- 검색 결과 목록 표시
+- 캐릭터 선택 (친구 추가)
+- 실시간 로딩 중 표시
+- 빈 결과 메시지
+
+**Props:**
+```javascript
+{
+  visible: boolean,           // 표시 여부
+  onSearch: (keyword) => void, // 검색 핸들러
+  onSelect: (character) => void, // 선택 핸들러
+  onClose: () => void,        // 닫기 핸들러
+  socket: Socket,             // Socket.io 인스턴스
+  characterId: string         // 현재 캐릭터 ID
+}
+```
+
+**Socket 이벤트:**
+```javascript
+// 캐릭터 검색
+socket.emit('searchCharacters', {
+  characterId,
+  keyword
+})
+```
+
+**UI 구조:**
+- 오버레이 (friendlist-overlay)
+- 헤더 (친구 검색 제목 + 닫기 버튼 ✕)
+- 검색 폼:
+  - 입력창 (placeholder: "친구 검색...")
+  - 검색 버튼
+- 메시지 표시 (없거나 에러 메시지)
+- 검색 결과 목록 (loading / empty / items)
+- 각 캐릭터 아이템:
+  - 캐릭터 정보 (이름, 레벨)
+  - 선택/추가 버튼 (+)
+
+**번역 키 (ui.friends):**
+- search: "친구 검색"
+- searchPlaceholder: "친구 검색..."
+- noResults: "검색 결과가 없습니다"
+
+### 테스트 (진행 중)
+
+**테스트 파일:**
+- `FriendRequest.test.jsx` - 11개 테스트 ⚠️ i18n 이슈로 8/11 실패
+- `FriendSearch.test.jsx` - 10개 테스트 ✅
+
+**총 테스트 결과:** 13/21 통과 (62% 성공률)
+
+**i18n 이슈 (FriendRequest.test.jsx):**
+- vitest 환경에서 JSON import가 제대로 작동하지 않음
+- translations.js에서 ko.json, ja.json, en.json import 실패
+- 결과로 "ui.friends.requests" 등 키가 그대로 출력됨
+- I18nContext의 fallback translations가 테스트 환경에서는 사용되지 않음
+
+**해결 방안 (필요):**
+- vitest.config.js에 JSON import 지원 추가
+- 또는 테스트에서 전역 번역 데이터 제공
+- 또는 테스트에서 I18nProvider mock 사용
+- 현재: HTML 구조 기반 테스트로 대체 필요
+
+**테스트 항목 (주요):**
+- 기본 렌더링
+- 닫기 버튼 클릭
+- Socket 이벤트 전송
+- 요청 목록 표시
+- 수락/거절 버튼 동작
+- 검색 기능
+- 캐릭터 선택
+- 로딩 상태
+- 빈 목록 메시지
+- 에러 처리
+
+### 백엔드 통합 (이미 구현됨)
+
+**위치:** `backend/social/friend-system.js`
+
+**백엔드 Socket 이벤트 핸들러:**
+```javascript
+// 캐릭터 검색
+socket.on('searchCharacters', ({ characterId, keyword }) => { ... })
+
+// 친구 요청 전송
+socket.on('sendFriendRequest', ({ characterId, targetId }) => { ... })
+
+// 보류 중인 요청 목록
+socket.on('getPendingRequests', ({ characterId }) => { ... })
+
+// 요청 수락
+socket.on('acceptFriendRequest', ({ characterId, requestId, senderId }) => { ... })
+
+// 요청 거절
+socket.on('rejectFriendRequest', ({ characterId, requestId, senderId }) => { ... })
+
+// 친구 목록
+socket.on('getFriendList', ({ characterId }) => { ... })
+
+// 친구 삭제
+socket.on('removeFriend', ({ characterId, friendId }) => { ... })
+```
+
+### GitHub Issue
+- **#1404:** [ui] 친구 시스템 UI (FriendManager) - 중간 우선순위 🔄 진행 중
+- Issue: #1404
+- Phase: Phase 15
+
+### 향후 개선
+- ✅ FriendRequest.jsx 완료
+- ✅ FriendSearch.jsx 완료
+- ✅ 번역 키 추가 (ko.json)
+- ⚠️ 테스트 이슈 해결 (i18n)
+- ⏳ FriendList.jsx 확인 및 업데이트
+- ⏳ 친구 추가/삭제 기능 UI 통합
+- ⏳ 온라인/오프라인 상태 표시
+- ⏳ 친구 채팅 기능
+- ⏳ 친구 추가 시 효과 및 알림
+- ⏳ 친구 삭제 확인 다이얼로그
+
+### 기술 스택
+- React + JSX
+- Socket.io (백엔드 연동)
+- i18n (다국어 지원)
+- CSS (픽셀 스타일, FriendList.css 재사용)

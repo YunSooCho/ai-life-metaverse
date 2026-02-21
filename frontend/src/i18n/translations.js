@@ -8,7 +8,7 @@ import jaTranslations from './ja.json'
 import enTranslations from './en.json'
 
 /**
- * 모든 번약 내보내기
+ * 모든 번역 내보내기
  */
 export const translations = {
   ko: koTranslations,

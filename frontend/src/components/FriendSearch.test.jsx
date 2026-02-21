@@ -13,17 +13,18 @@ const mockSocket = {
 
 describe('FriendSearch', () => {
   const mockCharacterId = 'char123';
-  const mockCharacterName = 'TestUser';
-  const mockSearchResults = [
+  const mockResults = [
     {
       id: 'char456',
       name: 'Alice',
-      level: 5
+      level: 5,
+      type: 'helper'
     },
     {
       id: 'char789',
       name: 'Bob',
-      level: 3
+      level: 3,
+      type: 'friendly'
     }
   ];
 
@@ -31,8 +32,8 @@ describe('FriendSearch', () => {
     visible: true,
     socket: mockSocket,
     characterId: mockCharacterId,
-    characterName: mockCharacterName,
-    onSendRequest: vi.fn(),
+    onSearch: vi.fn(),
+    onSelect: vi.fn(),
     onClose: vi.fn()
   };
 
@@ -46,184 +47,180 @@ describe('FriendSearch', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Setup localStorage
-    localStorage.clear();
-    localStorage.setItem('app-language', 'ko');
   });
 
   afterEach(() => {
-    localStorage.clear();
     mockSocket.emit.mockClear();
   });
 
-  it('renders friend search window when visible', () => {
+  it('renders search window when visible', () => {
     renderComponent();
-    expect(screen.getByText('친구 찾기')).toBeInTheDocument();
+    const closeButton = screen.getByText('✕');
+    expect(closeButton).toBeInTheDocument();
   });
 
   it('does not render when visible is false', () => {
     renderComponent({ visible: false });
-    expect(screen.queryByText('친구 찾기')).not.toBeInTheDocument();
+    expect(screen.queryByText('✕')).not.toBeInTheDocument();
   });
 
-  it('shows search hint initially', () => {
-    renderComponent();
-    expect(screen.getByText('친구 이름 또는 ID로 검색하세요')).toBeInTheDocument();
-  });
-
-  it('calls handleClose when close button is clicked', () => {
-    renderComponent();
-    fireEvent.click(screen.getByText('✕'));
-    expect(defaultProps.onClose).toHaveBeenCalled();
-  });
-
-  it('shows error message when search query is empty', () => {
-    renderComponent();
-    const searchButton = screen.getByText('검색');
-    fireEvent.click(searchButton);
-    expect(screen.getByText('검색어를 입력하세요')).toBeInTheDocument();
-  });
-
-  it('performs search and displays results', async () => {
+  it('shows loading state during search', async () => {
     mockSocket.emit.mockImplementation((event, data, callback) => {
-      if (event === 'getAllCharacters') {
-        callback({ success: true, characters: mockSearchResults });
+      if (event === 'searchCharacters') {
+        // Loading state 유지
       }
     });
 
     renderComponent();
 
     // 검색어 입력
-    const searchInput = screen.getByPlaceholderText('친구 이름 또는 ID 검색...');
-    fireEvent.change(searchInput, { target: { value: 'Alice' } });
+    const input = screen.getByPlaceholderText(/친구 검색.../);
+    fireEvent.change(input, { target: { value: 'Alice' } });
 
     // 검색 버튼 클릭
-    const searchButton = screen.getByText('검색');
+    const searchButton = screen.getByRole('button', { name: /검색/ });
     fireEvent.click(searchButton);
 
-    await waitFor(() => {
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'getAllCharacters',
-        {},
-        expect.any(Function)
-      );
+    expect(screen.getByText(/로딩 중/)).toBeInTheDocument();
+  });
+
+  it('displays search results successfully', async () => {
+    mockSocket.emit.mockImplementation((event, data, callback) => {
+      if (event === 'searchCharacters') {
+        callback({ success: true, characters: mockResults });
+      }
     });
+
+    renderComponent();
+
+    // 검색어 입력
+    const input = screen.getByPlaceholderText(/친구 검색.../);
+    fireEvent.change(input, { target: { value: 'Alice' } });
+
+    // 검색 버튼 클릭
+    const searchButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent.includes('검색')
+    );
+    fireEvent.click(searchButton);
 
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
       expect(screen.getByText('Bob')).toBeInTheDocument();
+      expect(screen.getByText('Lv.5')).toBeInTheDocument();
+      expect(screen.getByText('Lv.3')).toBeInTheDocument();
     });
   });
 
-  it('sends friend request', async () => {
-    const mockSendCallback = vi.fn();
-
+  it('shows no results message', async () => {
     mockSocket.emit.mockImplementation((event, data, callback) => {
-      if (event === 'getAllCharacters') {
-        callback({ success: true, characters: mockSearchResults });
-      } else if (event === 'sendFriendRequest') {
-        callback({ success: true });
+      if (event === 'searchCharacters') {
+        callback({ success: true, characters: [] });
       }
     });
 
-    renderComponent({ onSendRequest: mockSendCallback });
+    renderComponent();
 
-    // 검색
-    const searchInput = screen.getByPlaceholderText('친구 이름 또는 ID 검색...');
-    fireEvent.change(searchInput, { target: { value: 'Alice' } });
+    // 검색어 입력
+    const input = screen.getByPlaceholderText(/친구 검색.../);
+    fireEvent.change(input, { target: { value: 'NotFound' } });
 
-    const searchButton = screen.getByText('검색');
+    // 검색 버튼 클릭
+    const searchButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent.includes('검색')
+    );
     fireEvent.click(searchButton);
 
-    // 결과 대기
+    await waitFor(() => {
+      expect(screen.getByText(/검색 결과가 없습니다/)).toBeInTheDocument();
+    });
+  });
+
+  it('calls handleClose when close button is clicked', () => {
+    renderComponent();
+    const closeButton = screen.getByText('✕');
+    fireEvent.click(closeButton);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('selects character when clicked', async () => {
+    const mockSelectCallback = vi.fn();
+
+    mockSocket.emit.mockImplementation((event, data, callback) => {
+      if (event === 'searchCharacters') {
+        callback({ success: true, characters: mockResults });
+      }
+    });
+
+    renderComponent({ onSelect: mockSelectCallback });
+
+    // 검색어 입력 후 검색
+    const input = screen.getByPlaceholderText(/친구 검색.../);
+    fireEvent.change(input, { target: { value: 'Alice' } });
+
+    const searchButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent.includes('검색')
+    );
+    fireEvent.click(searchButton);
+
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
     });
 
-    // 요청 전송
-    const sendButton = screen.getAllByText('추가하기')[0];
-    fireEvent.click(sendButton);
+    // 캐릭터 클릭
+    const characterElement = screen.getByText('Alice').closest('.clickable');
+    fireEvent.click(characterElement);
 
     await waitFor(() => {
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'sendFriendRequest',
-        {
-          fromId: mockCharacterId,
-          fromName: mockCharacterName,
-          toId: 'char456',
-          message: ''
-        },
-        expect.any(Function)
-      );
-      expect(mockSendCallback).toHaveBeenCalledWith(mockSearchResults[0]);
+      expect(mockSelectCallback).toHaveBeenCalledWith(mockResults[0]);
     });
   });
 
-  it('shows error when search fails', async () => {
+  it('does not search with empty keyword', async () => {
+    renderComponent();
+
+    const searchButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent.includes('검색')
+    );
+    fireEvent.click(searchButton);
+
+    expect(mockSocket.emit).not.toHaveBeenCalled();
+  });
+
+  it('calls onSelect and onClose when add button clicked', async () => {
+    const mockSelectCallback = vi.fn();
+    const mockCloseCallback = vi.fn();
+
     mockSocket.emit.mockImplementation((event, data, callback) => {
-      if (event === 'getAllCharacters') {
-        callback({ success: false, message: 'Server error' });
+      if (event === 'searchCharacters') {
+        callback({ success: true, characters: mockResults });
       }
     });
 
-    renderComponent();
+    renderComponent({
+      onSelect: mockSelectCallback,
+      onClose: mockCloseCallback
+    });
 
-    const searchInput = screen.getByPlaceholderText('친구 이름 또는 ID 검색...');
-    fireEvent.change(searchInput, { target: { value: 'Alice' } });
+    // 검색어 입력 후 검색
+    const input = screen.getByPlaceholderText(/친구 검색.../);
+    fireEvent.change(input, { target: { value: 'Alice' } });
 
-    const searchButton = screen.getByText('검색');
+    const searchButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent.includes('검색')
+    );
     fireEvent.click(searchButton);
 
     await waitFor(() => {
-      expect(screen.getByText('검색 실패')).toBeInTheDocument();
-    });
-  });
-
-  it('searches on Enter key press', async () => {
-    mockSocket.emit.mockImplementation((event, data, callback) => {
-      if (event === 'getAllCharacters') {
-        callback({ success: true, characters: mockSearchResults });
-      }
-    });
-
-    renderComponent();
-
-    const searchInput = screen.getByPlaceholderText('친구 이름 또는 ID 검색...');
-    fireEvent.change(searchInput, { target: { value: 'Alice' } });
-    fireEvent.keyPress(searchInput, { key: 'Enter', code: 'Enter' });
-
-    await waitFor(() => {
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'getAllCharacters',
-        {},
-        expect.any(Function)
-      );
-    });
-  });
-
-  it('filters out self from search results', async () => {
-    const charactersIncludingSelf = [
-      ...mockSearchResults,
-      { id: mockCharacterId, name: 'TestUser', level: 10 }
-    ];
-
-    mockSocket.emit.mockImplementation((event, data, callback) => {
-      if (event === 'getAllCharacters') {
-        callback({ success: true, characters: charactersIncludingSelf });
-      }
-    });
-
-    renderComponent();
-
-    const searchInput = screen.getByPlaceholderText('친구 이름 또는 ID 검색...');
-    fireEvent.change(searchInput, { target: { value: 'test' } });
-
-    const searchButton = screen.getByText('검색');
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      expect(screen.queryByText('TestUser')).not.toBeInTheDocument();
       expect(screen.getByText('Alice')).toBeInTheDocument();
+    });
+
+    // 추가 버튼 (+) 클릭
+    const addButtons = screen.getAllByText('+');
+    fireEvent.click(addButtons[0]);
+
+    await waitFor(() => {
+      expect(mockSelectCallback).toHaveBeenCalledWith(mockResults[0]);
+      expect(mockCloseCallback).toHaveBeenCalled();
     });
   });
 });

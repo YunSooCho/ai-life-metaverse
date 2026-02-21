@@ -11,6 +11,61 @@ const LANGUAGES = {
   en: 'English'
 }
 
+// 테스트 환경용 fallback translations
+const fallbackTranslations = {
+  ko: {
+    ui: {
+      friends: {
+        requests: "친구 요청",
+        pendingCount: "보류 중 요청",
+        noPendingRequests: "보류 중인 요청이 없습니다",
+        accept: "수락",
+        reject: "거절",
+        confirmReject: "{name} 요청을 거절하시겠습니까?",
+        acceptFailed: "친구 요청 수락에 실패했습니다",
+        rejectFailed: "친구 요청 거절에 실패했습니다"
+      },
+      common: {
+        loading: "로딩 중..."
+      }
+    }
+  },
+  ja: {
+    ui: {
+      friends: {
+        requests: "友達リクエスト",
+        pendingCount: "保留中のリクエスト",
+        noPendingRequests: "保留中のリクエストがありません",
+        accept: "承認",
+        reject: "拒否",
+        confirmReject: "{name} のリクエストを拒否しますか？",
+        acceptFailed: "友達リクエストの承認に失敗しました",
+        rejectFailed: "友達リクエストの拒否に失敗しました"
+      },
+      common: {
+        loading: "読み込み中..."
+      }
+    }
+  },
+  en: {
+    ui: {
+      friends: {
+        requests: "Friend Requests",
+        pendingCount: "Pending Requests",
+        noPendingRequests: "No pending requests",
+        accept: "Accept",
+        reject: "Reject",
+        confirmReject: "Reject {name}'s request?",
+        acceptFailed: "Failed to accept friend request",
+        rejectFailed: "Failed to reject friend request"
+      },
+      common: {
+        loading: "Loading..."
+      }
+    }
+  }
+}
+
 // Context 생성
 const I18nContext = createContext(null)
 
@@ -37,8 +92,13 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
     return initialLanguage
   })
 
-  // 번역 캐시 (초기 로드)
-  const [translationsCache, setTranslationsCache] = useState(allTranslations)
+  // 번역 캐시 (초기 로드) - allTranslations가 비어있으면 fallback 사용
+  const [translationsCache, setTranslationsCache] = useState(() => {
+    if (Object.keys(allTranslations || {}).length === 0) {
+      return fallbackTranslations
+    }
+    return allTranslations || fallbackTranslations
+  })
 
   // 언어 변경 시 localStorage에 저장
   useEffect(() => {
@@ -60,7 +120,7 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
    * @returns {string} 번역된 텍스트
    */
   const t = (key, params = {}) => {
-    // 캐시 확인 (이미 로드됨)
+    // 캐치 확인 (이미 로드됨)
     if (translationsCache[language]) {
       return getNestedValue(translationsCache[language], key, params)
     }
@@ -68,6 +128,14 @@ export function I18nProvider({ children, initialLanguage = DEFAULT_LANGUAGE }) {
     // 로드 중이면 기본 번역 반환
     if (translationsCache.ko) {
       return getNestedValue(translationsCache.ko, key, params)
+    }
+
+    // fallback 사용
+    if (fallbackTranslations[language]) {
+      return getNestedValue(fallbackTranslations[language], key, params)
+    }
+    if (fallbackTranslations.ko) {
+      return getNestedValue(fallbackTranslations.ko, key, params)
     }
 
     return key
