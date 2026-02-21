@@ -1,0 +1,419 @@
+/**
+ * Auction Menu Styles - 픽셀아트 레트로 스타일
+ */
+
+.auction-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.auction-menu {
+  background-color: #2C3E50;
+  color: #ECF0F1;
+  width: 850px;
+  max-height: 85vh;
+  border-radius: 10px;
+  border: 3px solid #4a4a6a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  font-family: 'Press Start 2P', 'DungGeunMo', monospace;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 헤더 */
+.auction-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #9B59B6 0%, #8e44ad 100%);
+  border-bottom: 4px solid #6c3483;
+  margin-bottom: 0;
+}
+
+.auction-menu-title {
+  margin: 0;
+  font-size: 18px;
+  color: #ECF0F1;
+  text-shadow: 2px 2px 0 #6c3483;
+}
+
+.auction-menu-close {
+  background: #E74C3C;
+  color: #ECF0F1;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #c0392b;
+  transition: all 0.2s ease;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.auction-menu-close:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #922b21;
+}
+
+.auction-menu-close:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 #922b21;
+}
+
+/* 탭 */
+.auction-tabs {
+  display: flex;
+  gap: 0;
+  background-color: #34495E;
+  border-bottom: 3px solid #2C3E50;
+}
+
+.auction-tab {
+  flex: 1;
+  padding: 15px 20px;
+  background: #2C3E50;
+  color: #95A5A6;
+  border: none;
+  border-bottom: 3px solid #2C3E50;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+}
+
+.auction-tab:hover {
+  background: #34495E;
+  color: #ECF0F1;
+}
+
+.auction-tab-active {
+  background: #34495E;
+  color: #9B59B6;
+  border-bottom: 3px solid #9B59B6;
+}
+
+/* 섹션 */
+.auction-section {
+  padding: 20px;
+  border-bottom: 2px solid #34495E;
+}
+
+.auction-section:last-child {
+  border-bottom: none;
+}
+
+.auction-section-title {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  color: #9B59B6;
+  text-shadow: 1px 1px 0 #6c3483;
+}
+
+.auction-section-title::before {
+  content: '■ ';
+  color: #F39C12;
+}
+
+/* 빈 상태 */
+.auction-empty {
+  text-align: center;
+  padding: 30px;
+  color: #95A5A6;
+  font-size: 12px;
+  background-color: #2C3E50;
+  border-radius: 5px;
+  border: 2px dashed #34495E;
+}
+
+/* 경매 목록 */
+.auction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auction-item {
+  background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.auction-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+  border-color: #9B59B6;
+}
+
+.auction-item-mine {
+  background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+}
+
+.auction-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.auction-item-name {
+  font-size: 16px;
+  color: #ECF0F1;
+  font-weight: bold;
+}
+
+.auction-item-time {
+  font-size: 11px;
+  color: #F39C12;
+  background-color: #2C3E50;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.auction-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.auction-item-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.auction-detail-label {
+  color: #95A5A6;
+}
+
+.auction-detail-value {
+  color: #ECF0F1;
+  font-weight: bold;
+}
+
+.auction-detail-highlight {
+  color: #F39C12;
+  font-size: 13px;
+}
+
+/* 경매 등록 폼 */
+.auction-register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auction-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.auction-form-label {
+  font-size: 11px;
+  color: #95A5A6;
+  margin-bottom: 0;
+}
+
+.auction-form-input {
+  background-color: #2C3E50;
+  border: 2px solid #34495E;
+  border-radius: 5px;
+  padding: 10px;
+  color: #ECF0F1;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+}
+
+.auction-form-input:focus {
+  outline: none;
+  border-color: #9B59B6;
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.3);
+}
+
+.auction-form-fee {
+  font-size: 12px;
+  color: #E67E22;
+  background-color: #2C3E50;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #E67E22;
+}
+
+/* 입찰 섹션 */
+.auction-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.auction-bid-input {
+  flex: 1;
+  background-color: #2C3E50;
+  border: 2px solid #34495E;
+  border-radius: 5px;
+  padding: 10px;
+  color: #ECF0F1;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+}
+
+.auction-bid-input:focus {
+  outline: none;
+  border-color: #9B59B6;
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.3);
+}
+
+/* 버튼 */
+.auction-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', monospace;
+  white-space: nowrap;
+}
+
+.auction-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+.auction-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.auction-button-primary {
+  background: linear-gradient(135deg, #9B59B6 0%, #8e44ad 100%);
+  color: #ECF0F1;
+}
+
+.auction-button-primary:hover {
+  background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+}
+
+.auction-button-bid {
+  background: linear-gradient(135deg, #F39C12 0%, #e67e22 100%);
+  color: #ECF0F1;
+}
+
+.auction-button-bid:hover {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+.auction-button-cancel {
+  background: linear-gradient(135deg, #E74C3C 0%, #c0392b 100%);
+  color: #ECF0F1;
+  width: 100%;
+}
+
+.auction-button-cancel:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+/* 스크롤바 스타일 */
+.auction-menu::-webkit-scrollbar {
+  width: 12px;
+}
+
+.auction-menu::-webkit-scrollbar-track {
+  background: #2C3E50;
+  border-radius: 6px;
+}
+
+.auction-menu::-webkit-scrollbar-thumb {
+  background: #9B59B6;
+  border-radius: 6px;
+  border: 3px solid #2C3E50;
+}
+
+.auction-menu::-webkit-scrollbar-thumb:hover {
+  background: #8e44ad;
+}
+
+/* 반응형 */
+@media (max-width: 900px) {
+  .auction-menu {
+    width: 90%;
+    max-width: 650px;
+  }
+
+  .auction-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 500px) {
+  .auction-menu {
+    width: 95%;
+  }
+
+  .auction-tabs {
+    flex-direction: column;
+  }
+
+  .auction-item-actions {
+    flex-direction: column;
+  }
+
+  .auction-bid-input {
+    width: 100%;
+  }
+
+  .auction-button {
+    width: 100%;
+  }
+
+  .auction-menu-title {
+    font-size: 14px;
+  }
+
+  .auction-section-title {
+    font-size: 12px;
+  }
+
+  .auction-item-detail {
+    font-size: 10px;
+  }
+}

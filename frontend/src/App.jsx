@@ -23,6 +23,9 @@ import ErrorBoundary from './components/ErrorBoundary'
 import EquipmentMenu from './components/EquipmentMenu'
 import SkillMenu from './components/SkillMenu'
 import FriendList from './components/FriendList'
+import TradeMenu from './components/TradeMenu'
+import AuctionMenu from './components/AuctionMenu'
+import CoinMenu from './components/CoinMenu'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
@@ -136,6 +139,9 @@ function AppContent() {
   const [showEquipment, setShowEquipment] = useState(false)
   const [showSkillMenu, setShowSkillMenu] = useState(false)
   const [showFriends, setShowFriends] = useState(false)
+  const [showTrade, setShowTrade] = useState(false)
+  const [showAuction, setShowAuction] = useState(false)
+  const [showCoin, setShowCoin] = useState(false)
   const [characterCustomization, setCharacterCustomization] = useState({
     hairStyle: 'short',
     clothingColor: 'blue',
@@ -1182,6 +1188,24 @@ function AppContent() {
           </button>
           <button
             className="room-button"
+            onClick={() => setShowTrade(prev => !prev)}
+          >
+            🤝 거래
+          </button>
+          <button
+            className="room-button"
+            onClick={() => setShowAuction(prev => !prev)}
+          >
+            🔨 경매
+          </button>
+          <button
+            className="room-button"
+            onClick={() => setShowCoin(prev => !prev)}
+          >
+            💰 코인
+          </button>
+          <button
+            className="room-button"
             onClick={() => setShowCrafting(prev => !prev)}
           >
             🔨 제작
@@ -1461,6 +1485,26 @@ function AppContent() {
             // 친구와 채팅 시작 로직 (나중에 구현)
             console.log('Chat with friend:', friend.name)
           }}
+        />
+      )}
+      {showTrade && (
+        <TradeMenu
+          socket={socket}
+          characterId={myCharacter.id}
+          onClose={() => setShowTrade(false)}
+        />
+      )}
+      {showAuction && (
+        <AuctionMenu
+          socket={socket}
+          characterId={myCharacter.id}
+          onClose={() => setShowAuction(false)}
+        />
+      )}
+      {showCoin && (
+        <CoinMenu
+          characterId={myCharacter.id}
+          onClose={() => setShowCoin(false)}
         />
       )}
      </div>
