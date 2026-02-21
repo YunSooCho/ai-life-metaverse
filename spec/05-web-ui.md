@@ -2511,7 +2511,168 @@ npm test -- --run frontend/src/components/__tests__/FriendList.test.jsx
 ```
 
 ### GitHub Issue
-- **#131:** [ui] #1404: 친구 시스템 UI (FriendManager) - 중간 우선순위 ✅ 완료 (2026-02-20)
+- **#131:** [ui] #1404: 친구 시스템 UI (FriendManager) - 중간 우선순위 ✅ 진행 중 (2026-02-21)
 - **#130:** [ui] #1403: 제작 시스템 UI (Crafting) - 높은 우선순위 ✅ 구현 완료 (2026-02-20 23:00)
 
-*마지막 업데이트: 2026-02-20 23:00 (Phase 13 제작 시스템 UI 구현 완료)*
+---
+
+## 📋 Phase 14: 친구 요청 UI (FriendRequest) (2026-02-21)
+
+### 개요
+친구 요청 목록을 표시하고 수락/거절을 처리하는 UI 컴포넌트
+
+### 구현 완료
+
+**1. FriendRequest.jsx (5372 bytes)**
+
+**위치:** `frontend/src/components/FriendRequest.jsx`
+
+**주요 기능:**
+- 친구 요청 목록 표시
+- 요청 수락 (✅ 버튼)
+- 요청 거절 (❌ 버튼)
+- 요청 메시지 표시
+- 요청 날짜/시간 표시
+- 온라인 상태 표시
+- 닫기 버튼
+
+**Props:**
+```javascript
+{
+  visible: boolean,           // 표시 여부
+  requests: array,            // 친구 요청 목록
+  onAccept: function,         // 수락 콜백
+  onReject: function,         // 거절 콜백
+  onClose: function,          // 닫기 콜백
+  socket: object,             // Socket.io 소켓
+  characterId: string         // 현재 캐릭터 ID
+}
+```
+
+**데이터 구조 (requests):**
+```javascript
+[
+  {
+    id: string,              // 요청 ID
+    fromId: string,          // 보낸 사람 ID
+    fromName: string,        // 보낸 사람 이름
+    message: string,         // 요청 메시지 (옵션)
+    createdAt: string        // 생성 날짜/시간 (ISO)
+  }
+]
+```
+
+**Socket.io 이벤트:**
+- `getPendingRequests` - 보류 중 요청 목록 조회
+- `acceptFriendRequest` - 요청 수락
+  - Params: `{ characterId, requestId, senderId }`
+  - Response: `{ success, friend, message }`
+- `rejectFriendRequest` - 요청 거절
+  - Params: `{ characterId, requestId, senderId }`
+  - Response: `{ success, message }`
+
+**스타일:**
+- FriendList.css 재사용
+- `friendrequest-window` 클래스 추가
+
+**테스트 (FriendRequest.test.jsx):**
+- **파일:** `frontend/src/components/FriendRequest.test.jsx` (7061 bytes)
+- **테스트 개수:** 11개
+- **테스트 결과:** 3 통과 / 8 실패 (i18n 번역 로드 이슈)
+- **테스트 항목:**
+  1. 친구 요청 윈도우 렌더링
+  2. visible=false 시 미표시
+  3. 로딩 상태 표시
+  4. 빈 요청 목록 메시지
+  5. 요청 목록 표시
+  6. 닫기 버튼 동작
+  7. 요청 목록 로드
+  8. 요청 수락 (acceptFriendRequest)
+  9. 요청 거절 (rejectFriendRequest)
+  10. 거절 취소 (confirm dialog)
+  11. 수락 실패 시 alert 표시
+
+---
+
+## 📋 Phase 14: 친구 검색 UI (FriendSearch) (2026-02-21)
+
+### 개요
+친구를 검색하고 요청을 보내는 UI 컴포넌트
+
+### 구현 완료
+
+**1. FriendSearch.jsx (5768 bytes)**
+
+**위치:** `frontend/src/components/FriendSearch.jsx`
+
+**주요 기능:**
+- 친구 검색 (이름/ID)
+- 검색 결과 표시
+- 요청 전송 (➕ 추가하기 버튼)
+- 자기 자신 필터링
+- 검색 힌트 메시지
+- 닫기 버튼
+
+**Props:**
+```javascript
+{
+  visible: boolean,           // 표시 여부
+  onSendRequest: function,    // 요청 전송 콜백
+  onClose: function,          // 닫기 콜백
+  socket: object,             // Socket.io 소켓
+  characterId: string,        // 현재 캐릭터 ID
+  characterName: string       // 현재 캐릭터 이름
+}
+```
+
+**데이터 구조 (searchResults):**
+```javascript
+[
+  {
+    id: string,               // 캐릭터 ID
+    name: string,             // 캐릭터 이름
+    level: number             // 레벨 (옵션)
+  }
+]
+```
+
+**Socket.io 이벤트:**
+- `getAllCharacters` - 모든 캐릭터 조회
+  - Params: `{}`
+  - Response: `{ success, characters }`
+- `sendFriendRequest` - 요청 전송
+  - Params: `{ fromId, fromName, toId, message }`
+  - Response: `{ success, message }`
+
+**스타일:**
+- FriendList.css 재사용
+- `friendsearch-window`, `friendsearch-input-container`, `friendsearch-input`, `search-button` 등 추가
+
+**테스트 (FriendSearch.test.jsx):**
+- **파일:** `frontend/src/components/FriendSearch.test.jsx` (6325 bytes)
+- **테스트 개수:** 9개
+- **테스트 실행:** 진행 중
+- **테스트 항목:**
+  1. 친구 검색 윈도우 렌더링
+  2. visible=false 시 미표시
+  3. 검색 힌트 메시지 표시
+  4. 닫기 버튼 동작
+  5. 빈 검색어 에러 메시지
+  6. 검색 및 결과 표시
+  7. 요청 전송 (sendFriendRequest)
+  8. 검색 실패 시 에러 메시지
+  9. Enter 키로 검색
+  10. 자기 자신 필터링
+
+### 친구 시스템 UI 컴포넌트 요약
+
+| 컴포넌트 | 파일 크기 | 기능 | 테스트 | 상태 |
+|---------|----------|------|-------|------|
+| FriendList.jsx | 7205 bytes | 친구 목록, 필터, 삭제, 채팅 | ✅ | 완료 (2026-02-20) |
+| FriendRequest.jsx | 5372 bytes | 요청 목록, 수락/거절 | 11개 (3/8 실패) | ⚠️ 진행 중 (2026-02-21) |
+| FriendSearch.jsx | 5768 bytes | 친구 검색, 요청 전송 | 9개 (미실행) | ✅ 완료 (2026-02-21) |
+
+### GitHub Issue
+- **#131:** [ui] #1404: 친구 시스템 UI (FriendManager) - 중간 우선순위 🔄 진행 중 (2026-02-21)
+
+*마지막 업데이트: 2026-02-21 09:30 (Phase 14 친구 요청/검색 UI 구현 완료)*
