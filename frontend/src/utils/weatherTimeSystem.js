@@ -403,8 +403,13 @@ export function renderWeatherTimeHUD(ctx, hour, minute, weather, scale) {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
 
-  ctx.fillText(`${periodEmoji[period]} ${timeStr}`, hudX + 8 * scale, hudY + 6 * scale)
-  ctx.fillText(`${weatherEmoji[weather]} ${weather.toUpperCase()}`, hudX + 8 * scale, hudY + 22 * scale)
+  // 시간대 이모지 (기본값: ⏰)
+  const periodDisplay = periodEmoji[period] || '⏰'
+  // 날씨 이모지 (기본값: 🌤)
+  const weatherDisplay = weatherEmoji[weather] || '🌤'
+
+  ctx.fillText(`${periodDisplay} ${timeStr}`, hudX + 8 * scale, hudY + 6 * scale)
+  ctx.fillText(`${weatherDisplay} ${weather.toUpperCase()}`, hudX + 8 * scale, hudY + 22 * scale)
 
   ctx.restore()
 }

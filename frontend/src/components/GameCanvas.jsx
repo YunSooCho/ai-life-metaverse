@@ -1050,16 +1050,16 @@ function GameCanvas({
       })
       drawCharacter(myChar)
 
-      // Render all chat bubbles (캐릭터 위에 그리기)
+      // 시간 오버레이 (캐릭터 위에, 채팅 버블 아래에 그리기)
+      const gameHour = getGameHour(gameStartTime.current)
+      const gameMinute = getGameMinute(gameStartTime.current)
+      renderTimeOverlay(ctx, gameHour, canvasWidth, canvasHeight)
+
+      // Render all chat bubbles (시간 오버레이 위에 그리기 - Bug #139 fix)
       chatBubblesToRender.forEach(bubble => {
         console.log('💬 Rendering chat bubble:', bubble.message, 'at', {x: bubble.x, y: bubble.y})
         renderChatBubble(ctx, bubble.message, bubble.x, bubble.y, CHARACTER_SIZE_SCALED, currentScale, canvasWidth, canvasHeight)
       })
-
-      // 시간 오버레이
-      const gameHour = getGameHour(gameStartTime.current)
-      const gameMinute = getGameMinute(gameStartTime.current)
-      renderTimeOverlay(ctx, gameHour, canvasWidth, canvasHeight)
 
       // 날씨 파티클 (WeatherTransition - smooth fade)
       renderWeatherTransition(ctx, weatherStateRef.current, canvasWidth, canvasHeight)
