@@ -1045,10 +1045,11 @@ function GameCanvas({
       }
 
       // Render all characters (먼저 캐릭터 그리기)
-      Object.values(chars).forEach(char => {
+      // Bug #139 fix: myCharacter를 루프에 포함하여 채팅 버블이 렌더링되도록 함
+      const allChars = { ...chars, [myChar.id]: myChar }  // myChar 포함
+      Object.values(allChars).forEach(char => {
         drawCharacter(char)
       })
-      drawCharacter(myChar)
 
       // 시간 오버레이 (캐릭터 위에, 채팅 버블 아래에 그리기)
       const gameHour = getGameHour(gameStartTime.current)

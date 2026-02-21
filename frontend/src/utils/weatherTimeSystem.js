@@ -390,6 +390,9 @@ export function renderWeatherTimeHUD(ctx, hour, minute, weather, scale) {
     [TIME_PERIODS.NIGHT]: '🌙'
   }
 
+  // Bug #140 fix: weather 객체에서 type 속성 추출
+  const weatherType = typeof weather === 'string' ? weather : (weather?.type || WEATHER_TYPES.CLEAR)
+
   // 날씨 이모지
   const weatherEmoji = {
     [WEATHER_TYPES.CLEAR]: '☀️',
@@ -406,10 +409,10 @@ export function renderWeatherTimeHUD(ctx, hour, minute, weather, scale) {
   // 시간대 이모지 (기본값: ⏰)
   const periodDisplay = periodEmoji[period] || '⏰'
   // 날씨 이모지 (기본값: 🌤)
-  const weatherDisplay = weatherEmoji[weather] || '🌤'
+  const weatherDisplay = weatherEmoji[weatherType] || '🌤'
 
   ctx.fillText(`${periodDisplay} ${timeStr}`, hudX + 8 * scale, hudY + 6 * scale)
-  ctx.fillText(`${weatherDisplay} ${weather.toUpperCase()}`, hudX + 8 * scale, hudY + 22 * scale)
+  ctx.fillText(`${weatherDisplay} ${weatherType.toUpperCase()}`, hudX + 8 * scale, hudY + 22 * scale)
 
   ctx.restore()
 }
