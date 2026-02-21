@@ -26,7 +26,7 @@ import CharacterProfile from './CharacterProfile'
 import spriteLoader from '../utils/spriteLoader'
 import spriteRenderer from '../utils/spriteRenderer'
 import tileRenderer from '../utils/TileRenderer'
-import { renderBuilding, isBuildingHighlighted, renderInterior, isExitButtonClicked } from '../utils/BuildingRenderer'
+import { renderBuilding, isBuildingHighlighted, renderInterior, isExitButtonClicked } from '../utils/BuildingRenderer';
 import buildingsInteriorData from '../data/buildings_interior.json'
 import tilemapData from '../data/tilemap.json'
 import {

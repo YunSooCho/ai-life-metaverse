@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cors from 'cors'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { addItem, removeItem, getInventory } from './inventory.js'
@@ -264,6 +265,13 @@ console.log('✅ AI 캐릭터 초기화:', aiCharacter1.name, '→', DEFAULT_ROO
 console.log('✅ AI 캐릭터 초기화:', aiCharacter2.name, '→', DEFAULT_ROOM_ID)
 
 app.use(express.json())
+
+// CORS 설정 (Frontend 허용)
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://10.76.29.91:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}))
 
 // 루트 경로 핸들러 (헬스 체크)
 app.get('/', (req, res) => {
