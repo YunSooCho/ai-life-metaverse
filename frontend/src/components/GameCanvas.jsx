@@ -557,10 +557,8 @@ function GameCanvas({
       const chatBubblesToRender = []
 
       // Debug: allChars 확인 (채팅 버그 #145)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('👥 allChars keys:', Object.keys(allChars))
-        console.log('👥 myChar.id:', myChar?.id)
-      }
+      console.log('👥 allChars keys:', Object.keys(allChars))
+      console.log('👥 myChar.id:', myChar?.id)
 
       const effects = clickEffectsRef.current
       const blds = buildingsRef.current
@@ -1060,9 +1058,7 @@ function GameCanvas({
         const y = (charY - cameraY) * currentScale
 
         // Debug: 채팅 데이터 확인 (Issue #145)
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'char.id:', char.id)
-        }
+        console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'char.id:', char.id)
 
         if (chatData?.message) {
           chatBubblesToRender.push({
