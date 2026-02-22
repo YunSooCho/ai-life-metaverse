@@ -65,6 +65,12 @@ vi.mock('./i18n/I18nContext.jsx', () => {
     locale: 'ko',
     setLocale: vi.fn(),
     translations: mockTranslations,
+    languages: {
+      ko: '한국어',
+      en: 'English',
+      ja: '日本語'
+    },
+    changeLanguage: vi.fn((lang) => {}),
     isRTL: vi.fn(() => false)
   };
 
