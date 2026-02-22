@@ -686,7 +686,27 @@ function AppContent() {
         return newMessages
       })
 
-      // 3초 후 메시지 삭제
+      // ✅ BUG FIX #144: 채팅 히스토리에도 즉시 메시지 추가 (채팅 메시지 전송 실패 해결)
+      // 백엔드 chatBroadcast가 오지 않아도 히스토리에 표시되도록 별도 업데이트
+      setRoomChatHistory(prev => {
+        const roomHistory = prev[currentRoom.id] || []
+        const newHistory = [
+          ...roomHistory,
+          {
+            characterId: myCharacter.id,
+            characterName: myCharacter.name,
+            message: trimmedMessage,
+            timestamp: timestamp
+          }
+        ].slice(-50)
+        console.log('📝 [sendChatMessage] Chat history updated locally:', newHistory)
+        return {
+          ...prev,
+          [currentRoom.id]: newHistory
+        }
+      })
+
+      // 3초 후 말풍선 메시지 삭제
       setTimeout(() => {
         setChatMessages(prev => {
           const newMessages = { ...prev }

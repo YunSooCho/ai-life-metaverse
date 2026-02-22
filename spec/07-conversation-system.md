@@ -1,15 +1,38 @@
 # 대화 시스템 (Conversation System)
 
-## 대화 흐름
+## 대화 흐름 (2026-02-22 업데이트: Issue #144 FIX)
 
 ```
 1. 플레이어가 ChatInput에 메시지 입력
 2. Socket.io로 chatMessage 이벤트 전송
-3. 서버가 chatBroadcast로 전체 전파
-4. AI Agent가 메시지 수신 → GLM-4.7로 응답 생성
-5. 응답이 chatBroadcast로 전파
-6. 프론트엔드에서 Speech bubble로 표시
+   - 메타데이터: { message, characterId, roomId }
+3. 프론트엔드에서 즉시 표시 (Issue #126, #144 FIX)
+   - Speech bubble (chatMessages): 3초간 표시
+   - Chat History (roomChatHistory): 즉시 추가 (최대 50개)
+4. 서버가 chatBroadcast로 전체 전파
+   - 다른 플레이어와 AI Agent에게 전송
+5. AI Agent가 메시지 수신 → GLM-4.7로 응답 생성
+6. AI 응답이 chatBroadcast로 전파
+7. 프론트엔드에서 메시지 표시
+   - Speech bubble (chatMessages)
+   - Chat History (roomChatHistory)
 ```
+
+**채팅 히스토리 (roomChatHistory) - Issue #144 FIX:**
+- **목적:** 채팅 메시지를 영구적으로 저장하고 표시
+- **저장 위치:** `roomChatHistory[roomId]`
+- **최대 개수:** 50개 (FIFO: 오래된 메시지 삭제)
+- **표시 방법:** H 키로 채팅 히스토리 사이드바 열기
+- **데이터 구조:**
+  ```javascript
+  {
+    characterId: string,
+    characterName: string,
+    message: string,
+    timestamp: number,
+    isSystem: boolean (옵션)
+  }
+  ```
 
 ---
 
@@ -970,6 +993,120 @@ app.get('/api/rooms', (req, res) => {
 
 ---
 
-*마지막 업데이트: 2026-02-19*
+## GLM-4.7 Rate Limiter (할당량 초과 방지) - 2026-02-22 추가
+
+**목적:**
+GLM-4.7 API 토큰 할당량(Tokens per minute) 초과 시 서비스 중단 방지
+
+**파일:** `backend/ai-agent/agent-rate-limiter.js`
+
+**기능:**
+1. **할당량 초과 에러 감지**
+   - 에러 코드: `token_quota_exceeded`
+   - 에러 타입: `too_many_tokens_error`
+   - 에러 메시지: `Tokens per minute limit exceeded`
+
+2. **retry-with-backoff 로직**
+   - 지수 백오프: 60초, 120초, 240초
+   - 기본 백오프: 60초
+   - 최대 백오프: 240초
+
+3. **최대 재시도 횟수 제한:** 3회
+
+| 횟수 | 백오프 시간 |
+|------|------------|
+| 1회차 | 60초 |
+| 2회차 | 120초 |
+| 3회차 | 240초 |
+| 이후 | 240초 (최대) |
+
+4. **Fallback 응답 제공**
+   - 할당량 회복 대기 중: UI 알림 제공
+   - 할당량 초과 시: 사용자에게 알림
+
+**상수:**
+| 속성 | 값 | 설명 |
+|------|-----|------|
+| `backoffBaseMs` | 60000 | 기본 백오프 (60초) |
+| `maxRetry` | 3 | 최대 재시도 횟수 |
+
+**API (Rate Limiter):**
+| 메서드 | 설명 | 반환값 |
+|--------|------|--------|
+| `isQuotaExceeded(errorData)` | 할당량 초과 에러 여부 확인 | boolean |
+| `handleQuotaExceeded(errorData)` | 할당량 초과 에러 처리 | { shouldWait, waitTimeMs, retryAfterSeconds, errorCount } |
+| `canRetry()` | 재시도 가능 여부 확인 | boolean |
+| `getWaitMessage()` | 대기 남은 시간 표시 | string |
+| `reset()` | 에러 상태 리셋 | void |
+
+**할당량 초과 에러 예시:**
+```javascript
+{
+  message: 'Tokens per minute limit exceeded - too many tokens processed.',
+  type: 'too_many_tokens_error',
+  param: 'quota',
+  code: 'token_quota_exceeded'
+}
+```
+
+**Fallback 응답 예시 (할당량 회복 대기 중):**
+```
+"GLM-4.7 API 할당량 회복 대기 중... (60초 남음) (AI 유리입니다 😊)"
+```
+
+**Fallback 응답 예시 (할당량 초과):**
+```
+"😅 죄송해요! AI 유리 말이 너무 많아서 잠시 쉬어야 해요... 60초 후에 다시 말할게요!"
+```
+
+**AI Agent 통합 (`backend/ai-agent/agent.js`):**
+```javascript
+// Rate Limiter import
+import { rateLimiter } from './agent-rate-limiter.js'
+
+// GLM-4.7 API 호출 전 확인
+if (!rateLimiter.canRetry()) {
+  const waitMessage = rateLimiter.getWaitMessage()
+  // Fallback 응답 제공
+  return fallbackResponse
+}
+
+// API 에러 처리
+if (!response.ok) {
+  const errorData = await response.json()
+
+  if (rateLimiter.isQuotaExceeded(errorData)) {
+    const quotaError = rateLimiter.handleQuotaExceeded(errorData)
+    // Fallback 응답 제공
+    return fallbackResponse
+  }
+}
+```
+
+**테스트 코드:** `backend/ai-agent/test-agent-rate-limiter.js`
+
+**테스트 항목:**
+
+| 테스트 | 결과 |
+|--------|------|
+| 할당량 초과 에러 감지 | ✅ |
+| 할당량 초과가 아닌 에러 판별 | ✅ |
+| 할당량 초과 에러 처리 | ✅ |
+| 최대 재시도 횟수 초과 | ✅ |
+| 할당량 회복 대기 메시지 | ✅ |
+| 에러 상태 리셋 | ✅ |
+| canRetry() - 할당량 회복 대기 중 | ✅ |
+| 지수 백오프 계산 | ✅ |
+| 최대 백오프 제한 | ✅ |
+
+**테스트 결과:** 9/9 ✅ (2026-02-22)
+
+**GitHub Issue:**
+- **#144** [bug] GLM-4.7 API 토큰 할당량 초과로 인한 400 에러 (2026-02-22 완료)
+
+---
+
+*마지막 업데이트: 2026-02-22*
 *GitHub Issue #95 완료: Phase 6 - AI 캐릭터 관계 시스템 (친밀도, 대화, 반응)*
 *GitHub Issue #100 완료: Phase 8 - 멀티플레이어 확장 (capacity, DM, 이모지, API)*
+*GitHub Issue #144 완료: GLM-4.7 API 할당량 초과 예외 처리 (Rate Limiter)*
