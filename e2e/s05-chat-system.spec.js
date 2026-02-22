@@ -94,4 +94,26 @@ test.describe('S05. 채팅 시스템', () => {
       await expect(aiBubble).toBeVisible();
     }
   });
+
+  test('S05-8: 플레이어 채팅 말풍선 표시 (Bug #143 fix)', async ({ page }) => {
+    const input = page.locator('input[type="text"], [data-testid="chat-input"]');
+    const sendButton = page.locator('button:has-text("SEND")');
+
+    const testMessage = '플레이어 테스트 메시지';
+    await input.fill(testMessage);
+    await sendButton.click();
+
+    // 말풍선 생성 대기
+    await page.waitForTimeout(1000);
+
+    // 플레이어 말풍선 표시 확인
+    const chatBubble = page.locator('.chat-bubble, [data-testid="chat-bubble"]');
+    expect(await chatBubble.count()).toBeGreaterThan(0);
+
+    // 말풍선에 메시지 텍스트 포함 확인
+    const bubbleWithMessage = page.locator('.chat-bubble, [data-testid="chat-bubble"]').filter({
+      hasText: testMessage
+    });
+    await expect(bubbleWithMessage).toBeVisible();
+  });
 });

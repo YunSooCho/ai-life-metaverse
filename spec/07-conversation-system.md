@@ -281,6 +281,23 @@ if (character.isConversing) {
 - 일정 시간 후 자동 사라짐
 - 메시지 길이에 따른 크기 조정
 
+### Chat Bubble Rendering (Bug #143 Fix - 2026-02-20)
+
+**문제:** 플레이어가 메시지를 전송해도 말풍선이 표시되지 않음
+
+**원인:** `GameCanvas.jsx`에서 채팅 버블 렌더링 루프가 `chars`(AI 캐릭터만)만 순회하여 플레이어 캐릭터의 메시지가 누락됨
+
+**해결:** 렌더링 루프를 `chars` → `allChars`(AI + 플레이어 포함)로 변경
+
+**수정 파일:** `frontend/src/components/GameCanvas.jsx`
+
+**코드 변경:** - 이전: `Object.values(chars).forEach(([id, char]) => { ... })`
+- 이후: `Object.values(allChars).forEach(([id, char]) => { ... })`
+
+**검증:**
+- 플레이어 채팅 메시지를 보내면 캐릭터 위에 말풍선이 정상적으로 표시됨
+- AI 캐릭터 말풍선도 여전히 정상 작동
+
 ### 방별 채팅 분리
 - roomChatHistory state로 방별 채팅 히스토리 분리 저장
 - chatBroadcast 이벤트에서 roomId 추출

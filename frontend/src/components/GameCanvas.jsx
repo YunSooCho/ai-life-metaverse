@@ -1031,8 +1031,27 @@ function GameCanvas({
           prevAffinitiesRef.current[char.id] = affinity
         }
 
-        // 채팅 버블 데이터 수집
-        const chatData = msgs[char.id]
+        }
+
+      // Render all characters (먼저 캐릭터 그리기)
+      // Bug #139 fix: myCharacter를 루프에 포함하여 채팅 버블이 렌더링되도록 함
+      const allChars = { ...chars, [myChar.id]: myChar }  // myChar 포함
+
+      // 채팅 버블 데이터 수집 (allChars 사용 - Bug #143 fix)
+      Object.entries(allChars).forEach(([charId, char]) => {
+        const chatData = msgs[charId]
+        // 현재 캐릭터 위치 계산 (drawCharacter와 동일 로직)
+        const isMyChar = char.id === myChar.id
+        const character = characters[char.id] || myChar
+        const charX = character.x
+        const charY = character.y
+
+        // 카메라 시점에 따른 화면 좌표 계산 (drawCharacter와 동일)
+        const cameraX = myCharacter.x - canvasWidth / (2 * currentScale)
+        const cameraY = myCharacter.y - canvasHeight / (2 * currentScale)
+        const x = (charX - cameraX) * currentScale
+        const y = (charY - cameraY) * currentScale
+
         if (chatData?.message) {
           chatBubblesToRender.push({
             message: chatData.message,
@@ -1042,11 +1061,7 @@ function GameCanvas({
         } else if (chatData) {
           console.warn('⚠️ Chat data exists but no message for', char.id, ':', chatData)
         }
-      }
-
-      // Render all characters (먼저 캐릭터 그리기)
-      // Bug #139 fix: myCharacter를 루프에 포함하여 채팅 버블이 렌더링되도록 함
-      const allChars = { ...chars, [myChar.id]: myChar }  // myChar 포함
+      })
       Object.values(allChars).forEach(char => {
         drawCharacter(char)
       })
