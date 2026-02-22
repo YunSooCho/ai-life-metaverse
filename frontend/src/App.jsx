@@ -278,16 +278,26 @@ function AppContent() {
     }
   }, [myCharacter.id])
 
+  // 🔴 FIX: 무한 루프 방지를 위해 currentRoom.id를 렌더링 시점에 고정 (Issue #143)
+  const currentroomIdRef = useRef(currentRoom.id)
+  currentroomIdRef.current = currentRoom.id
+
   useSocketEvent('chatBroadcast', (chatData) => {
+    console.log('🔍 [chatBroadcast] Received:', chatData)
     const { characterId, characterName, message, timestamp, roomId } = chatData
-    const targetRoomId = roomId || currentRoom.id
-    setChatMessages(prev => ({
-      ...prev,
-      [characterId]: {
-        message,
-        timestamp
+    const targetRoomId = roomId || currentroomIdRef.current
+    console.log('📝 [chatBroadcast] targetRoomId:', targetRoomId, 'currentRoom.id:', currentroomIdRef.current)
+    setChatMessages(prev => {
+      const newMessages = {
+        ...prev,
+        [characterId]: {
+          message,
+          timestamp
+        }
       }
-    }))
+      console.log('✅ [chatBroadcast] Chat messages updated:', newMessages)
+      return newMessages
+    })
 
     setRoomChatHistory(prev => {
       const roomHistory = prev[targetRoomId] || []
@@ -315,17 +325,17 @@ function AppContent() {
         return newMessages
       })
     }, 3000)
-  }, [currentRoom.id])
+  }, []) // 🔴 FIX: 의존성 배열 제거 (무한 루프 방지)
 
   useSocketEvent('chatHistory', (data) => {
     const { roomId, history } = data || {}
-    const targetRoomId = roomId || currentRoom.id
+    const targetRoomId = roomId || currentroomIdRef.current
     console.log('채팅 히스토리 수신:', targetRoomId, history.length, '개')
     setRoomChatHistory(prev => ({
       ...prev,
       [targetRoomId]:history
     }))
-  }, [currentRoom.id])
+  }, []) // 🔴 FIX: 의존성 배열 제거 (무한 루프 방지)
 
   useSocketEvent('characterInteractionBroadcast', (data) => {
     const { fromCharacterName, toCharacterName, interactionType, affinity } = data
@@ -636,7 +646,9 @@ function AppContent() {
   }, [])
 
   useEffect(() => {
+    console.log('🔍 [join] Emitting join event:', myCharacter)
     socket.emit('join', myCharacter)
+    console.log('✅ [join] Join event emitted')
 
     // Sound Manager 초기화 (첫 사용자 제스처 필요)
     if (soundManager && typeof soundManager.init === 'function') {
@@ -658,7 +670,7 @@ function AppContent() {
       const trimmedMessage = message.trim()
       const timestamp = Date.now()
 
-      console.log('📤 Sending chat message:', trimmedMessage, 'to room:', currentRoom.id)
+      console.log('📤 [sendChatMessage] Sending chat message:', trimmedMessage, 'to room:', currentRoom.id, 'characterId:', myCharacter.id)
 
       // ✅ BUG FIX: 내 캐릭터의 채팅 말풍선 즉시 표시 (Issue #126)
       // 백엔드 socket.to(roomId).emit는 보내는 소켓 제외하므로, 프론트엔드에서 즉시 표시
@@ -670,7 +682,7 @@ function AppContent() {
             timestamp
           }
         }
-        console.log('📝 Chat messages updated (after setState):', newMessages)
+        console.log('📝 [sendChatMessage] Chat messages updated locally:', newMessages)
         return newMessages
       })
 
@@ -687,11 +699,14 @@ function AppContent() {
       }, 3000)
 
       // 백엔드로 메시지 전송
-      socket.emit('chatMessage', {
+      const chatMessageData = {
         message: trimmedMessage,
         characterId: myCharacter.id,
         roomId: currentRoom.id
-      })
+      }
+      console.log('📡 [sendChatMessage] Emitting chatMessage:', chatMessageData)
+      socket.emit('chatMessage', chatMessageData)
+      console.log('✅ [sendChatMessage] chatMessage emitted')
     }
   }
 
