@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "skills": {
+    "skill-creator": {
+      "version": "0.1.0",
+      "installedAt": 1770295402392
+    },
+    "skillscanner": {
+      "version": "1.0.0",
+      "installedAt": 1770338574692
+    },
+    "skills-search": {
+      "version": "1.0.4",
+      "installedAt": 1770338578173
+    },
+    "skill-search-optimizer": {
+      "version": "1.0.0",
+      "installedAt": 1770338582885
+    },
+    "cli-developer": {
+      "version": "0.1.0",
+      "installedAt": 1770338591266
+    },
+    "agent-browser": {
+      "version": "0.2.0",
+      "installedAt": 1770338597290
+    },
+    "agentic-calling": {
+      "version": "0.1.0",
+      "installedAt": 1770342641620
+    },
+    "vapi-calls": {
+      "version": "1.0.0",
+      "installedAt": 1770342650242
+    },
+    "elevenlabs-phone-reminder-lite": {
+      "version": "1.0.0",
+      "installedAt": 1770342662403
+    },
+    "deepresearchwork": {
+      "version": "1.0.0",
+      "installedAt": 1770345638559
+    },
+    "google-maps": {
+      "version": "1.1.0",
+      "installedAt": 1770350333156
+    },
+    "google-maps-grounding-lite-mcp": {
+      "version": "1.0.0",
+      "installedAt": 1770350337150
+    },
+    "local-places": {
+      "version": "1.0.0",
+      "installedAt": 1770350343504
+    },
+    "healthy-eating": {
+      "version": "1.0.0",
+      "installedAt": 1770350349233
+    },
+    "thecolony-heartbeat": {
+      "version": "1.0.0",
+      "installedAt": 1770377736172
+    },
+    "let-me-know": {
+      "version": "0.1.1",
+      "installedAt": 1770377740891
+    },
+    "remindme": {
+      "version": "1.1.18",
+      "installedAt": 1770377818508
+    },
+    "cron-scheduling": {
+      "version": "1.0.0",
+      "installedAt": 1770377820665
+    },
+    "system-monitor": {
+      "version": "1.0.0",
+      "installedAt": 1770377822814
+    },
+    "pushover-notify": {
+      "version": "1.0.0",
+      "installedAt": 1770377824862
+    },
+    "sec-filing-watcher": {
+      "version": "1.0.0",
+      "installedAt": 1770377842430
+    },
+    "bot-status-api": {
+      "version": "1.0.1",
+      "installedAt": 1770377849136
+    },
+    "trend-watcher": {
+      "version": "1.0.1",
+      "installedAt": 1770377974882
+    },
+    "grab": {
+      "version": "0.1.0",
+      "installedAt": 1770381884544
+    },
+    "cursor-agent": {
+      "version": "2.1.0",
+      "installedAt": 1770446156138
+    }
+  }
+}

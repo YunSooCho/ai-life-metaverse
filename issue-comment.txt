@@ -1,0 +1,21 @@
+✅ **완료: 캐릭터 이동 애니메이션 구현**
+
+**작업 완료:**
+- ✅ Backend: move 이벤트에서 moveData 구조 생성
+- ✅ Backend: determineDirection 함수 구현
+- ✅ Frontend App.jsx: animatedCharacters state + 60fps 보간
+- ✅ Frontend GameCanvas.jsx: propsAnimatedCharacters prop 추가
+- ✅ 테스트 코드: tests/backend/movement.test.js 작성
+- ✅ 테스트 실행: 8/8 통과
+- ✅ Spec 업데이트: spec/06-character-system.md
+
+**테스트 결과:**
+```
+✓ tests/backend/movement.test.js (8 tests) 2ms
+Test Files  1 passed (1)
+Tests  8 passed (8)
+Duration  450ms
+```
+
+**작업 시간:** ~25분 (테스트 포함)
+**PM 룰 v3.2 준수:** read/write 코드 작성 + 테스트 필수

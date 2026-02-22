@@ -1,0 +1,168 @@
+{
+  "app": {
+    "title": "AI Life",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "player": "Player",
+    "system": "System",
+    "anonymous": "Anonymous",
+    "aiCharacter": "AI Character"
+  },
+  "ui": {
+    "chat": {
+      "placeholder": "Type a message...",
+      "send": "Send",
+      "typing": "Typing..."
+    },
+    "buttons": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "close": "Close",
+      "save": "Save",
+      "delete": "Delete",
+      "refresh": "Refresh",
+      "claim": "Claim",
+      "claimed": "Claimed",
+      "use": "Use",
+      "accept": "Accept",
+      "create": "Create"
+    },
+    "tabs": {
+      "profile": "Profile",
+      "inventory": "Inventory",
+      "quests": "Quests",
+      "settings": "Settings",
+      "active": "Active",
+      "available": "Available"
+    },
+    "interaction": {
+      "greet": "Greet",
+      "talk": "Talk",
+      "gift": "Gift",
+      "fight": "Fight",
+      "befriend": "Befriend",
+      "poke": "Poke",
+      "wave": "Wave",
+      "compliment": "Compliment",
+      "tease": "Tease",
+      "ignore": "Ignore"
+    },
+    "building": {
+      "enter": "Enter",
+      "exit": "Exit"
+    },
+    "quest": {
+      "accept": "Accept",
+      "complete": "Complete",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "failed": "Failed",
+      "mainQuest": "Main Quest",
+      "sideQuest": "Side Quest",
+      "log": "Quest Log",
+      "objectives": "Objectives",
+      "reward": "Reward",
+      "claimReward": "Claim Reward"
+    },
+    "inventory": {
+      "title": "Inventory",
+      "item": "Item",
+      "use": "Use",
+      "drop": "Drop",
+      "empty": "Inventory is empty",
+      "total": "Total"
+    },
+    "reward": {
+      "title": "Reward Center",
+      "firstLogin": "First Login Reward",
+      "dailyBonus": "Daily Bonus",
+      "achievement": "Achievement Reward"
+    },
+    "room": {
+      "title": "Rooms",
+      "newRoomName": "New Room Name",
+      "create": "Create",
+      "current": "Current Room"
+    },
+    "settings": {
+      "language": "Language",
+      "sound": "Sound",
+      "bgm": "BGM",
+      "sfx": "SFX",
+      "volume": "Volume",
+      "on": "ON",
+      "off": "OFF"
+    },
+    "time": {
+      "dawn": "Dawn",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "weather": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "rain": "Rain",
+      "snow": "Snow"
+    },
+    "affinity": {
+      "label": "Affinity",
+      "stranger": "Stranger",
+      "friendly": "Friendly",
+      "veryFriendly": "Very Friendly",
+      "increased": "Affinity increased!",
+      "decreased": "Affinity decreased..."
+    },
+    "profile": {
+      "emotion": "Emotion",
+      "activity": "Activity",
+      "conversing": "Conversing...",
+      "inBuilding": "In a building",
+      "moving": "Moving",
+      "level": "Level",
+      "exp": "EXP",
+      "maxLevel": "🏆 MAX LEVEL"
+    },
+    "status": {
+      "hp": "HP",
+      "affinity": "Affinity",
+      "charisma": "Charisma",
+      "intelligence": "Intelligence",
+      "type": "Type"
+    },
+    "customization": {
+      "title": "Customize",
+      "accessories": "Accessories",
+      "hair": "Hairstyle",
+      "clothing": "Clothing",
+      "color": "Color"
+    },
+    "controls": {
+      "hint": "Arrow/WASD: Move | Click: Move | Click Character: Interact"
+    },
+    "notification": {
+      "joined": " joined",
+      "left": " left",
+      "movedTo": " moved to"
+    },
+    "eventLog": {
+      "title": "Event Log"
+    },
+    "statusExtended": {
+      "nextLevelExp": "Until next level",
+      "abilities": "Abilities",
+      "info": "Info",
+      "id": "ID",
+      "typeLabel": "Type",
+      "color": "Color"
+    },
+    "items": {
+      "healthPotion": "HP Potion",
+      "coin": "Coin",
+      "giftBox": "Gift Box",
+      "experiencePotion": "EXP Potion"
+    }
+  }
+}

@@ -1,0 +1,702 @@
+/* ============================================
+   AI Life Metaverse - Pixel Art Theme (レトロスタイル)
+   ============================================ */
+
+/* Press Start 2P 폰트는 index.html에서 <link>로 로드됨 (별도 @import 불필요) */
+
+/* ============================================
+   PLIXEL COLOR PALETTE (32色限定)
+   ============================================ */
+:root {
+  --pixel-bg-primary: #1a1a2e;
+  --pixel-bg-secondary: #16213e;
+  --pixel-bg-tertiary: #0f3460;
+  --pixel-accent-green: #4ade80;
+  --pixel-accent-orange: #fb923c;
+  --pixel-accent-red: #f87171;
+  --pixel-accent-blue: #60a5fa;
+  --pixel-accent-purple: #c084fc;
+  --pixel-accent-yellow: #fbbf24;
+  --pixel-accent-pink: #f472b6;
+  --pixel-accent-cyan: #22d3ee;
+
+  --pixel-text-primary: #ffffff;
+  --pixel-text-secondary: #a3a3a3;
+  --pixel-text-muted: #737373;
+
+  --pixel-border-sm: 1px;
+  --pixel-border-md: 2px;
+  --pixel-border-lg: 4px;
+
+  --pixel-shadow-sm: 2px 2px 0 0 #000;
+  --pixel-shadow-md: 4px 4px 0 0 #000;
+  --pixel-shadow-lg: 6px 6px 0 0 #000;
+}
+
+/* ============================================
+   PIXEL FONT
+   ============================================ */
+.pixel-font {
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.pixel-text-sm {
+  font-size: 10px;
+}
+
+.pixel-text-md {
+  font-size: 12px;
+}
+
+.pixel-text-lg {
+  font-size: 14px;
+}
+
+.pixel-text-xl {
+  font-size: 16px;
+}
+
+.pixel-text-2xl {
+  font-size: 20px;
+}
+
+/* ============================================
+   PIXEL BORDER (Dot Border)
+   ============================================ */
+.pixel-border-sm {
+  border: var(--pixel-border-sm) solid #ffffff;
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.pixel-border-md {
+  border: var(--pixel-border-md) solid #ffffff;
+  box-shadow: var(--pixel-shadow-md);
+}
+
+.pixel-border-lg {
+  border: var(--pixel-border-lg) solid #ffffff;
+  box-shadow: var(--pixel-shadow-lg);
+}
+
+.pixel-border-green-sm {
+  border: var(--pixel-border-sm) solid var(--pixel-accent-green);
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.pixel-border-orange-sm {
+  border: var(--pixel-border-sm) solid var(--pixel-accent-orange);
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.pixel-border-red-sm {
+  border: var(--pixel-border-sm) solid var(--pixel-accent-red);
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+/* ============================================
+   PIXEL BUTTON (RPG Style)
+   ============================================ */
+.pixel-button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  padding: 12px 20px;
+  border: 2px solid #ffffff;
+  background: var(--pixel-bg-primary);
+  color: #ffffff;
+  cursor: pointer;
+  position: relative;
+  letter-spacing: 0.05em;
+  box-shadow: var(--pixel-shadow-md);
+  transition: all 0.1s;
+}
+
+.pixel-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 #000;
+  background: var(--pixel-bg-secondary);
+}
+
+.pixel-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 #000;
+  background: var(--pixel-bg-tertiary);
+}
+
+.pixel-button-green {
+  border-color: var(--pixel-accent-green);
+}
+
+.pixel-button-green:hover {
+  background: var(--pixel-accent-green);
+  color: #000;
+}
+
+.pixel-button-orange {
+  border-color: var(--pixel-accent-orange);
+}
+
+.pixel-button-orange:hover {
+  background: var(--pixel-accent-orange);
+  color: #000;
+}
+
+.pixel-button-red {
+  border-color: var(--pixel-accent-red);
+}
+
+.pixel-button-red:hover {
+  background: var(--pixel-accent-red);
+  color: #000;
+}
+
+.pixel-button-blue {
+  border-color: var(--pixel-accent-blue);
+}
+
+.pixel-button-blue:hover {
+  background: var(--pixel-accent-blue);
+  color: #000;
+}
+
+/* ============================================
+   PIXEL INPUTFIELD
+   ============================================ */
+.pixel-input {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  padding: 12px 16px;
+  border: 2px solid #ffffff;
+  background: var(--pixel-bg-primary);
+  color: #ffffff;
+  outline: none;
+  box-shadow: var(--pixel-shadow-sm);
+  letter-spacing: 0.05em;
+}
+
+.pixel-input::placeholder {
+  color: var(--pixel-text-muted);
+}
+
+.pixel-input:focus {
+  border-color: var(--pixel-accent-green);
+  box-shadow: 4px 4px 0 0 #000;
+}
+
+/* ============================================
+   PIXEL PANEL / CARD
+   ============================================ */
+.pixel-panel {
+  background: var(--pixel-bg-primary);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  box-shadow: var(--pixel-shadow-md);
+}
+
+.pixel-panel-header {
+  background: var(--pixel-bg-secondary);
+  border-bottom: 2px solid #ffffff;
+  padding: 12px 16px;
+}
+
+.pixel-panel-body {
+  padding: 12px;
+}
+
+/* ============================================
+   PIXEL CHAT BUBBLE (ドット 말풍선)
+   ============================================ */
+.pixel-chat-bubble {
+  background: #ffffff;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.pixel-chat-bubble-tail {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #ffffff;
+}
+
+.pixel-chat-bubble-tail::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: -9px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #000;
+  border-bottom: 1px solid #ffffff;
+}
+
+/* ============================================
+   PIXEL MENU (RPG Style)
+   ============================================ */
+.pixel-menu {
+  background: var(--pixel-bg-primary);
+  border: 2px solid #ffffff;
+  box-shadow: 4px 4px 0 0 #000;
+}
+
+.pixel-menu-header {
+  background: var(--pixel-accent-green);
+  color: #000;
+  padding: 12px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.pixel-menu-item {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.pixel-menu-item::before {
+  content: '►';
+  margin-right: 8px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.pixel-menu-item:hover {
+  background: var(--pixel-accent-green);
+  color: #000;
+}
+
+.pixel-menu-item:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   PIXEL TOAST (RPG Notification)
+   ============================================ */
+.pixel-toast {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 16px 24px;
+  background: var(--pixel-bg-primary);
+  border: 2px solid #ffffff;
+  box-shadow: 4px 4px 0 0 #000;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.pixel-toast-success {
+  background: var(--pixel-accent-green);
+  color: #000;
+}
+
+.pixel-toast-warning {
+  background: var(--pixel-accent-red);
+  color: #000;
+}
+
+.pixel-toast-info {
+  background: var(--pixel-accent-blue);
+  color: #000;
+}
+
+/* ============================================
+   PIXEL ICON (Dot Icon)
+   ============================================ */
+.pixel-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.pixel-icon-sm {
+  width: 12px;
+  height: 12px;
+}
+
+.pixel-icon-lg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ============================================
+   PIXEL GRID (Inventory / Quest)
+   ============================================ */
+.pixel-grid {
+  display: grid;
+  gap: 8px;
+  border: 2px solid #ffffff;
+  background: var(--pixel-bg-primary);
+  padding: 8px;
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.pixel-grid-item {
+  background: var(--pixel-bg-secondary);
+  border: 2px solid #ffffff;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.pixel-grid-item:hover {
+  background: var(--pixel-accent-green);
+  color: #000;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 0 #000;
+}
+
+.pixel-grid-item.selected {
+  border-color: var(--pixel-accent-green);
+  background: rgba(74, 222, 128, 0.2);
+}
+
+/* ============================================
+   PIXEL SCROLLBAR
+   ============================================ */
+.pixel-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.pixel-scroll::-webkit-scrollbar-track {
+  background: var(--pixel-bg-primary);
+  border: 1px solid #ffffff;
+}
+
+.pixel-scroll::-webkit-scrollbar-thumb {
+  background: var(--pixel-accent-green);
+  border: 1px solid #ffffff;
+  box-shadow: 2px 2px 0 0 #000;
+}
+
+.pixel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #22c55e;
+}
+
+/* ============================================
+   PIXEL MOTION (Animations)
+   ============================================ */
+@keyframes pixel-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pixel-pop {
+  animation: pixel-pop 0.2s ease-out;
+}
+
+@keyframes pixel-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.pixel-bounce {
+  animation: pixel-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes pixel-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.pixel-shake {
+  animation: pixel-shake 0.3s ease-in-out;
+}
+
+/* ============================================
+   PIXEL BADGE
+   ============================================ */
+.pixel-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 4px 8px;
+  background: var(--pixel-accent-green);
+  color: #000;
+  border: 1px solid #000;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+
+.pixel-badge-orange {
+  background: var(--pixel-accent-orange);
+}
+
+.pixel-badge-red {
+  background: var(--pixel-accent-red);
+}
+
+.pixel-badge-blue {
+  background: var(--pixel-accent-blue);
+}
+
+/* ============================================
+   PIXEL OVERLAY
+   ============================================ */
+.pixel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+}
+
+/* ============================================
+   PIXEL DIALOG BOX (대화창)
+   ============================================ */
+.pixel-dialog-box {
+  background: rgba(26, 26, 46, 0.95);
+  border: 4px solid #4a4a5a;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 4px #1a1a2a,
+    0 8px 16px rgba(0, 0, 0, 0.5);
+  padding: 16px;
+}
+
+.pixel-dialog-speaker {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: var(--pixel-accent-yellow);
+  text-shadow:
+    2px 2px 0 #1a1a2a,
+    -1px -1px 0 #1a1a2a;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid #5a5a6a;
+}
+
+.pixel-dialog-text {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #e0e0e0;
+  text-shadow:
+    1px 1px 0 #1a1a2a,
+    -1px -1px 0 #1a1a2a;
+}
+
+.pixel-dialog-choice {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  padding: 12px 16px;
+  background: #3a3a4a;
+  color: #ffffff;
+  border: 3px solid #5a5a6a;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow:
+    0 0 0 2px #1a1a2a,
+    0 4px 0 #1a1a2a;
+  transition: all 0.15s ease;
+}
+
+.pixel-dialog-choice:hover {
+  background: var(--pixel-accent-blue);
+  border-color: #6a7a8a;
+  box-shadow:
+    0 0 0 2px #1a1a2a,
+    0 2px 0 #1a1a2a;
+  transform: translateY(2px);
+}
+
+/* ============================================
+   PIXEL INVENTORY WINDOW (인벤토리 창)
+   ============================================ */
+.pixel-inventory-window {
+  background: #2a2a3a;
+  border: 4px solid #4a4a5a;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 4px #1a1a2a,
+    0 12px 24px rgba(0, 0, 0, 0.6);
+}
+
+.pixel-inventory-header {
+  background: #3a3a4a;
+  padding: 16px 20px;
+  border-bottom: 4px solid #5a5a6a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pixel-inventory-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  color: var(--pixel-accent-yellow);
+  text-shadow:
+    2px 2px 0 #1a1a2a,
+    -1px -1px 0 #1a1a2a;
+}
+
+.pixel-inventory-item {
+  aspect-ratio: 1;
+  background: #3a3a4a;
+  border: 3px solid #5a5a6a;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-shadow:
+    0 0 0 2px #1a1a2a,
+    0 4px 0 #1a1a2a;
+  transition: all 0.15s ease;
+}
+
+.pixel-inventory-item:hover {
+  background: var(--pixel-accent-blue);
+  border-color: #6a7a8a;
+  box-shadow:
+    0 0 0 2px #1a1a2a,
+    0 2px 0 #1a1a2a;
+  transform: translateY(2px);
+}
+
+.pixel-inventory-item.selected {
+  background: #5a6a7a;
+  border-color: var(--pixel-accent-yellow);
+  box-shadow:
+    0 0 0 2px #1a1a2a,
+    0 0 0 4px rgba(255, 215, 0, 0.3);
+}
+
+.pixel-inventory-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.pixel-inventory-item-name {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: #e0e0e0;
+  text-align: center;
+  text-shadow:
+    1px 1px 0 #1a1a2a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.pixel-inventory-quantity {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--pixel-accent-yellow);
+  background: #1a1a2a;
+  padding: 2px 4px;
+  border-radius: 2px;
+  border: 1px solid #5a5a6a;
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+}
+
+/* ============================================
+   MOBILE OPTIMIZATION
+   ============================================ */
+@media (max-width: 768px) {
+  .pixel-text-sm {
+    font-size: 9px;
+  }
+
+  .pixel-text-md {
+    font-size: 11px;
+  }
+
+  .pixel-text-lg {
+    font-size: 13px;
+  }
+
+  .pixel-button {
+    font-size: 11px;
+    padding: 10px 16px;
+  }
+
+  .pixel-input {
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+
+  .pixel-menu-item {
+    font-size: 10px;
+    padding: 10px 12px;
+  }
+
+  .pixel-dialog-speaker {
+    font-size: 12px;
+  }
+
+  .pixel-dialog-text {
+    font-size: 10px;
+  }
+
+  .pixel-dialog-choice {
+    font-size: 9px;
+    padding: 10px 12px;
+  }
+
+  .pixel-inventory-icon {
+    font-size: 24px;
+  }
+
+  .pixel-inventory-item-name {
+    font-size: 7px;
+  }
+}

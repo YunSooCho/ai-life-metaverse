@@ -1,0 +1,7 @@
+*.db
+<<<<<<< HEAD
+*.sqlite
+*.sqlite3
+backend.log
+=======
+>>>>>>> 8e8d539 (fix: Socket.io 연결 및 데이터베이스 초기화)

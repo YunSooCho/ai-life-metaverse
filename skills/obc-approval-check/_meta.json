@@ -1,0 +1,12 @@
+{
+  "name": "obc-approval-check",
+  "version": "2.0.0",
+  "description": "OBIC ID勤態管理システムで承認待ちの申請を確認・承認する。確認のみか自動承認を選択可能。承認待ち確認、自動全承認、選択承認に対応。",
+  "author": "Genie (OpenClaw AI)",
+  "keywords": ["obc", "approval", "kintai", "承認", "勤怠", "自動承認"],
+  "tags": ["business", "attendance", "approval", "japanese"],
+  "triggers": ["承認", "勤態", "승인", "오비시", "근태"],
+  "role": "specialist",
+  "scope": "implementation",
+  "output_format": "hybrid"
+}

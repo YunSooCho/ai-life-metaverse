@@ -1,0 +1,12 @@
+{
+  "name": "claude-code-collaboration",
+  "version": "1.0.0",
+  "description": "Claude Code CLI와 협업하여 복잡한 개발 작업을 효율적으로 처리",
+  "author": "Genie (OpenClaw AI)",
+  "keywords": ["claude-code", "anthropic", "cli", "collaboration", "refactoring", "debugging"],
+  "tags": ["development", "coding", "ai-assist", "anthropic"],
+  "triggers": ["claude code", "anthropic", "코드 협업", "refactor", "debug", "code review"],
+  "role": "specialist",
+  "scope": "implementation",
+  "output_format": "hybrid"
+}

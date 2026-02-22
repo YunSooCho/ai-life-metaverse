@@ -1,0 +1,37 @@
+# IRM Downloaded History (품번 | 평가 | 버전 | 날짜)
+ENKI-091|★10|HD/720p|2026-02-10
+MIAB-592|★10|Reducing Mosaic|2026-02-10
+MISM-423|★9.5|Reducing Mosaic|2026-02-10
+HUBLK-062|★9.5|Reducing Mosaic|2026-02-10
+MISM-425|★9.5|Reducing Mosaic|2026-02-10
+HAWA-371|★9.5|Reducing Mosaic|2026-02-10
+BBTU-109|★9|Reducing Mosaic|2026-02-10
+DFE-110|★9|Reducing Mosaic|2026-02-10
+# 이라마명예 폴더 기존 보유분 (2026-02-10 등록)
+CKCK-011|★10|existing|2026-02-10
+DFE-104|★10|existing|2026-02-10
+XYZA-002|★10|existing|2026-02-10
+ENKI-085|★10|existing|2026-02-10
+MISM-399|★10|existing|2026-02-10
+MISM-394|★10|existing|2026-02-10
+MISM-401|★10|existing|2026-02-10
+ANAV-007|★10|existing|2026-02-10
+DFE-101|★10|existing|2026-02-10
+KIRM-056|★10|existing|2026-02-10
+SPLT-002|★10|existing|2026-02-10
+MISM-380|★10|existing|2026-02-10
+MISM-384|★10|existing|2026-02-10
+NDWQ-014|★10|existing|2026-02-10
+ENKI-081|★10|existing|2026-02-10
+MISM-372|★10|existing|2026-02-10
+MISM-368|★10|existing|2026-02-10
+XYZA-001|★10|existing|2026-02-10
+MISM-367|★10|existing|2026-02-10
+XTRM-009|★10|existing|2026-02-10
+MISM-359|★10|existing|2026-02-10
+MISM-391|★9.5|existing|2026-02-10
+BONY-116|unrated|existing|2026-02-10
+DFE-089|unrated|existing|2026-02-10
+MISM-325|unrated|existing|2026-02-10
+MISM-338|unrated|existing|2026-02-10
+NEOB-037|unrated|existing|2026-02-10

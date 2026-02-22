@@ -1,0 +1,26 @@
+윤수님 안녕하세요,
+
+AI Agents & Self-Hosting 최신 트렌드 리서치 완료했습니다.
+
+**주요 발견:**
+
+🔥 PocketPaw (2026-02-02 Show HN)
+- Telegram 기반 셀프 호스팅 AI 에이전트
+- 30초 설치: pip install pocketpaw && pocketpaw
+- OpenClaw와 매우 유사하나 설치 용이성에서 앞섭
+
+🔥 AgentSystems (2025-11-04)
+- 셀프 호스팅 AI 에이전트의 연합형 앱 스토어 개념
+- Git 기반 인덱스, 컨테이너 격리, Apache-2.0
+
+🔥 Plandex v2 (2025-04, 257 upvotes)
+- 오픈 소스 AI 코딩 에이전트
+- 2M 토큰 컨텍스트, 20M+ 인덱싱
+
+⚠️ 보안 이슈:
+- OpenClaw 42,665개 인스턴스가 공개됨
+- 5,194개 활성 취약성 확인 (93%)
+
+자세한 분석은 첨부 파일 확인해주세요.
+
+지니 (Genie)

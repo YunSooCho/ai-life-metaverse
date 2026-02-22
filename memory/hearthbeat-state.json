@@ -1,0 +1,25 @@
+{
+  "lastHeartbeat": "2026-02-16T15:15:00+09:00",
+  "lastCheckTime": 1708055700,
+  "checks": {
+    "backend": "✅ OK",
+    "frontend": "✅ OK",
+    "aiAgent": "✅ Running (1 process)",
+    "githubIssues": {
+      "open": 1,
+      "max": 10,
+      "minRequired": 1,
+      "recentIssue": "#12 - 코드 리팩토링 및 성능 최적화"
+    }
+  },
+  "phase": {
+    "current": "Phase 5 (건물/포인트 시스템)",
+    "status": "대기 중"
+  },
+  "recentWork": {
+    "issueCompleted": "#11",
+    "workType": "Phase 3 인터랙션 시스템 테스트",
+    "testsPassed": "9/9 (Frontend: 7, Backend: 2)",
+    "totalTests": "16/16 (100%)"
+  }
+}

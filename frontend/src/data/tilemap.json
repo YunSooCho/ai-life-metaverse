@@ -1,0 +1,208 @@
+{
+  "version": "1.0",
+  "mapSize": {
+    "width": 1000,
+    "height": 700,
+    "tileWidth": 32,
+    "tileHeight": 32
+  },
+  "layers": {
+    "ground": {
+      "type": "tilemap",
+      "tiles": [
+        {
+          "id": 1,
+          "name": "잔디",
+          "color": "#4CAF50",
+          "walkable": true,
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        {
+          "id": 2,
+          "name": "흙길",
+          "color": "#8D6E63",
+          "walkable": true,
+          "path": [
+            {"x": 150, "y": 200, "width": 120, "height": 20},
+            {"x": 200, "y": 200, "width": 20, "height": 300},
+            {"x": 700, "y": 200, "width": 120, "height": 20},
+            {"x": 400, "y": 500, "width": 20, "height": 150}
+          ]
+        },
+        {
+          "id": 3,
+          "name": "돌바닥",
+          "color": "#757575",
+          "walkable": true,
+          "rects": [
+            {"x": 130, "y": 130, "width": 160, "height": 140},
+            {"x": 680, "y": 130, "width": 160, "height": 140},
+            {"x": 80, "y": 430, "width": 190, "height": 160},
+            {"x": 730, "y": 430, "width": 190, "height": 160}
+          ]
+        }
+      ]
+    },
+    "buildings": {
+      "type": "buildings",
+      "buildings": [
+        {
+          "id": 1,
+          "name": "상점",
+          "type": "shop",
+          "sprite": "shop",
+          "x": 150,
+          "y": 150,
+          "width": 120,
+          "height": 100,
+          "entrance": {
+            "x": 190,
+            "y": 230,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 400,
+            "height": 300,
+            "npcs": ["shopkeeper"]
+          }
+        },
+        {
+          "id": 2,
+          "name": "카페",
+          "type": "cafe",
+          "sprite": "cafe",
+          "x": 700,
+          "y": 150,
+          "width": 120,
+          "height": 100,
+          "entrance": {
+            "x": 740,
+            "y": 230,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 400,
+            "height": 300,
+            "npcs": ["barista"]
+          }
+        },
+        {
+          "id": 3,
+          "name": "공원",
+          "type": "park",
+          "sprite": "park",
+          "x": 400,
+          "y": 500,
+          "width": 200,
+          "height": 150,
+          "entrance": {
+            "x": 480,
+            "y": 500,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 500,
+            "height": 400,
+            "npcs": []
+          }
+        },
+        {
+          "id": 4,
+          "name": "도서관",
+          "type": "library",
+          "sprite": "library",
+          "x": 100,
+          "y": 450,
+          "width": 150,
+          "height": 120,
+          "entrance": {
+            "x": 155,
+            "y": 550,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 450,
+            "height": 350,
+            "npcs": ["librarian"]
+          }
+        },
+        {
+          "id": 5,
+          "name": "체육관",
+          "type": "gym",
+          "sprite": "gym",
+          "x": 750,
+          "y": 450,
+          "width": 150,
+          "height": 120,
+          "entrance": {
+            "x": 805,
+            "y": 550,
+            "width": 40,
+            "height": 20
+          },
+          "interior": {
+            "width": 450,
+            "height": 350,
+            "npcs": ["trainer"]
+          }
+        }
+      ]
+    },
+    "decoration": {
+      "type": "objects",
+      "objects": [
+        {
+          "id": "d1",
+          "name": "나무",
+          "sprite": "tree",
+          "x": 300,
+          "y": 300,
+          "width": 32,
+          "height": 48,
+          "obstacle": true
+        },
+        {
+          "id": "d2",
+          "name": "나무",
+          "sprite": "tree",
+          "x": 600,
+          "y": 300,
+          "width": 32,
+          "height": 48,
+          "obstacle": true
+        },
+        {
+          "id": "d3",
+          "name": "벤치",
+          "sprite": "bench",
+          "x": 450,
+          "y": 550,
+          "width": 48,
+          "height": 24,
+          "obstacle": false,
+          "interactable": true,
+          "action": "sit"
+        }
+      ]
+    }
+  },
+  "weather": {
+    "current": "sunny",
+    "types": ["sunny", "cloudy", "rainy", "snowy"]
+  },
+  "lighting": {
+    "ambient": {
+      "brightness": 1.0,
+      "color": "#FFFFFF"
+    },
+    "timeOfDay": "day"
+  }
+}

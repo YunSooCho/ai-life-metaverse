@@ -1,0 +1,43 @@
+<svg width="128" height="32" viewBox="0 0 128 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="pixelPattern" x="0" y="0" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="1" height="1" fill="#333"/>
+    </pattern>
+  </defs>
+
+  <!-- 프레임 1: Idle (아래) -->
+  <g id="idle-down">
+    <rect fill="#4A90E2" y="8" width="32" height="24"/>
+    <rect fill="#FFD93D" y="0" width="32" height="12"/>
+    <rect fill="#000" x="8" y="4" width="4" height="4"/>
+    <rect fill="#000" x="20" y="4" width="4" height="4"/>
+    <rect fill="#333" y="12" width="32" height="4"/>
+  </g>
+
+  <!-- 프레임 2-5: Walk 아래 -->
+  <g transform="translate(32,0)">
+    <rect fill="#4A90E2" y="8" width="32" height="24"/>
+    <rect fill="#FFD93D" y="0" width="32" height="12"/>
+    <rect fill="#000" x="8" y="4" width="4" height="4"/>
+    <rect fill="#000" x="20" y="4" width="4" height="4"/>
+    <rect fill="#333" y="12" width="12" height="4"/>
+    <rect fill="#333" y="20" width="12" height="8"/>
+  </g>
+
+  <g transform="translate(64,0)">
+    <rect fill="#4A90E2" y="8" width="32" height="24"/>
+    <rect fill="#FFD93D" y="0" width="32" height="12"/>
+    <rect fill="#000" x="8" y="4" width="4" height="4"/>
+    <rect fill="#000" x="20" y="4" width="4" height="4"/>
+    <rect fill="#333" y="12" width="32" height="4"/>
+  </g>
+
+  <g transform="translate(96,0)">
+    <rect fill="#4A90E2" y="8" width="32" height="24"/>
+    <rect fill="#FFD93D" y="0" width="32" height="12"/>
+    <rect fill="#000" x="8" y="4" width="4" height="4"/>
+    <rect fill="#000" x="20" y="4" width="4" height="4"/>
+    <rect fill="#333" y="12" width="20" height="4"/>
+    <rect fill="#333" y="24" width="20" height="4"/>
+  </g>
+</svg>
