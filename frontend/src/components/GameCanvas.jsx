@@ -556,10 +556,6 @@ function GameCanvas({
       // 채팅 버블 렌더링용 배열 (캐릭터 먼저 그린 후 버블 그리기 위해)
       const chatBubblesToRender = []
 
-      // Debug: allChars 확인 (채팅 버그 #145)
-      console.log('👥 allChars keys:', Object.keys(allChars))
-      console.log('👥 myChar.id:', myChar?.id)
-
       const effects = clickEffectsRef.current
       const blds = buildingsRef.current
       const cust = characterCustomizationRef.current
@@ -1043,19 +1039,19 @@ function GameCanvas({
       const allChars = { ...chars, [myChar.id]: myChar }  // myChar 포함
 
       // 채팅 버블 데이터 수집 (allChars 사용 - Bug #143 fix)
+      // ✅ FIX #145: drawCharacter와 동일한 좌표 계산 로직 사용
+      console.log('🔑 [Issue #145] msgs keys:', Object.keys(msgs))
+      console.log('🔑 [Issue #145] allChars keys:', Object.keys(allChars))
       Object.entries(allChars).forEach(([charId, char]) => {
+        console.log(`🔑 [Issue #145] Loop: charId="${charId}" (type: ${typeof charId}), char.id="${char.id}" (type: ${typeof char.id}), equal: ${charId === char.id}`)
         const chatData = msgs[charId]
-        // 현재 캐릭터 위치 계산 (drawCharacter와 동일 로직)
-        const isMyChar = char.id === myChar.id
-        const character = characters[char.id] || myChar
-        const charX = character.x
-        const charY = character.y
+        // drawCharacter와 동일한 로직으로 좌표 계산
+        const animatedChar = animChars[char.id] || char
+        const x = animatedChar.x * currentScale
+        const y = animatedChar.y * currentScale
 
-        // 카메라 시점에 따른 화면 좌표 계산 (drawCharacter와 동일)
-        const cameraX = myCharacter.x - canvasWidth / (2 * currentScale)
-        const cameraY = myCharacter.y - canvasHeight / (2 * currentScale)
-        const x = (charX - cameraX) * currentScale
-        const y = (charY - cameraY) * currentScale
+        // Debug: 채팅 데이터 확인 (Issue #145)
+        console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'coords:', {x, y})
 
         // Debug: 채팅 데이터 확인 (Issue #145)
         console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'char.id:', char.id)
