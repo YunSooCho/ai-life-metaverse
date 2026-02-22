@@ -550,10 +550,17 @@ function GameCanvas({
       // Debug: 채팅 메시지 확인 (Issue #126)
       if (Object.keys(msgs).length > 0) {
         console.log('🗨️ Chat messages render:', msgs)
+        console.log('🔍 Chat message keys:', Object.keys(msgs))
       }
 
       // 채팅 버블 렌더링용 배열 (캐릭터 먼저 그린 후 버블 그리기 위해)
       const chatBubblesToRender = []
+
+      // Debug: allChars 확인 (채팅 버그 #145)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('👥 allChars keys:', Object.keys(allChars))
+        console.log('👥 myChar.id:', myChar?.id)
+      }
 
       const effects = clickEffectsRef.current
       const blds = buildingsRef.current
@@ -1052,6 +1059,11 @@ function GameCanvas({
         const x = (charX - cameraX) * currentScale
         const y = (charY - cameraY) * currentScale
 
+        // Debug: 채팅 데이터 확인 (Issue #145)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'char.id:', char.id)
+        }
+
         if (chatData?.message) {
           chatBubblesToRender.push({
             message: chatData.message,
@@ -1072,6 +1084,10 @@ function GameCanvas({
       renderTimeOverlay(ctx, gameHour, canvasWidth, canvasHeight)
 
       // Render all chat bubbles (시간 오버레이 위에 그리기 - Bug #139 fix)
+      console.log('🗨️ [Before Render] chatBubblesToRender:', chatBubblesToRender)
+      if (chatBubblesToRender.length === 0 && Object.keys(msgs).length > 0) {
+        console.error('❌ [Bug #145] msgs has data but chatBubblesToRender is empty!')
+      }
       chatBubblesToRender.forEach(bubble => {
         console.log('💬 Rendering chat bubble:', bubble.message, 'at', {x: bubble.x, y: bubble.y})
         renderChatBubble(ctx, bubble.message, bubble.x, bubble.y, CHARACTER_SIZE_SCALED, currentScale, canvasWidth, canvasHeight)
