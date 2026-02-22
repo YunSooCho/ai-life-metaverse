@@ -569,8 +569,10 @@ io.on('connection', (socket) => {
 
   // 방 입장
   socket.on('join', (character) => {
+    console.log('🔍 [join] Received join request:', { character, socketId: socket.id })
     const roomId = DEFAULT_ROOM_ID  // 기본 방으로 입장
     const room = getRoom(roomId)
+    console.log('📝 [join] Joining room:', roomId)
 
     // Capacity 체크
     const currentCharacterCount = Object.keys(room.characters).length
@@ -592,11 +594,14 @@ io.on('connection', (socket) => {
     socket.character = character
 
     // 소켓을 방에 join (채팅 브로드캐스트 수신을 위해 필수)
+    console.log('📡 [join] Socket joining room:', roomId, 'socketId:', socket.id)
     socket.join(roomId)
+    console.log('✅ [join] Socket joined room:', roomId)
 
     // 방에 캐릭터 등록
     room.characters[character.id] = character
     characterRooms[character.id] = roomId
+    console.log('🗂️ [join] characterRooms updated:', { [character.id]: roomId })
 
     // 퀘스트 시스템 초기화
     initializePlayerQuests(character.id)
@@ -699,10 +704,12 @@ io.on('connection', (socket) => {
   // 채팅 메시지 수신 (방 내에서만)
   socket.on('chatMessage', (data) => {
     const { message, characterId } = data
+    console.log('🔍 [chatMessage] Received:', { characterId, message, socketId: socket.id })
+
     const roomId = characterRooms[characterId]
 
     if (!roomId) {
-      console.log('⚠️ 캐릭터 방을 찾을 수 없음:', characterId)
+      console.log('⚠️ 캐릭터 방을 찾을 수 없음:', characterId, 'characterRooms:', Object.keys(characterRooms))
       return
     }
 
@@ -765,7 +772,9 @@ io.on('connection', (socket) => {
     }
 
     // 방 내에만 브로드캐스트
+    console.log('📡 [chatBroadcast] Emitting to room:', roomId, 'chatData:', chatData)
     io.to(roomId).emit('chatBroadcast', chatData)
+    console.log('✅ [chatBroadcast] Emitted successfully')
 
     // 이벤트 시스템: 채팅 이벤트 처리
     handleEvent(characterId, 'chat', { roomName: room.name })

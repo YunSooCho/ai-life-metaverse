@@ -13,6 +13,9 @@
 const CEREBRAS_API_URL = 'https://api.cerebras.ai/v1/chat/completions'
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY || ''
 
+// Rate Limiter (할당량 초과 방지)
+import { rateLimiter } from './agent-rate-limiter.js'
+
 // Database modules
 import {
   saveChatLog,
@@ -231,6 +234,25 @@ async function generateChatResponse(characterId, userMessage) {
       return response
     }
 
+    // ✅ Rate Limiter 확인 (할당량 초과 방지)
+    if (!rateLimiter.canRetry()) {
+      const waitMessage = rateLimiter.getWaitMessage()
+      console.log('⏳ GLM-4.7 할당량 회복 대기:', waitMessage)
+
+      // Fallback 응답 제공 (할당량 회복 대기 중)
+      const fallbackResponses = [
+        `${waitMessage} (${persona.name}입니다 😊)`,
+        `죄송해요, 지금은 조금 기다려 주세요. ${persona.name} ${rateLimiter.retryAfter / 1000}초 후에 다시 말할게요! ✨`,
+        `아직 할당량이 회복 중이라서요... ${persona.name} 곧 다시 대화할게요! 🙏`,
+        `잠시만요~ ${persona.name} 준비될 때까지 기다려 주세요! 🧞`
+      ]
+      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)]
+
+      // 응답을 컨텍스트에 추가
+      contextManager.addMessage(characterId, 'assistant', fallbackResponse)
+      return fallbackResponse
+    }
+
     // Cerebras API 호출
     const response = await fetch(CEREBRAS_API_URL, {
       method: 'POST',
@@ -250,6 +272,29 @@ async function generateChatResponse(characterId, userMessage) {
     if (!response.ok) {
       const errorData = await response.json()
       console.log('⚠️ GLM-4.7 API 에러:', errorData)
+
+      // ✅ 할당량 초과 에러 확인
+      if (rateLimiter.isQuotaExceeded(errorData)) {
+        const quotaError = rateLimiter.handleQuotaExceeded(errorData)
+
+        // Fallback 응답 제공 (할당량 초과)
+        const fallbackResponses = [
+          `😅 죄송해요! ${persona.name} 말이 너무 많아서 잠시 쉬어야 해요... ${quotaError.retryAfterSeconds}초 후에 다시 말할게요!`,
+          `아이고~ ${persona.name} 할당량 초과! 😵 ${quotaError.retryAfterSeconds}초 후에 다시 오세요!`,
+          `음~ ${persona.name} 잠시 고민할게요! ${quotaError.retryAfterSeconds}초만 기다려 주세요~ ✨`,
+          `죄송해요! ${persona.name} 말 너무 많이 했나 봐... 😊 잠시 후에 다시 말해줘요! 🙏`
+        ]
+        const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)]
+
+        console.log('⏰ 할당량 초과 Fallback 응답:', fallbackResponse)
+
+        // 응답을 컨텍스트에 추가
+        contextManager.addMessage(characterId, 'assistant', fallbackResponse)
+        return fallbackResponse
+      }
+
+      // 할당량 초과가 아닌 다른 에러
+      console.log('⚠️ 기타 GLM-4.7 API 에러:', errorData)
       return null
     }
 
