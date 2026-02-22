@@ -1040,32 +1040,43 @@ function GameCanvas({
 
       // 채팅 버블 데이터 수집 (allChars 사용 - Bug #143 fix)
       // ✅ FIX #145: drawCharacter와 동일한 좌표 계산 로직 사용
+      console.log('🔑 [Issue #145] Starting chat bubble collection...')
       console.log('🔑 [Issue #145] msgs keys:', Object.keys(msgs))
+      console.log('🔑 [Issue #145] msgs values:', msgs)
       console.log('🔑 [Issue #145] allChars keys:', Object.keys(allChars))
+      console.log('🔑 [Issue #145] currentScale:', currentScale)
+
+      let matchCount = 0
       Object.entries(allChars).forEach(([charId, char]) => {
         console.log(`🔑 [Issue #145] Loop: charId="${charId}" (type: ${typeof charId}), char.id="${char.id}" (type: ${typeof char.id}), equal: ${charId === char.id}`)
-        const chatData = msgs[charId]
+
+        // ✅ FIXED: 타입 강제 변환 후 매칭 (Issue #145)
+        const chatData = msgs[String(charId)] || msgs[Number(charId)]
+        console.log(`🔑 [Issue #145] chatData for charId "${charId}":`, chatData)
+
         // drawCharacter와 동일한 로직으로 좌표 계산
         const animatedChar = animChars[char.id] || char
         const x = animatedChar.x * currentScale
         const y = animatedChar.y * currentScale
 
-        // Debug: 채팅 데이터 확인 (Issue #145)
-        console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'coords:', {x, y})
-
-        // Debug: 채팅 데이터 확인 (Issue #145)
-        console.log(`🔍 [Char ${charId}] chatData:`, chatData, 'char.id:', char.id)
+        console.log(`🔑 [Char ${charId}] coords:`, {x, y, animatedChar})
 
         if (chatData?.message) {
+          console.log(`✅ [Issue #145] Adding bubble for ${charId}:`, chatData.message)
           chatBubblesToRender.push({
             message: chatData.message,
             x: x,
             y: y
           })
+          matchCount++
         } else if (chatData) {
           console.warn('⚠️ Chat data exists but no message for', char.id, ':', chatData)
+        } else {
+          console.log(`❌ [Issue #145] No chat data for ${charId}`)
         }
       })
+
+      console.log(`🔑 [Issue #145] Collection complete. Matched ${matchCount}/${Object.keys(allChars).length} chars`)
       Object.values(allChars).forEach(char => {
         drawCharacter(char)
       })

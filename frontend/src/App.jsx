@@ -672,7 +672,7 @@ function AppContent() {
 
       console.log('📤 [sendChatMessage] Sending chat message:', trimmedMessage, 'to room:', currentRoom.id, 'characterId:', myCharacter.id)
 
-      // ✅ BUG FIX: 내 캐릭터의 채팅 말풍선 즉시 표시 (Issue #126)
+      // ✅ BUG FIX #145: 내 캐릭터의 채팅 말풍선 즉시 표시
       // 백엔드 socket.to(roomId).emit는 보내는 소켓 제외하므로, 프론트엔드에서 즉시 표시
       setChatMessages(prev => {
         const newMessages = {
@@ -682,7 +682,10 @@ function AppContent() {
             timestamp
           }
         }
-        console.log('📝 [sendChatMessage] Chat messages updated locally:', newMessages)
+        console.log('📝 [sendChatMessage #145] myCharacter.id:', myCharacter.id)
+        console.log('📝 [sendChatMessage #145] Chat messages updated locally:', newMessages)
+        console.log('📝 [sendChatMessage #145] Chat messages keys:', Object.keys(newMessages))
+        console.log('📝 [sendChatMessage #145] Message for myCharacter.id:', newMessages[myCharacter.id])
         return newMessages
       })
 
