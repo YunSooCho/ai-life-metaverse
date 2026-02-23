@@ -134,6 +134,59 @@
 - Backend 코드: 1,382줄
 - 테스트 코드: 6개 파일 (91개 테스트)
 
+### Phase 13: AI 캐릭터 시스템 고도화 ✅ (2026-02-23 22:00)
+
+**구현 완료:**
+1. ✅ AI 캐릭터 위치 테스트 시스템 (6개 테스트)
+2. ✅ AI 캐릭터 셀 중심 위치 검증 (버그 감지 가능)
+3. ✅ AI 캐릭터 그리드 위치 정확성 테스트
+4. ✅ 맵 경계 검증 테스트
+5. ✅ AI 캐릭터 중복 거리 검증
+
+**GitHub Issues:**
+- ✅ #121 [test] AI 캐릭터 위치 테스트 (CLOSED)
+
+**테스트 파일 (1개, 6개 테스트):**
+- aiCharacterPosition.test.js - AI 캐릭터 위치 검증
+
+**코드 줄수:**
+- 테스트 코드: 150줄
+
+---
+
+### Phase 14: 파티 시스템 ✅ (2026-02-23 19:00)
+
+**구현 완료:**
+1. ✅ PartyManager - 파티 생성/초대/탈퇴/추방/위임/해체
+2. ✅ PartyChat - 파티 전용 채팅 (최대 100개 히스토리)
+3. ✅ ExpShare - 경험치 공유 (파티 보너스 최대 +50%)
+4. ✅ RewardDistribution - 보상 분배 (균등/랜덤/기여도 기반)
+5. ✅ PartyQuests - 파티 전용 퀘스트 (보스전, 협동)
+6. ✅ index.js - 통합 시스템
+
+**GitHub Issues:**
+- ✅ #146 [feat] Phase 14: 파티 시스템 (CLOSED)
+
+**파일 목록:**
+- PartyManager.js - 파티 관리
+- PartyChat.js - 파티 채팅
+- ExpShare.js - 경험치 공유
+- RewardDistribution.js - 보상 분배
+- PartyQuests.js - 파티 퀘스트
+- index.js - 통합 시스템
+
+**테스트 파일 (6개, 총 91개 테스트):**
+- PartyManager.test.js - 14개 테스트
+- PartyChat.test.js - 15개 테스트
+- ExpShare.test.js - 18개 테스트
+- RewardDistribution.test.js - 17개 테스트
+- PartyQuests.test.js - 17개 테스트
+- PartySystem.integration.test.js - 10개 통합 테스트
+
+**코드 줄수:**
+- Backend 코드: 1,382줄
+- 테스트 코드: 6개 파일 (91개 테스트)
+
 ### Phase 15: PvP 시스템 📋
 
 **GitHub Issue:** #147

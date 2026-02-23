@@ -539,3 +539,110 @@
 - 전투 보상 (승리/패배/연승 보너스)
 
 **추가일:** 2026-02-23
+
+### 애완동물 시스템 (pet-system/) ✅ (2026-02-23 완료)
+
+캐릭터와 함께 성장하는 펫 시스템 (관리, AI, 훈련, 진화)
+
+- **pet-manager.js**: 펫 관리 시스템
+  - 펫 데이터 구조 (ID, 이름, 종류, 레벨, 경험치, 스탯)
+  - 펫 생성/삭제
+  - 펫 장착/해제
+  - 플레이어별 펫 목록
+  - 펫 이름 변경
+  - 보유 수 관리 (최대 10마리)
+  - 기능:
+    - `createPet(ownerId, name, type)`: 펫 생성
+    - `deletePet(petId)`: 펫 삭제
+    - `getPet(petId)`: 펫 정보 조회
+    - `getPlayerPets(ownerId)`: 플레이어의 모든 펫 조회
+    - `equipPet(playerId, petId)`: 펫 장착
+    - `unequipPet(playerId)`: 펫 해제
+    - `getEquippedPet(playerId)`: 장착된 펫 조회
+    - `renamePet(petId, newName)`: 펫 이름 변경
+    - `getPetCount(ownerId)`: 펫 수 조회
+  - 펫 종류: cat, dog, dragon, phoenix, bunny, fox
+  - 펫 데이터: level, exp, maxExp, affinity, skills, stats, evolutionStage
+
+- **pet-ai.js**: 펫 AI 행동 시스템
+  - 캐릭터 따라다님 (위치 추적)
+  - 자동 행동 (친밀도 기반)
+  - 감정 표현
+  - 친밀도 증가/감소
+  - 배고픔 상태 관리
+  - 기능:
+    - `updatePetPosition(petId, characterPosition)`: 펫 위치 업데이트
+    - `getPetPosition(petId)`: 펫 위치 조회
+    - `executeAutoAction(petId)`: 자동 행동 실행
+    - `updateEmotion(petId, emotionType)`: 감정 업데이트
+    - `getEmotion(petId)`: 감정 조회
+    - `increaseAffinity(petId, amount)`: 친밀도 증가
+    - `decreaseAffinity(petId, amount)`: 친밀도 감소
+    - `updateHunger(petId, hungerLevel)`: 배고픔 상태 업데이트
+    - `getActionHistory(petId, limit)`: 행동 기록 조회
+  - 감정 지속 시간: 5초
+  - 친밀도 범위: 0~100
+
+- **pet-training.js**: 펫 훈련 시스템
+  - 훈련 시스템 (기본/집중/특별)
+  - 경험치 계산 (레벨 보정)
+  - 레벨업 시 스탯 증가
+  - 레벨 5단위 스킬 획득
+  - 일일 훈련 제한 (5회)
+  - 기능:
+    - `trainPet(petId, trainingType)`: 펫 훈련 실행
+    - `getRemainingTraining(petId)`: 남은 훈련 횟수 조회
+    - `isTrainingComplete(petId)`: 훈련 완료 여부 확인
+    - `getPetLevelInfo(petId)`: 펫 레벨 정보 조회
+    - `getPetSkills(petId)`: 펫 스킬 목록 조회
+  - 경험치: 기본 20, 집중 40, 특별 80
+  - 최대 경험치: 레벨 * 50 (최소 100, 최대 10000)
+  - 스탯 증가: 레벨업 시 health +10, attack/defense/speed +2
+
+- **pet-evolution.js**: 펫 진화 시스템
+  - 진화 조건
+  - 4단계 진화 (basic → evolved1 → evolved2 → final)
+  - 스탯 보너스 증가
+  - 외형 변화 (emoji, size, color)
+  - 기능:
+    - `evolvePet(petId, itemType)`: 펫 진화 실행
+    - `canEvolve(petId)`: 진화 가능 여부 확인
+    - `getEvolutionStage(petId)`: 진화 단계 조회
+    - `getEvolutionPath(petType)`: 진화 경로 조회
+    - `getEvolutionAppearance(petType, stage)`: 진화 외형 조회
+  - 진화 조건:
+    - basic → evolved1: 레벨 10, 친밀도 50, evolution_stone_1
+    - evolved1 → evolved2: 레벨 20, 친밀도 70, evolution_stone_2
+    - evolved2 → final: 레벨 30, 친밀도 90, evolution_stone_3
+  - 스탯 보너스:
+    - evolved1: health +50, attack/defense/speed +10
+    - evolved2: health +100, attack/defense/speed +20
+    - final: health +200, attack/defense/speed +40
+
+- **index.js**: 애완동물 시스템 통합 모듈
+  - `PetSystem` class: 모든 서브시스템 통합
+  - Singleton pattern
+  - 기능:
+    - `createPet(playerId, name, type)`: 펫 생성
+    - `deletePet(petId)`: 펫 삭제
+    - `equipPet(playerId, petId)`: 펫 장착
+    - `unequipPet(playerId)`: 펫 해제
+    - `carePet(petId)`: 펫 케어 (먹이주기 + 친밀도)
+    - `getPlayerPetInfo(playerId)`: 플레이어 펫 정보 완전 조회
+    - `getPetDetailedInfo(petId)`: 펫 상세 정보 통합 조회
+
+**테스트 커버리지:**
+- pet-manager.test.js: 22개 테스트 ✅
+- pet-ai.test.js: 24개 테스트 ✅
+- pet-training.test.js: 23개 테스트 ✅
+- pet-evolution.test.js: 24개 테스트 ✅
+- index.test.js: 15개 통합 테스트 ✅
+- **총 108개 테스트 전체 통과!**
+
+**애완동물 시스템 핵심 기능:**
+- 펫 관리 (생성/삭제/장착/해제)
+- AI 행동 (따라다님/자동 행동/감정 표현)
+- 훈련 시스템 (기본/집중/특별/레벨업/스킬 획득)
+- 진화 시스템 (4단계/스탯 증가/외형 변화)
+
+**추가일:** 2026-02-23
