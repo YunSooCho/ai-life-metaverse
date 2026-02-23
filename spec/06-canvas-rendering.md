@@ -361,6 +361,24 @@ const handleCanvasClick = (e) => {
 - `frontend/src/components/__tests__/GameCanvas.test.jsx` - 캔버스 렌더링 테스트
 - `frontend/src/utils/__tests__/pixelArtRenderer.test.js` - 픽셀 캐릭터 렌더러 테스트
 - `frontend/src/utils/__tests__/spriteRenderer.test.js` - 스프라이트 렌더러 테스트
+- `frontend/src/tests/aiCharacterPosition.test.jsx` - AI 캐릭터 위치 테스트 (Issue #121)
+
+### AI 캐릭터 위치 테스트 (Issue #121)
+
+AI 캐릭터가 올바른 그리드 위치에 있는지 검증하는 테스트입니다.
+
+**테스트 항목 (6개):**
+1. AI 캐릭터가 올바른 그리드 위치에 있는지 검증
+2. AI 캐릭터가 셀 중심에 위치해야 함 (버그 감지 가능)
+3. AI 캐릭터가 셀 안에 있는지 확인
+4. AI 캐릭터가 셀 중심과 정확히 일치하는지 확인
+5. 맵 경계 밖에 있지 않아야 함
+6. AI 캐릭터끼리 겹쳐있지 않아야 함
+
+**버그 감지:**
+- 테스트를 통해 AI 캐릭터가 셀 중심이 아니라 셀 시작점에 위치할 수 있는 버그를 감지 가능
+- 올바른 셀 중심 좌표: (10 * 50 + 25, 7 * 50 + 25) = (525, 375)
+- 잘못된 좌표: (10 * 50, 7 * 50) = (500, 350)
 
 ### 캔버스 상태 노출 (screenshot.js)
 
