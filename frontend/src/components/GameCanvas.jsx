@@ -176,6 +176,7 @@ function GameCanvas({
   characters,
   affinities,
   chatMessages,
+  chatMessagesRef,
   clickEffects,
   buildings,
   canvasRef,
@@ -221,7 +222,9 @@ function GameCanvas({
   const myCharacterRef = useRef(myCharacter)
   const charactersRef = useRef(characters)
   const affinitiesRef = useRef(affinities)
-  const chatMessagesRef = useRef(chatMessages)
+  // ✅ BUG FIX #145: Use prop chatMessagesRef if provided, otherwise create local ref
+  const localChatMessagesRef = useRef(chatMessages)
+  const messagesRef = chatMessagesRef || localChatMessagesRef
   const clickEffectsRef = useRef(clickEffects)
   const buildingsRef = useRef(buildings)
   const characterCustomizationRef = useRef(characterCustomization)
@@ -236,13 +239,16 @@ function GameCanvas({
     myCharacterRef.current = myCharacter
     charactersRef.current = characters
     affinitiesRef.current = affinities
-    chatMessagesRef.current = chatMessages
-    console.log('💾 chatMessagesRef sync:', chatMessages)
+    // ✅ BUG FIX #145: Sync local ref only (external ref managed by App)
+    if (!chatMessagesRef) {
+      localChatMessagesRef.current = chatMessages
+    }
+    console.log('💾 messagesRef sync:', messagesRef.current)
     clickEffectsRef.current = clickEffects
     buildingsRef.current = buildings
     characterCustomizationRef.current = characterCustomization
     weatherRef.current = weather
-  }, [myCharacter, characters, affinities, chatMessages, clickEffects, buildings, characterCustomization, weather])
+  }, [myCharacter, characters, affinities, chatMessages, clickEffects, buildings, characterCustomization, weather, chatMessagesRef, messagesRef])
 
   // Sync animatedCharacters ref
   useEffect(() => {
@@ -545,7 +551,8 @@ function GameCanvas({
       const myChar = myCharacterRef.current
       const chars = charactersRef.current
       const affs = affinitiesRef.current
-      const msgs = chatMessagesRef.current
+      // ✅ BUG FIX #145: Use messagesRef (prop ref or local ref)
+      const msgs = messagesRef.current
 
       // Debug: 채팅 메시지 확인 (Issue #126)
       if (Object.keys(msgs).length > 0) {
@@ -1454,6 +1461,7 @@ GameCanvas.propTypes = {
   animatedCharacters: PropTypes.object,
   affinities: PropTypes.object.isRequired,
   chatMessages: PropTypes.object.isRequired,
+  chatMessagesRef: PropTypes.object, // ✅ BUG FIX #145: Forward ref for immediate sync
   clickEffects: PropTypes.arrayOf(
     PropTypes.shape({
       x: PropTypes.number.isRequired,

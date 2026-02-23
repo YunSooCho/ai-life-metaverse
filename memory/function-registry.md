@@ -133,6 +133,82 @@
 
 ---
 
+## 완료된 기능 (Phase 15)
+
+### 1. BattleManager - 전투 관리
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-23
+- **기능:**
+  - 전투 생성/종료
+  - 턴 기반 전투 시스템
+  - 전투 상태 관리 (준비, 진행 중, 종료)
+  - 전투 로그 기록
+- **테스트:** ✅ 18/18 passed
+- **관련 파일:**
+  - backend/pvp-system/battle-manager.js
+  - backend/pvp-system/index.js
+  - backend/test/battle-manager.test.js
+- **GitHub Issue:** #147
+
+### 2. SkillIntegration - 스킬 시스템 연동
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-23
+- **기능:**
+  - 장착된 스킬 사용
+  - 스킬 쿨타임 관리
+  - 스킬 효과 적용 (버프/디버프)
+  - 스킬 연계
+- **테스트:** ✅ 18/18 passed
+- **관련 파일:**
+  - backend/pvp-system/skill-integration.js
+  - backend/pvp-system/index.js
+  - backend/test/skill-integration.test.js
+- **GitHub Issue:** #147
+
+### 3. PvPRanking - 랭킹 시스템
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-23
+- **기능:**
+  - 전투 승패 기록
+  - 승점 계산
+  - 랭킹표
+  - 계절별 랭킹
+- **테스트:** ✅ 18/18 passed
+- **관련 파일:**
+  - backend/pvp-system/pvp-ranking.js
+  - backend/pvp-system/index.js
+  - backend/test/pvp-ranking.test.js
+- **GitHub Issue:** #147
+
+### 4. BattleRewards - 전투 보상
+- **상태:** ✅ 완료
+- **구현일:** 2026-02-23
+- **기능:**
+  - 승리 보상 (코인, 경험치)
+  - 패배 보상 (경험치만)
+  - 연승 보너스
+- **테스트:** ✅ 18/18 passed
+- **관련 파일:**
+  - backend/pvp-system/battle-rewards.js
+  - backend/pvp-system/index.js
+  - backend/test/battle-rewards.test.js
+- **GitHub Issue:** #147
+
+---
+
+## 계획 중인 기능 (Phase 16)
+
+### 1. 애완동물 시스템
+- **상태:** ⏳ 기획 중
+- **예상 시작일:** 2026-02-23
+- **기능:**
+  - 애완동물 획득/성장
+  - 애완동물 스킬
+  - 애완동물 전투 참여
+- **GitHub Issue:** #148
+
+---
+
 ## 계획 중인 기능 (Phase 5)
 
 ### 1. 건물/포인트 시스템

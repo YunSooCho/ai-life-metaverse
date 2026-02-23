@@ -229,6 +229,12 @@ function AppContent() {
   const canvasRef = useRef(null)
   const chatHistoryRef = useRef(null)
 
+  // ✅ BUG FIX #145: chatMessagesRef for immediate sync (avoid useEffect delay)
+  const chatMessagesRef = useRef(null)
+  useEffect(() => {
+    chatMessagesRef.current = chatMessages
+  }, [chatMessages])
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => {
@@ -674,8 +680,15 @@ function AppContent() {
 
       // ✅ BUG FIX #145: 내 캐릭터의 채팅 말풍선 즉시 표시
       // 백엔드 socket.to(roomId).emit는 보내는 소켓 제외하므로, 프론트엔드에서 즉시 표시
+      const newChatMessages = {
+        ...chatMessages,
+        [myCharacter.id]: {
+          message: trimmedMessage,
+          timestamp
+        }
+      }
       setChatMessages(prev => {
-        const newMessages = {
+        const result = {
           ...prev,
           [myCharacter.id]: {
             message: trimmedMessage,
@@ -683,11 +696,13 @@ function AppContent() {
           }
         }
         console.log('📝 [sendChatMessage #145] myCharacter.id:', myCharacter.id)
-        console.log('📝 [sendChatMessage #145] Chat messages updated locally:', newMessages)
-        console.log('📝 [sendChatMessage #145] Chat messages keys:', Object.keys(newMessages))
-        console.log('📝 [sendChatMessage #145] Message for myCharacter.id:', newMessages[myCharacter.id])
-        return newMessages
+        console.log('📝 [sendChatMessage #145] Chat messages updated locally:', result)
+        console.log('📝 [sendChatMessage #145] Chat messages keys:', Object.keys(result))
+        console.log('📝 [sendChatMessage #145] Message for myCharacter.id:', result[myCharacter.id])
+        return result
       })
+      // ✅ BUG FIX #145: Sync ref immediately (before useEffect runs)
+      chatMessagesRef.current = newChatMessages
 
       // ✅ BUG FIX #144: 채팅 히스토리에도 즉시 메시지 추가 (채팅 메시지 전송 실패 해결)
       // 백엔드 chatBroadcast가 오지 않아도 히스토리에 표시되도록 별도 업데이트
@@ -1286,6 +1301,7 @@ function AppContent() {
         characters={characters}
         affinities={affinities}
         chatMessages={chatMessages}
+        chatMessagesRef={chatMessagesRef}
         clickEffects={clickEffects}
         buildings={buildings}
         canvasRef={canvasRef}

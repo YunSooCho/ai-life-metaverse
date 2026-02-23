@@ -72,16 +72,32 @@ export default class RewardDistribution {
   /**
    * 파티 전용 퀘스트 생성
    * @param {string} partyId - 파티 ID
-   * @param {Object} questData - 퀘스트 데이터
+   * @param {Object|number} questDataOrLevel - 퀘스트 데이터 또는 퀘스트 레벨
    * @returns {Object} 생성된 퀘스트
    */
-  createPartyQuest(partyId, questData = {}) {
+  createPartyQuest(partyId, questDataOrLevel = {}) {
+    // 레벨 기반 간편 버전
+    let questData = questDataOrLevel;
+    if (typeof questDataOrLevel === 'number') {
+      const level = questDataOrLevel;
+      const difficulty = level <= 10 ? 'easy' : level <= 30 ? 'medium' : 'hard';
+      questData = {
+        level,
+        difficulty,
+        title: `${difficulty} Quest (Level ${level})`,
+        description: `Complete this ${difficulty} quest at level ${level}`,
+        participants: []
+      };
+    }
+
     const quest = {
       id: questData.id || `quest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       partyId,
       type: questData.type || 'explore',
       title: questData.title || '특별 퀘스트',
       description: questData.description || '특별 임무',
+      level: questData.level || 10,
+      difficulty: questData.difficulty || 'medium',
       objectives: questData.objectives || {
         complete_tasks: { current: 0, target: 5 },
         defeat_monsters: { current: 0, target: 10 }
@@ -217,5 +233,97 @@ export default class RewardDistribution {
     }
 
     return expired;
+  }
+
+  /**
+   * 경험치 보상 분배
+   * @param {string} partyId - 파티 ID
+   * @param {Array} partyMembers - 파티원 배열 [{id, level}]
+   * @param {number} exp - 총 경험치
+   * @param {string} questId - 퀘스트 ID
+   * @returns {Object} 분배 결과 {playerId: {exp: number}}
+   */
+  distributeExpReward(partyId, partyMembers, exp, questId) {
+    const distribution = {};
+
+    partyMembers.forEach(member => {
+      distribution[member.id] = {
+        exp: exp
+      };
+    });
+
+    return distribution;
+  }
+
+  /**
+   * 아이템 보상 분배
+   * @param {string} partyId - 파티 ID
+   * @param {Array} partyMembers - 파티원 배열 [{id, name}]
+   * @param {Array} items - 아이템 배열
+   * @param {string} distributionType - 분배 유형 ('random'|'all'|'leader'|'specific')
+   * @param {string} targetId - 분배 타겟 ID (specific일 때)
+   * @returns {Object} 분배 결과 {memberId: items[]}
+   */
+  distributeItemReward(partyId, partyMembers, items, distributionType = 'random', targetId = null) {
+    const distribution = {};
+
+    // 모든 파티원에게 빈 배열 초기화
+    partyMembers.forEach(member => {
+      distribution[member.id] = [];
+    });
+
+    if (distributionType === 'random') {
+      // 랜덤 1명에게 모든 아이템
+      const luckyMember = partyMembers[Math.floor(Math.random() * partyMembers.length)];
+      distribution[luckyMember.id] = [...items];
+    } else if (distributionType === 'all') {
+      // 모든 파티원에게 같은 아이템
+      partyMembers.forEach(member => {
+        distribution[member.id] = [...items];
+      });
+    } else if (distributionType === 'leader') {
+      // 파티장에게
+      const leader = partyMembers.find(m => m.isLeader);
+      if (leader) {
+        distribution[leader.id] = [...items];
+      }
+    } else if (distributionType === 'specific') {
+      // 특정 플레이어에게
+      const target = partyMembers.find(m => m.id === targetId);
+      if (target) {
+        distribution[target.id] = [...items];
+      }
+      // 대상이 없으면 아이템 사라짐
+    }
+
+    return distribution;
+  }
+
+  /**
+   * 코인 보상 분배
+   * @param {string} partyId - 파티 ID
+   * @param {Array} partyMembers - 파티원 배열 [{id}]
+   * @param {number} coins - 총 코인
+   * @returns {Object} 분배 결과 {memberId: coins}
+   */
+  distributeCoinReward(partyId, partyMembers, coins) {
+    const distribution = {};
+    const coinsPerMember = Math.floor(coins / partyMembers.length);
+
+    partyMembers.forEach(member => {
+      distribution[member.id] = coinsPerMember;
+    });
+
+    return distribution;
+  }
+
+  /**
+   * 파티 퀘스트 목록 조회
+   * @param {string} partyId - 파티 ID
+   * @returns {Array} 퀘스트 목록
+   */
+  getPartyQuests(partyId) {
+    const quest = this.partyQuests.get(partyId);
+    return quest ? [quest] : [];
   }
 }

@@ -235,12 +235,14 @@ const AFFINITY_CHANGES = {
   fight: -10
 }
 
-// AI 캐릭터 초기화 (기본 방)
+// AI 캐릭터 초기화 (기본 방) - 그리드 중심 위치로 수정 (Issue #121)
+const TILE_SIZE = 50
 const aiCharacter1 = {
   id: 'ai-agent-1',
   name: 'AI 유리',
-  x: 500,
-  y: 350,
+  // 그리드 (10, 7) 중심: 10*50 + 25 = 525, 7*50 + 25 = 375
+  x: 525,
+  y: 375,
   color: '#FF6B6B',
   emoji: '🧞',
   isAi: true
@@ -249,8 +251,9 @@ const aiCharacter1 = {
 const aiCharacter2 = {
   id: 'ai-agent-2',
   name: 'AI 히카리',
-  x: 600,
-  y: 300,
+  // 그리드 (12, 6) 중심: 12*50 + 25 = 625, 6*50 + 25 = 325
+  x: 625,
+  y: 325,
   color: '#FFB347',
   emoji: '✨',
   isAi: true

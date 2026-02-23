@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 // Redis 클라이언트 모킹 (factory 내에서 객체 생성)
-vi.mock('./utils/redis-client.js', () => {
+vi.mock('../utils/redis-client.js', () => {
   const mockRedisClient = {
     setEx: vi.fn().mockResolvedValue('OK'),
     set: vi.fn().mockResolvedValue('OK'),
@@ -9,7 +9,7 @@ vi.mock('./utils/redis-client.js', () => {
     del: vi.fn().mockResolvedValue(1),
     quit: vi.fn().mockResolvedValue('OK')
   }
-  
+
   return {
     initRedis: vi.fn().mockResolvedValue(mockRedisClient),
     getRedisClient: vi.fn(() => mockRedisClient),
@@ -38,8 +38,8 @@ import {
   loadRoomData,
   deleteCharacterData,
   deleteRoomData
-} from './persistence.js'
-import { getRedisClient, isRedisEnabled } from './utils/redis-client.js'
+} from '../persistence.js'
+import { getRedisClient, isRedisEnabled } from '../utils/redis-client.js'
 
 describe('데이터 영속성 시스템', () => {
   const TEST_CHARACTER_ID = 'test-character-1'
@@ -342,6 +342,156 @@ describe('데이터 영속성 시스템', () => {
 
       const loaded = await loadCharacter(TEST_CHARACTER_ID)
       expect(loaded).toBe(null)
+    })
+  })
+
+  describe('Issue #124: 캐릭터 스텟 테스트', () => {
+    beforeEach(() => {
+      const client = getRedisClient()
+      client.get.mockReset()
+      client.setEx.mockReset()
+    })
+
+    const testCharacterWithStats = {
+      id: 'stats-character-1',
+      name: '스텟 테스트 캐릭터',
+      x: 250,
+      y: 250,
+      color: '#4CAF50',
+      emoji: '🧙',
+      stats: {
+        level: 1,
+        exp: 0,
+        hp: 100,
+        maxHp: 100,
+        mp: 50,
+        maxMp: 50,
+        attack: 10,
+        defense: 5,
+        speed: 5
+      },
+      inventory: {
+        healthPotion: 3,
+        coin: 50
+      }
+    }
+
+    it('TC21: 캐릭터 스텟 초기값 저장', async () => {
+      const client = getRedisClient()
+      client.setEx.mockResolvedValueOnce('OK')
+      client.get.mockResolvedValueOnce(JSON.stringify(testCharacterWithStats))
+
+      const saved = await saveCharacter(testCharacterWithStats)
+      expect(saved).toBe(true)
+
+      const loaded = await loadCharacter('stats-character-1')
+      expect(loaded.stats.level).toBe(1)
+      expect(loaded.stats.exp).toBe(0)
+      expect(loaded.stats.hp).toBe(100)
+      expect(loaded.stats.maxHp).toBe(100)
+    })
+
+    it('TC22: HP 회복 후 저장', async () => {
+      const client = getRedisClient()
+      const injuredCharacter = { ...testCharacterWithStats }
+      injuredCharacter.stats.hp = 50
+      injuredCharacter.inventory.healthPotion = 2
+
+      client.setEx.mockResolvedValueOnce('OK')
+      const saved = await saveCharacter(injuredCharacter)
+      expect(saved).toBe(true)
+
+      client.get.mockResolvedValueOnce(JSON.stringify(injuredCharacter))
+      const loaded = await loadCharacter('stats-character-1')
+      expect(loaded.stats.hp).toBe(50)
+      expect(loaded.inventory.healthPotion).toBe(2)
+    })
+
+    it('TC23: EXP 획득 후 저장', async () => {
+      const client = getRedisClient()
+      const characterWithExp = { ...testCharacterWithStats }
+      characterWithExp.stats.exp = 50
+
+      client.setEx.mockResolvedValueOnce('OK')
+      const saved = await saveCharacter(characterWithExp)
+      expect(saved).toBe(true)
+
+      client.get.mockResolvedValueOnce(JSON.stringify(characterWithExp))
+      const loaded = await loadCharacter('stats-character-1')
+      expect(loaded.stats.exp).toBe(50)
+    })
+
+    it('TC24: 레벨업 후 저장', async () => {
+      const client = getRedisClient()
+      const leveledUpCharacter = { ...testCharacterWithStats }
+      leveledUpCharacter.stats.level = 2
+      leveledUpCharacter.stats.exp = 100
+      leveledUpCharacter.stats.hp = 150
+      leveledUpCharacter.stats.maxHp = 150
+      leveledUpCharacter.stats.mp = 75
+      leveledUpCharacter.stats.maxMp = 75
+      leveledUpCharacter.stats.attack = 15
+      leveledUpCharacter.stats.defense = 8
+      leveledUpCharacter.stats.speed = 7
+
+      client.setEx.mockResolvedValueOnce('OK')
+      const saved = await saveCharacter(leveledUpCharacter)
+      expect(saved).toBe(true)
+
+      client.get.mockResolvedValueOnce(JSON.stringify(leveledUpCharacter))
+      const loaded = await loadCharacter('stats-character-1')
+      expect(loaded.stats.level).toBe(2)
+      expect(loaded.stats.exp).toBe(100)
+      expect(loaded.stats.hp).toBe(150)
+      expect(loaded.stats.maxHp).toBe(150)
+      expect(loaded.stats.attack).toBe(15)
+    })
+
+    it('TC25: 다중 캐릭터 스텟 저장 & 개별 로드', async () => {
+      const client = getRedisClient()
+      client.setEx.mockResolvedValue('OK')
+
+      const character1 = { ...testCharacterWithStats, id: 'char-1', name: '캐릭터 1' }
+      character1.stats.level = 3
+      character1.stats.exp = 200
+
+      const saved = await saveCharacter(character1)
+      expect(saved).toBe(true)
+
+      client.get.mockResolvedValueOnce(JSON.stringify(character1))
+      const loaded1 = await loadCharacter('char-1')
+      expect(loaded1.stats.level).toBe(3)
+      expect(loaded1.stats.exp).toBe(200)
+    })
+
+    it('TC26: 두 번째 캐릭터 스텟 저장 & 로드', async () => {
+      const client = getRedisClient()
+      client.setEx.mockResolvedValue('OK')
+
+      const character2 = { ...testCharacterWithStats, id: 'char-2', name: '캐릭터 2' }
+      character2.stats.level = 5
+      character2.stats.exp = 500
+
+      const saved = await saveCharacter(character2)
+      expect(saved).toBe(true)
+
+      client.get.mockResolvedValueOnce(JSON.stringify(character2))
+      const loaded2 = await loadCharacter('char-2')
+      expect(loaded2.stats.level).toBe(5)
+      expect(loaded2.stats.exp).toBe(500)
+    })
+
+    it('TC26: 스텟 없는 캐릭터 (하위 호환)', async () => {
+      const client = getRedisClient()
+      client.setEx.mockResolvedValueOnce('OK')
+      client.get.mockResolvedValueOnce(JSON.stringify(testCharacter))
+
+      const saved = await saveCharacter(testCharacter)
+      expect(saved).toBe(true)
+
+      const loaded = await loadCharacter(TEST_CHARACTER_ID)
+      expect(loaded.stats).toBeUndefined()
+      expect(loaded.id).toBe(TEST_CHARACTER_ID)
     })
   })
 })

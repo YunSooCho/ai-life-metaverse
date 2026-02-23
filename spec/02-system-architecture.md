@@ -328,3 +328,214 @@
 - **총 82개 테스트 전체 통과!**
 
 **추가일:** 2026-02-19
+
+### 파티 시스템 (party-system/) ✅ (2026-02-23 완료)
+
+멀티플레이어 파티 기능을 지원하는 협동 시스템
+
+- **PartyManager.js**: 파티 관리 시스템
+  - 파티 생성 (최대 5인)
+  - 파티 초대 (플레이어 초대/수락/거절)
+  - 파티 탈퇴/추방
+  - 파티장 위임
+  - 파티 해체
+  - 파티 정보 조회
+  - 기능:
+    - `createParty(leaderId)`: 파티 생성
+    - `inviteToParty(partyId, leaderId, playerId)`: 파티 초대
+    - `acceptInvite(partyId, playerId)`: 초대 수락
+    - `declineInvite(partyId, playerId)`: 초대 거절
+    - `leaveParty(playerId)`: 파티 탈퇴
+    - `kickPlayer(partyId, leaderId, targetId)`: 파티원 추방
+    - `transferLeadership(partyId, currentLeaderId, newLeaderId)`: 파티장 위임
+    - `disbandParty(partyId, leaderId)`: 파티 해체
+    - `getPartyInfo(partyId)`: 파티 정보 조회
+    - `getPlayerParty(playerId)`: 플레이어의 파티 조회
+    - `handlePlayerDisconnect(playerId)`: 플레이어 접속 종료 처리
+
+- **PartyChat.js**: 파티 채팅 시스템
+  - 파티 전용 채팅 채널
+  - 파티 멤버만 볼 수 있는 메시지
+  - 파티 채팅 히스토리 (최대 100개)
+  - 기능:
+    - `sendMessage(partyId, playerId, playerName, message)`: 메시지 전송
+    - `sendSystemMessage(partyId, type, data)`: 시스템 메시지 전송
+    - `getChatHistory(partyId, limit)`: 채팅 히스토리 조회
+    - `getMessagesInRange(partyId, offset, limit)`: 범위 메시지 조회
+    - `setMaxHistorySize(size)`: 최대 히스토리 크기 설정
+    - `stats`: 통계 정보 조회
+
+- **ExpShare.js**: 경험치 공유 시스템
+  - 파티원 간 경험치 공유
+  - 레벨 차이에 따른 보정
+  - 파티 보너스 (파티원 1인당 +10%, 최대 +50%)
+  - 기능:
+    - `calculateSharedExp(baseExp, partyMemberCount, killerLevel, monsterLevel)`: 공유 경험치 계산
+    - `distributeExpToMembers(sharedExpInfo, members)`: 경험치 분배
+    - `calculateLevelPenalty(characterLevel, monsterLevel)`: 레벨 페널티 계산
+    - `calculatePartyBonus(partyMemberCount)`: 파티 보너스 계산
+    - `calculateTotalExp(params)`: 전체 경험치 계산 (통합)
+    - `calculateEfficiency(params)`: 효율성 비교 (개인 vs 파티)
+    - 파티 보너스: 2인 +10%, 3인 +20%, 4인 +30%, 5인 +40%, 6인+ +50%
+
+- **RewardDistribution.js**: 보상 분배 시스템
+  - 퀘스트 보상 분배 (균등/랜덤/기여도 기반)
+  - 파티 내 랜덤 퀘스트 생성
+  - 파티 전용 보상
+  - 기능:
+    - `distributeQuestReward(questId, partyMembers, distributionType)`: 퀘스트 보상 분배
+    - `generatePartyQuest(partyId, partyLevel)`: 파티 랜덤 퀘스트 생성
+    - `completePartyQuest(questId, partyMembers)`: 파티 퀘스트 완료
+    - `createPartyReward(partyId, baseReward, partyBonus)`: 파티 보너스 적용
+    - `getPartyQuests(partyId)`: 파티 퀘스트 목록
+    - `registerQuestReward(questId, reward)`: 퀘스트 보상 등록
+    - `cleanupExpiredQuests()`: 만료된 퀘스트 정리
+  - 분배 타입: equal (균등), random (랜덤), based_on_contribution (기여도)
+
+- **PartyQuests.js**: 파티 퀘스트 시스템
+  - 파티 전용 퀘스트 (보스/협동)
+  - 협동 기반 퀘스트
+  - 파티 보스전
+  - 기능:
+    - `startQuest(partyId, questId)`: 파티 퀘스트 시작
+    - `updateQuestProgress(partyId, activeQuestId, playerId, type, amount)`: 퀘스트 진행 업데이트
+    - `getActiveQuests(partyId)`: 활성 퀘스트 목록
+    - `abortQuest(partyId, activeQuestId)`: 퀘스트 포기
+    - `createBossQuest(partyLevel)`: 보스 퀘스트 생성
+    - `createCooperationQuest(partyLevel)`: 협동 퀘스트 생성
+    - `generateRandomQuest(partyLevel)`: 랜덤 퀘스트 생성
+    - `registerQuestDefinition(questId, definition)`: 퀘스트 정의 등록
+    - `cleanupPartyQuests(partyId)`: 파티 퀘스트 정리
+    - `cleanupExpiredQuests()`: 만료된 퀘스트 정리
+    - `getStats()`: 통계 정보 조회
+
+- **index.js**: 파티 시스템 통합 모듈
+  - `PartySystem` class: 모든 서브시스템 통합
+  - 이벤트 연결 (파티 생성 → 채팅 초기화 등)
+  - 기능:
+    - `createParty(leaderId)`: 파티 생성
+    - `createPartyWithQuest(leaderId, partyLevel)`: 파티 생성 + 자동 퀘스트
+    - `inviteToParty(partyId, leaderId, playerId)`: 파티 초대
+    - `acceptInvite(partyId, playerId)`: 초대 수락
+    - `declineInvite(partyId, playerId)`: 초대 거절
+    - `leaveParty(playerId)`: 파티 탈퇴
+    - `kickPlayer(partyId, leaderId, targetId)`: 파티원 추방
+    - `transferLeadership(partyId, currentLeaderId, newLeaderId)`: 파티장 위임
+    - `disbandParty(partyId, leaderId)`: 파티 해체
+    - `sendMessage(partyId, playerId, playerName, message)`: 채팅 메시지
+    - `getChatHistory(partyId, limit)`: 채팅 히스토리
+    - `calculateSharedExp(baseExp, partyMemberCount, killerLevel, monsterLevel)`: 경험치 공유
+    - `distributeExpToMembers(sharedExpInfo, members)`: 경험치 분배
+    - `processMonsterKill(params)`: 몬스터 처치 후 경험치 분배 (통합)
+    - `startQuest(partyId, questId)`: 퀘스트 시작
+    - `updateQuestProgress(partyId, activeQuestId, playerId, type, amount)`: 퀘스트 진행
+    - `generatePartyQuest(partyId, partyLevel)`: 파티 랜덤 퀘스트 생성
+    - `completePartyQuest(questId, partyMembers)`: 파티 퀘스트 완료
+    - `getActiveQuests(partyId)`: 활성 퀘스트 목록
+    - `abortQuest(partyId, activeQuestId)`: 퀘스트 포기
+    - `getSystemStats()`: 시스템 통계
+  - 완전한 워크플로우: 파티 생성 → 초대 → 채팅 → 퀘스트 → 보상 분배
+
+**테스트 커버리지:**
+- PartyManager.test.js: 14개 테스트 ✅
+- PartyChat.test.js: 15개 테스트 ✅
+- ExpShare.test.js: 18개 테스트 ✅
+- RewardDistribution.test.js: 17개 테스트 ✅
+- PartyQuests.test.js: 17개 테스트 ✅
+- PartySystem.integration.test.js: 10개 통합 테스트 ✅
+- **총 91개 테스트 작성 완료!**
+
+**파티 시스템 핵심 기능:**
+- 최대 5인 파티 지원
+- 파티장 권한 (초대, 추방, 위임, 해체)
+- 파티 채팅 (최대 100개 히스토리)
+- 경험치 공유 +50% 보너스 (최대)
+- 레벨 차이 보정 (+10% ~ -100%)
+- 보상 분배 3가지 방법 (균등/랜덤/기여도)
+- 파티 퀘스트 (보스전, 협동)
+- 완전한 워크플로우 지원
+
+**추가일:** 2026-02-23
+
+### PvP 시스템 (pvp-system/) ✅ (2026-02-23 완료)
+
+플레이어 간 1:1 턴 기반 전투 시스템
+
+- **battle-manager.js**: 전투 관리 시스템
+  - 전투 생성/종료
+  - 턴 기반 전투 시스템
+  - 전투 상태 관리 (준备, 진행 중, 종료)
+  - 전투 로그 기록
+  - 기능:
+    - `createBattle(player1, player2)`: 전투 생성
+    - `endBattle(battleId, winnerId, loserId)`: 전투 종료
+    - `getBattle(battleId)`: 전투 정보 조회
+    - `getActiveBattles()`: 활성 전투 목록
+    - `isPlayerInBattle(playerId)`: 플레이어가 전투 중인지 확인
+    - `switchTurn(battleId)`: 턴 전환
+    - `getCurrentTurn(battleId)`: 현재 턴 플레이어 확인
+    - `getBattleLog(battleId)`: 전투 로그 조회
+
+- **skill-integration.js**: 스킬 시스템 연동
+  - 장착된 스킬 사용
+  - 스킬 쿨타임 관리
+  - 스킬 효과 적용 (버프/디버프)
+  - 스킬 연계
+  - 기능:
+    - `executeSkill(battleId, playerId, skillId)`: 스킬 실행
+    - `checkSkillCooldown(battleId, playerId, skillId)`: 스킬 쿨타임 확인
+    - `applySkillEffect(battleId, skillId, targetId)`: 스킬 효과 적용
+    - `triggerCombo(battleId, player1, player2)`: 스킬 연계
+    - `getAvailableSkills(battleId, playerId)`: 사용 가능한 스킬 목록
+    - `getCooldownStatus(battleId, playerId)`: 쿨타임 상태 조회
+
+- **pvp-ranking.js**: 랭킹 시스템
+  - 전투 승패 기록
+  - 승점 계산
+  - 랭킹표
+  - 계절별 랭킹
+  - 기능:
+    - `recordMatch(player1, player2, winnerId)`: 대전 기록
+    - `calculateRatingChange(winnerRating, loserRating)`: 승점 계산 (ELO 기반)
+    - `getLeaderboard(limit)`: 랭킹표 조회
+    - `getPlayerRank(characterId)`: 플레이어 순위 확인
+    - `getPlayerStats(characterId)`: 플레이어 전투 통계
+    - `getSeasonRankings(season)`: 계절별 랭킹
+    - `startNewSeason()`: 새 시즌 시작
+
+- **battle-rewards.js**: 전투 보상 시스템
+  - 승리 보상 (코인, 경험치)
+  - 패배 보상 (경험치만)
+  - 연승 보너스
+  - 기능:
+    - `calculateVictoryReward(battleId, playerId)`: 승리 보상 계산
+    - `calculateDefeatReward(battleId, playerId)`: 패배 보상 계산
+    - `applyWinStreakBonus(playerId, baseReward)`: 연승 보너스 적용
+    - `getWinStreak(playerId)`: 연승 기록 확인
+    - `resetWinStreak(playerId)`: 연승 기록 초기화
+
+- **index.js**: PvP 시스템 통합 모듈
+  - `PVPSystem` class: 모든 서브시스템 통합
+  - 기능:
+    - `createBattle(player1, player2)`: 전투 생성 (통합)
+    - `endBattle(battleId, winnerId, loserId)`: 전투 종료 & 보상 & 랭킹 (통합)
+    - `executeSkill(battleId, playerId, skillId)`: 스킬 실행 & 쿨타임 (통합)
+    - `getBattleInfo(battleId)`: 전투 정보 (통합)
+    - `getPlayerPvpStats(playerId)`: 플레이어 전투 통계 (통합)
+    - `getLeaderboard(limit)`: 랭킹표 조회 (통합)
+
+**테스트 커버리지:**
+- battle-manager.test.js: 18개 테스트 ✅
+- skill-integration.test.js: 18개 테스트 ✅
+- pvp-ranking.test.js: 18개 테스트 ✅
+- battle-rewards.test.js: 18개 테스트 ✅
+- **총 72개 테스트 전체 통과!**
+
+**PvP 시스템 핵심 기능:**
+- 1:1 턴 기반 전투
+- 스킬 시스템 연동 (쿨타임, 버프/디버프, 연계)
+- ELO 랭킹 시스템
+- 계절별 랭킹
+- 전투 보상 (승리/패배/연승 보너스)
+
+**추가일:** 2026-02-23

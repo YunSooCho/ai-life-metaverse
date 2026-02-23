@@ -4,57 +4,20 @@
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, test, expect, beforeEach } from 'vitest'
 import App from '../App'
 import { socket } from '../socket'
 
 // Mock socket
+global.socket = {
+  emit: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
+  connected: true
+}
+
 vi.mock('../socket', () => ({
-  socket: {
-    emit: vi.fn(),
-    on: vi.fn(),
-    off: vi.fn(),
-    connected: true
-  }
-}))
-
-// Mock soundManager
-vi.mock('../utils/soundManager.js', () => ({
-  soundManager: {
-    playSFX: vi.fn(),
-    playBGM: vi.fn(),
-    stopBGM: vi.fn(),
-    setSFXVolume: vi.fn(),
-    setBGMVolume: vi.fn(),
-    getSFXVolume: vi.fn(() => 0.7),
-    getBGMVolume: vi.fn(() => 0.5)
-  }
-}))
-
-// Mock HTMLCanvasElement.getContext
-HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-  fillRect: vi.fn(),
-  clearRect: vi.fn(),
-  getImageData: vi.fn(() => ({ data: [] })),
-  putImageData: vi.fn(),
-  createImageData: vi.fn(() => ({ data: [] })),
-  setTransform: vi.fn(),
-  resetTransform: vi.fn(),
-  save: vi.fn(),
-  restore: vi.fn(),
-  scale: vi.fn(),
-  rotate: vi.fn(),
-  translate: vi.fn(),
-  transform: vi.fn(),
-  beginPath: vi.fn(),
-  closePath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  arc: vi.fn(),
-  fill: vi.fn(),
-  stroke: vi.fn(),
-  clip: vi.fn(),
-  drawImage: vi.fn(),
-  measureText: vi.fn(() => ({ width: 0 }))
+  socket: global.socket
 }))
 
 describe('Canvas Click/Touch Movement Test (Issue #119)', () => {
@@ -71,6 +34,11 @@ describe('Canvas Click/Touch Movement Test (Issue #119)', () => {
       return canvas
     }, { timeout: 5000 })
 
+    // 소켓 초기화 대기
+    await waitFor(() => {
+      expect(global.socket.emit).toHaveBeenCalledWith('join', expect.anything())
+    }, { timeout: 3000 })
+
     // 캔버스 클릭
     fireEvent.click(canvas, {
       clientX: 200,
@@ -79,7 +47,7 @@ describe('Canvas Click/Touch Movement Test (Issue #119)', () => {
 
     // move 이벤트가 emit되었는지 확인
     await waitFor(() => {
-      const moveCalls = socket.emit.mock.calls.filter(call => call[0] === 'move')
+      const moveCalls = global.socket.emit.mock.calls.filter(call => call[0] === 'move')
       expect(moveCalls.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
   })
@@ -103,7 +71,7 @@ describe('Canvas Click/Touch Movement Test (Issue #119)', () => {
 
     // move 이벤트가 emit되었는지 확인
     await waitFor(() => {
-      const moveCalls = socket.emit.mock.calls.filter(call => call[0] === 'move')
+      const moveCalls = global.socket.emit.mock.calls.filter(call => call[0] === 'move')
       expect(moveCalls.length).toBeGreaterThan(0)
     }, { timeout: 3000 })
   })
