@@ -45,6 +45,10 @@ import CraftingTable from './managers/CraftingTable.js'
 import FriendManager from './friend-system/friend-manager.js'
 import FriendRequestManager from './friend-system/friend-request.js'
 
+// Phase 17: 길드 시스템
+import guildRouter from './routes/guild.ts'
+import guildChatRouter from './routes/guildChat.ts'
+
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {
   // No-op until event system is properly exported
@@ -548,6 +552,10 @@ app.get('/api/equipment/inventory/:characterId?', (req, res) => {
 })
 
 // ===== 장비 시스템 HTTP API 종료 =====
+
+// Phase 17: 길드 시스템 HTTP API
+app.use('/api/guilds', guildRouter)
+app.use('/api/guild-chat', guildChatRouter)
 
 // 방 유틸리티 함수
 function getRoom(roomId) {

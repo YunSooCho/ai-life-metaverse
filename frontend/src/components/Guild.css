@@ -1,0 +1,385 @@
+.guild-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #1a1a2e;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+}
+
+.guild-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #16213e;
+}
+
+.guild-header h2 {
+  margin: 0;
+  color: #e94560;
+}
+
+.create-btn {
+  padding: 10px 20px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.create-btn:hover {
+  background: #c73e54;
+}
+
+.guild-create-form {
+  background: #16213e;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.guild-create-form h3 {
+  margin-top: 0;
+  color: #e94560;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.guild-create-form button {
+  padding: 10px 20px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.guild-create-form button:hover {
+  background: #c73e54;
+}
+
+.guild-detail {
+  background: #16213e;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.guild-info {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #0f3460;
+}
+
+.guild-info h3 {
+  margin: 0 0 10px 0;
+  color: #e94560;
+}
+
+.guild-level {
+  margin: 5px 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.guild-desc {
+  margin: 5px 0;
+  color: #a0a0a0;
+}
+
+.guild-stats {
+  margin: 5px 0;
+  color: #888;
+}
+
+.leave-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #666;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.leave-btn:hover {
+  background: #555;
+}
+
+.guild-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: #0f3460;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab-btn:hover {
+  background: #1a4a7e;
+}
+
+.tab-btn.active {
+  background: #e94560;
+}
+
+.guild-members h4,
+.guild-chat h4 {
+  margin-top: 0;
+  color: #e94560;
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #1a1a2e;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.member-role-badge {
+  padding: 3px 8px;
+  background: #e94560;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.member-name {
+  flex: 1;
+  font-weight: bold;
+}
+
+.member-joined {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.guild-chat {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  background: #1a1a2e;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.no-messages {
+  text-align: center;
+  color: #888;
+  margin-top: 50px;
+}
+
+.chat-message {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #0f3460;
+  border-radius: 8px;
+}
+
+.chat-message.my-message {
+  background: #e94560;
+}
+
+.message-sender {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.message-sender.role-leader {
+  color: #ffd700;
+}
+
+.message-sender.role-officer {
+  color: #e94560;
+}
+
+.message-sender.role-member {
+  color: #fff;
+}
+
+.message-content {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.message-time {
+  color: #888;
+  font-size: 0.8em;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.chat-input button {
+  padding: 10px 20px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.chat-input button:hover {
+  background: #c73e54;
+}
+
+.guild-list h3 {
+  color: #e94560;
+  margin-bottom: 15px;
+}
+
+.no-guilds {
+  text-align: center;
+  color: #888;
+  margin: 30px 0;
+}
+
+.guild-cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.guild-card {
+  background: #16213e;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.card-header h4 {
+  margin: 0;
+  color: #fff;
+}
+
+.guild-level-badge {
+  padding: 3px 8px;
+  background: #e94560;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.card-desc {
+  color: #a0a0a0;
+  margin: 10px 0;
+  min-height: 40px;
+}
+
+.card-stats {
+  color: #888;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
+.join-btn {
+  width: 100%;
+  padding: 10px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.join-btn:hover {
+  background: #c73e54;
+}
+
+/* Scrollbar styling for chat messages */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #e94560;
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #c73e54;
+}
