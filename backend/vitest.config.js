@@ -15,7 +15,11 @@ export default defineConfig({
       '__tests__/*.test.js',
       'world-system/__tests__/*.test.js',
       'friend-system/__tests__/*.test.js',
-      'crafting-system/__tests__/*.test.js'
+      'crafting-system/__tests__/*.test.js',
+      'guild-system/__tests__/*.test.js',
+      'raid-system/__tests__/*.test.js',
+      'pet-system/__tests__/*.test.js',
+      'trade-system/__tests__/*.test.js'
     ],
     exclude: [
       'node_modules/**',
