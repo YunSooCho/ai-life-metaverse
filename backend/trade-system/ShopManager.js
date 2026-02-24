@@ -40,25 +40,26 @@ class ShopManager {
     for (const [shopId, shopData] of Object.entries(this.defaultShops)) {
       this.shops.set(shopId, { ...shopData });
 
-      try {
-        // Redis에서 재고 로드
-        const shopRedisData = await this.redis.get(`shop:${shopId}`);
-        if (shopRedisData) {
-          const redisShop = JSON.parse(shopRedisData);
-          // 재고만 복원
-          const items = this.shops.get(shopId).items;
-          const redisItems = {};
-          redisShop.items.forEach(item => {
-            redisItems[item.itemId] = item.stock;
-          });
-          items.forEach(item => {
-            if (redisItems[item.itemId] !== undefined) {
-              item.stock = redisItems[item.itemId];
-            }
-          });
+      // Redis가 있는 경우에만 재고 복원 시도
+      if (this.redis) {
+        try {
+          const shopRedisData = await this.redis.get(`shop:${shopId}`);
+          if (shopRedisData) {
+            const redisShop = JSON.parse(shopRedisData);
+            const items = this.shops.get(shopId).items;
+            const redisItems = {};
+            redisShop.items.forEach(item => {
+              redisItems[item.itemId] = item.stock;
+            });
+            items.forEach(item => {
+              if (redisItems[item.itemId] !== undefined) {
+                item.stock = redisItems[item.itemId];
+              }
+            });
+          }
+        } catch (err) {
+          console.warn('Shop Redis load failed:', err);
         }
-      } catch (err) {
-        console.warn('Shop initialization failed:', err);
       }
     }
   }

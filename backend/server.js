@@ -49,8 +49,11 @@ import FriendManager from './friend-system/friend-manager.js'
 import FriendRequestManager from './friend-system/friend-request.js'
 
 // Phase 17: 길드 시스템
-import guildRouter from './routes/guild.ts'
-import guildChatRouter from './routes/guildChat.ts'
+// import guildRouter from './routes/guild.ts'
+// import guildChatRouter from './routes/guildChat.ts'
+
+// Shop 시스템
+import ShopManager from './trade-system/ShopManager.js'
 
 // Event system stubs (임시)
 function handleEvent(characterId, eventType, eventData) {
@@ -218,6 +221,9 @@ const craftingTable = new CraftingTable(null)
 // Phase 14: 친구 시스템 - 인스턴스 초기화
 const friendManager = new FriendManager(null)
 const friendRequestManager = new FriendRequestManager(null)
+
+// Shop 시스템 - 인스턴스 초기화
+const shopManager = new ShopManager(null)
 
 // 캐릭터의 장비 시스템 가져오기
 const getCharacterEquipment = (characterId) => {
@@ -556,9 +562,178 @@ app.get('/api/equipment/inventory/:characterId?', (req, res) => {
 
 // ===== 장비 시스템 HTTP API 종료 =====
 
+// ===== Shop 시스템 HTTP API =====
+
+// 상점 목록 조회
+app.get('/api/shop/list', (req, res) => {
+  try {
+    const shops = shopManager.getAllShops()
+    // 상점마다 아이템 정보도 포함
+    const shopsWithItems = shops.map(shop => {
+      const shopDetail = shopManager.getShop(shop.shopId)
+      return {
+        ...shop,
+        items: shopDetail ? shopDetail.items : []
+      }
+    })
+    res.json({
+      success: true,
+      data: shopsWithItems
+    })
+  } catch (error) {
+    console.error('상점 목록 조회 에러:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load shops'
+    })
+  }
+})
+
+// 아이템 구매
+app.post('/api/shop/buy', express.json(), (req, res) => {
+  try {
+    const { shopId, itemId, quantity = 1 } = req.body
+
+    if (!shopId || !itemId) {
+      return res.status(400).json({
+        success: false,
+        message: 'shopId and itemId are required'
+      })
+    }
+
+    // 임시 userId: socket.id 대신 기본값 사용
+    const userId = req.headers['x-user-id'] || 'default-user'
+
+    // UserManager stub (간단 버전)
+    const userManager = {
+      getUserCoins: async () => {
+        // TODO: 실제 코인 시스템 연결
+        return 10000 // 임시: 10000 코인
+      },
+      removeCoins: async (id, amount) => {
+        console.log(`📉 ${userId}: ${amount} 코인 차감`)
+      },
+      addToInventory: async (id, itemId, quantity) => {
+        // TODO: 실제 인벤토리 시스템 연결
+        console.log(`📦 ${userId}: ${itemId} x${quantity} 추가`)
+      },
+      getInventory: async () => [],
+      removeFromInventory: async () => {}
+    }
+
+    shopManager.buyItem(userId, shopId, itemId, quantity, userManager)
+      .then(result => {
+        res.json({
+          success: true,
+          message: '구매 성공!',
+          data: result
+        })
+      })
+      .catch(error => {
+        res.status(400).json({
+          success: false,
+          message: error.message
+        })
+      })
+  } catch (error) {
+    console.error('아이템 구매 에러:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to buy item'
+    })
+  }
+})
+
+// 아이템 판매
+app.post('/api/shop/sell', express.json(), (req, res) => {
+  try {
+    const { itemId, quantity = 1 } = req.body
+
+    if (!itemId) {
+      return res.status(400).json({
+        success: false,
+        message: 'itemId is required'
+      })
+    }
+
+    // 임시 userId
+    const userId = req.headers['x-user-id'] || 'default-user'
+    const shopId = 'general' // 일반 상점 기본
+
+    // UserManager stub
+    const userManager = {
+      getUserCoins: async () => {
+        return 10000
+      },
+      addCoins: async (id, amount) => {
+        console.log(`📈 ${userId}: ${amount} 코인 추가`)
+      },
+      getInventory: async () => [],
+      removeFromInventory: async () => {}
+    }
+
+    shopManager.sellItem(userId, shopId, itemId, quantity, userManager)
+      .then(result => {
+        res.json({
+          success: true,
+          message: '판매 성공!',
+          data: result
+        })
+      })
+      .catch(error => {
+        res.status(400).json({
+          success: false,
+          message: error.message
+        })
+      })
+  } catch (error) {
+    console.error('아이템 판매 에러:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to sell item'
+    })
+  }
+})
+
+// 코인 잔액 조회
+app.get('/api/coin/balance', (req, res) => {
+  try {
+    // TODO: 실제 코인 시스템 연결
+    res.json({
+      success: true,
+      data: { balance: 10000 }
+    })
+  } catch (error) {
+    console.error('코인 잔액 조회 에러:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get coin balance'
+    })
+  }
+})
+
+// 인벤토리 조회
+app.get('/api/inventory', (req, res) => {
+  try {
+    // TODO: 실제 인벤토리 시스템 연결
+    res.json({
+      success: true,
+      data: []
+    })
+  } catch (error) {
+    console.error('인벤토리 조회 에러:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get inventory'
+    })
+  }
+})
+
+// ===== Shop 시스템 HTTP API 종료 =====
+
 // Phase 17: 길드 시스템 HTTP API
-app.use('/api/guilds', guildRouter)
-app.use('/api/guild-chat', guildChatRouter)
+// app.use('/api/guilds', guildRouter)
+// app.use('/api/guild-chat', guildChatRouter)
 
 // 방 유틸리티 함수
 function getRoom(roomId) {
@@ -2126,6 +2301,14 @@ httpServer.listen(PORT, '0.0.0.0', () => {  // 0.0.0.0으로 외부 접속 허�
     console.log('🗄️  데이터베이스 초기화 완료')
   } catch (error) {
     console.error('❌ 데이터베이스 초기화 실패:', error)
+  }
+
+  // Shop 시스템 초기화
+  try {
+    shopManager.initialize()
+    console.log('🏪 상점 시스템 초기화 완료')
+  } catch (error) {
+    console.error('❌ 상점 시스템 초기화 실패:', error)
   }
 
   // 이벤트 시스템 초기화 (임시 비활성화)
