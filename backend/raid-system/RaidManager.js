@@ -3,9 +3,9 @@
  * 레이드 생성/진행/완료, 레이드 스케줄링
  */
 
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
-class RaidManager {
+export default class RaidManager {
   constructor(redisClient, guildManager) {
     this.redis = redisClient;
     this.guildManager = guildManager;
@@ -269,5 +269,3 @@ class RaidManager {
     return startedCount;
   }
 }
-
-module.exports = RaidManager;

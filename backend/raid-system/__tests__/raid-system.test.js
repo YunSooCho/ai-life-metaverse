@@ -2,53 +2,76 @@
  * Raid System Tests
  */
 
-const RaidManager = require('../RaidManager');
-const RaidBoss = require('../RaidBoss');
-const RaidParty = require('../RaidParty');
-const RaidCombat = require('../RaidCombat');
-const RaidReward = require('../RaidReward');
-const RaidSchedule = require('../RaidSchedule');
+import { describe, test, expect, beforeEach } from 'vitest';
+import RaidManager from '../RaidManager.js';
+import RaidBoss from '../RaidBoss.js';
+import RaidParty from '../RaidParty.js';
+import RaidCombat from '../RaidCombat.js';
+import RaidReward from '../RaidReward.js';
+import RaidSchedule from '../RaidSchedule.js';
+
+// Mock Redis client
+const createMockRedis = () => ({
+  hset: jest.fn().mockResolvedValue(true),
+  hget: jest.fn(),
+  hdel: jest.fn().mockResolvedValue(true),
+  sadd: jest.fn().mockResolvedValue(true),
+  srem: jest.fn().mockResolvedValue(true),
+  del: jest.fn().mockResolvedValue(true),
+  get: jest.fn(),
+  set: jest.fn().mockResolvedValue(true)
+});
+
+// Mock GuildManager
+const createMockGuildManager = () => ({
+  getGuild: jest.fn().mockReturnValue({
+    guildId: 'test-guild-1',
+    name: 'Test Guild',
+    masterId: 'char-1',
+    members: [
+      { characterId: 'char-1', roleId: 'master' },
+      { characterId: 'char-2', roleId: 'member' }
+    ],
+    roles: [
+      { roleId: 'master', permissions: { canManageRaids: true } },
+      { roleId: 'member', permissions: { canManageRaids: false } }
+    ]
+  }),
+  getGuildByCharacter: jest.fn().mockReturnValue({
+    guildId: 'test-guild-1',
+    name: 'Test Guild'
+  }),
+  addGuildExp: jest.fn().mockResolvedValue(true),
+  addGuildGold: jest.fn().mockResolvedValue(true)
+});
 
 describe('RaidSystem', () => {
   let raidManager, raidBoss, raidParty, raidCombat, raidReward, raidSchedule;
-  let mockGuildManager;
   let mockRedis;
+  let mockGuildManager;
+
+  // Make jest available globally for this test file
+  global.jest = {
+    fn: () => {
+      const mock = (...args) => {
+        mock.mock.calls.push(args);
+        return mock.mockReturnValue?.(...args) ?? mock.mockResolvedValue ?
+        Promise.resolve(mock.mockResolvedValue(...args))
+        : undefined;
+      };
+      mock.mock = { calls: [] };
+      mock.mockReturnValue = (val) => { mock.mockReturnValueVal = val; return mock; };
+      mock.mockResolvedValue = (val) => { mock.mockResolvedValueVal = val; return mock; };
+      return mock;
+    }
+  };
 
   beforeEach(() => {
     // Mock Redis client
-    mockRedis = {
-      hset: jest.fn().mockResolvedValue(true),
-      hget: jest.fn(),
-      hdel: jest.fn(),
-      sadd: jest.fn().mockResolvedValue(true),
-      srem: jest.fn().mockResolvedValue(true),
-      del: jest.fn().mockResolvedValue(true),
-      get: jest.fn(),
-      set: jest.fn().mockResolvedValue(true)
-    };
+    mockRedis = createMockRedis();
 
     // Mock GuildManager
-    mockGuildManager = {
-      getGuild: jest.fn().mockReturnValue({
-        guildId: 'test-guild-1',
-        name: 'Test Guild',
-        masterId: 'char-1',
-        members: [
-          { characterId: 'char-1', roleId: 'master' },
-          { characterId: 'char-2', roleId: 'member' }
-        ],
-        roles: [
-          { roleId: 'master', permissions: { canManageRaids: true } },
-          { roleId: 'member', permissions: { canManageRaids: false } }
-        ]
-      }),
-      getGuildByCharacter: jest.fn().mockReturnValue({
-        guildId: 'test-guild-1',
-        name: 'Test Guild'
-      }),
-      addGuildExp: jest.fn().mockResolvedValue(true),
-      addGuildGold: jest.fn().mockResolvedValue(true)
-    };
+    mockGuildManager = createMockGuildManager();
 
     // Initialize modules
     raidManager = new RaidManager(mockRedis, mockGuildManager);
@@ -377,12 +400,3 @@ describe('RaidSystem', () => {
     });
   });
 });
-
-module.exports = {
-  RaidManager,
-  RaidBoss,
-  RaidParty,
-  RaidCombat,
-  RaidReward,
-  RaidSchedule
-};

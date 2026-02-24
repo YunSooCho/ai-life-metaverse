@@ -3,7 +3,7 @@
  * 보스 체력, 스킬, 패턴, 페이즈 전환
  */
 
-class RaidBoss {
+export default class RaidBoss {
   constructor(config = {}) {
     this.bossId = config.bossId || 'unknown_boss';
     this.name = config.name || 'Unknown Boss';
@@ -12,7 +12,7 @@ class RaidBoss {
     this.level = config.level || 100;
     this.type = config.type || 'normal'; // normal, elite, legendary, mythic
     this.phases = config.phases || this.createDefaultPhases();
-    this.currentPhase = 0;
+    this.currentPhase = 1;
     this.skills = config.skills || this.createDefaultSkills();
     this.patterns = config.patterns || [];
     this.weaknesses = config.weaknesses || [];
@@ -274,5 +274,3 @@ class RaidBoss {
     this.isEnraged = false;
   }
 }
-
-module.exports = RaidBoss;
