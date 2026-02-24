@@ -2,7 +2,7 @@
  * Raid System Tests
  */
 
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import RaidManager from '../RaidManager.js';
 import RaidBoss from '../RaidBoss.js';
 import RaidParty from '../RaidParty.js';
@@ -12,59 +12,51 @@ import RaidSchedule from '../RaidSchedule.js';
 
 // Mock Redis client
 const createMockRedis = () => ({
-  hset: jest.fn().mockResolvedValue(true),
-  hget: jest.fn(),
-  hdel: jest.fn().mockResolvedValue(true),
-  sadd: jest.fn().mockResolvedValue(true),
-  srem: jest.fn().mockResolvedValue(true),
-  del: jest.fn().mockResolvedValue(true),
-  get: jest.fn(),
-  set: jest.fn().mockResolvedValue(true)
+  hset: vi.fn().mockResolvedValue(true),
+  hget: vi.fn(),
+  hdel: vi.fn().mockResolvedValue(true),
+  sadd: vi.fn().mockResolvedValue(true),
+  srem: vi.fn().mockResolvedValue(true),
+  del: vi.fn().mockResolvedValue(true),
+  get: vi.fn(),
+  set: vi.fn().mockResolvedValue(true)
 });
 
 // Mock GuildManager
-const createMockGuildManager = () => ({
-  getGuild: jest.fn().mockReturnValue({
+const createMockGuildManager = () => {
+  const mockGuild = {
     guildId: 'test-guild-1',
     name: 'Test Guild',
     masterId: 'char-1',
+    level: 1,
+    exp: 0,
+    gold: 0,
     members: [
-      { characterId: 'char-1', roleId: 'master' },
-      { characterId: 'char-2', roleId: 'member' }
+      { characterId: 'char-1', roleId: 'master', contribution: 0 },
+      { characterId: 'char-2', roleId: 'member', contribution: 0 }
     ],
     roles: [
       { roleId: 'master', permissions: { canManageRaids: true } },
       { roleId: 'member', permissions: { canManageRaids: false } }
     ]
-  }),
-  getGuildByCharacter: jest.fn().mockReturnValue({
-    guildId: 'test-guild-1',
-    name: 'Test Guild'
-  }),
-  addGuildExp: jest.fn().mockResolvedValue(true),
-  addGuildGold: jest.fn().mockResolvedValue(true)
-});
+  };
+
+  const guilds = new Map();
+  guilds.set('test-guild-1', mockGuild);
+
+  return {
+    guilds,
+    getGuild: vi.fn().mockReturnValue(mockGuild),
+    getGuildByCharacter: vi.fn().mockReturnValue(mockGuild),
+    addGuildExp: vi.fn().mockResolvedValue(true),
+    addGuildGold: vi.fn().mockResolvedValue(true)
+  };
+};
 
 describe('RaidSystem', () => {
   let raidManager, raidBoss, raidParty, raidCombat, raidReward, raidSchedule;
   let mockRedis;
   let mockGuildManager;
-
-  // Make jest available globally for this test file
-  global.jest = {
-    fn: () => {
-      const mock = (...args) => {
-        mock.mock.calls.push(args);
-        return mock.mockReturnValue?.(...args) ?? mock.mockResolvedValue ?
-        Promise.resolve(mock.mockResolvedValue(...args))
-        : undefined;
-      };
-      mock.mock = { calls: [] };
-      mock.mockReturnValue = (val) => { mock.mockReturnValueVal = val; return mock; };
-      mock.mockResolvedValue = (val) => { mock.mockResolvedValueVal = val; return mock; };
-      return mock;
-    }
-  };
 
   beforeEach(() => {
     // Mock Redis client
@@ -196,11 +188,20 @@ describe('RaidSystem', () => {
     });
 
     test('should enrage at low HP', () => {
-      raidBoss.takeDamage(900000); // 10% HP
-      const result = raidBoss.takeDamage(1);
+      // 새로운 raidBoss 인스턴스 생성 (상태 확실히 초기화)
+      const testBoss = new RaidBoss({
+        bossId: 'boss-1',
+        name: 'Test Boss',
+        maxHp: 1000000,
+        level: 100,
+        type: 'normal'
+      });
+
+      // 900001 데미지로 한 번에 광폭화 트리거 (HP: 99999)
+      const result = testBoss.takeDamage(900001);
 
       expect(result.enrageTriggered).toBe(true);
-      expect(raidBoss.isEnraged).toBe(true);
+      expect(testBoss.isEnraged).toBe(true);
     });
 
     test('should get status', () => {

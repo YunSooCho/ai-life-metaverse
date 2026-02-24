@@ -74,6 +74,9 @@ export default class RaidManager {
     const guild = this.guildManager.getGuild(raid.guildId);
     if (!guild) return null;
 
+    // guild.members null check 추가
+    if (!guild.members || guild.members.length === 0) return null;
+
     const member = guild.members.find(m => m.characterId === characterId);
     if (!member) return null;
 

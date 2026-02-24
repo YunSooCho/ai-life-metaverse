@@ -127,7 +127,8 @@ export default class RaidBoss {
       maxHp: this.maxHp,
       hpPercent: this.currentHp / this.maxHp,
       phase: this.currentPhase,
-      isDead: this.currentHp <= 0
+      isDead: this.currentHp <= 0,
+      enrageTriggered: false  // 기본값 추가
     };
 
     // 페이즈 체크

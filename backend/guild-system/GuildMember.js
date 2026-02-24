@@ -3,7 +3,7 @@
  * 개별 멤버의 기여도, 역할, 활동 로그 관리
  */
 
-class GuildMember {
+export default class GuildMember {
   constructor(guildManager) {
     this.guildManager = guildManager;
   }
@@ -143,5 +143,3 @@ class GuildMember {
     };
   }
 }
-
-module.exports = GuildMember;

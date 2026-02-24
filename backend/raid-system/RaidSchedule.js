@@ -3,7 +3,7 @@
  * 시간별 레이드 개설, 리마인더, 예약 관리
  */
 
-class RaidSchedule {
+export default class RaidSchedule {
   constructor(raidManager) {
     this.raidManager = raidManager;
     this.schedules = new Map(); // In-memory cache
@@ -294,5 +294,3 @@ class RaidSchedule {
     return true;
   }
 }
-
-module.exports = RaidSchedule;

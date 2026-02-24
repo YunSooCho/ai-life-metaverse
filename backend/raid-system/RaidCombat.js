@@ -3,7 +3,7 @@
  * 협동 보스전, 데미지 계산, 라운드 관리
  */
 
-class RaidCombat {
+export default class RaidCombat {
   constructor(raidManager, raidBoss) {
     this.raidManager = raidManager;
     this.raidBoss = raidBoss;
@@ -315,5 +315,3 @@ class RaidCombat {
     };
   }
 }
-
-module.exports = RaidCombat;

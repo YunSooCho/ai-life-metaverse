@@ -3,7 +3,9 @@
  * 길드 경험치, 아이템, 골드 보상 분배
  */
 
-class RaidReward {
+import GuildMember from '../guild-system/GuildMember.js';
+
+export default class RaidReward {
   constructor(raidManager, guildManager) {
     this.raidManager = raidManager;
     this.guildManager = guildManager;
@@ -185,7 +187,7 @@ class RaidReward {
 
       // 기여도 추가
       if (guildId) {
-        const guildMember = new (require('../guild-system/GuildMember'))(this.guildManager);
+        const guildMember = new GuildMember(this.guildManager);
         await guildMember.addContribution(reward.characterId, reward.contribution);
       }
     }
@@ -210,5 +212,3 @@ class RaidReward {
     };
   }
 }
-
-module.exports = RaidReward;

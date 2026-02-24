@@ -1,31 +1,37 @@
 {
-  "lastHeartbeat": "2026-02-24T01:00:00+09:00",
+  "lastHeartbeat": "2026-02-24T09:30:00+09:00",
   "currentPhase": 18,
-  "currentTask": "Phase 18: 길드 레이드 시스템 기획 완료",
+  "currentTask": "Phase 18: 길드 레이드 시스템 완료",
   "completedToday": [
     "서비스 상태 확인 (Backend/Frontend 200 OK)",
-    "GitHub Issues 확인 (5개 -> 최소 3개 충족)",
-    "Phase 18 기획 완료 (길드 레이드 시스템)",
-    "PM 'Why?' 3번 질문 수행",
-    "GitHub Issue #150 생성 (Phase 18: 길드 레이드 시스템)"
+    "GitHub Issues 확인 (5개 -> 4개, 최소 3개 충족)",
+    "Phase 18 길드 레이드 시스템 구현 완료",
+    "길드 시스템: GuildManager, GuildMember, GuildRole (25개 테스트)",
+    "레이드 시스템: RaidManager, RaidBoss, RaidParty 등 (15개 테스트)",
+    "Git commit & push (be4ad2c)",
+    "Issue #150 close",
+    "Spec 02-system-architecture.md 업데이트 완료"
   ],
   "nextTasks": [
-    "Phase 18: 길드 레이드 시스템 코드 작성 (RaidManager, RaidBoss, RaidParty 등)",
-    "테스트 코드 작성",
-    "Spec 최신화 (02-system-architecture.md)"
+    "Phase 19 기획",
+    "UI 작업: #136-135-134-133 (길드/레이드 시스템 UI)",
+    "E2E 브라우저 테스트 (다음 하트비트)"
   ],
   "issuesBlocked": [],
   "bugsFound": [],
-  "bugsFixed": [],
+  "bugsFixed": [
+    "GuildManager.js 한글 주석 오타",
+    "RaidParty.js roleAssignment.roles 변수 버그"
+  ],
   "e2eCounter": 0,
   "lastE2E": "2026-02-24T00:00:00+09:00",
   "testCoverage": "100%",
   "pmRulesVersion": "v3.3",
   "pmRulesCompliance": {
-    "rule1_readWrite": false,
-    "rule2_testCode": false,
-    "rule3_testExecution": false,
+    "rule1_readWrite": true,
+    "rule2_testCode": true,
+    "rule3_testExecution": true,
     "rule4_minIssues": true,
-    "rule5_specUpdate": false
+    "rule5_specUpdate": true
   }
 }

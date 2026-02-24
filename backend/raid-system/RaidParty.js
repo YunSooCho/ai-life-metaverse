@@ -3,7 +3,7 @@
  * 최대 10인 파티 매칭, 역할 배정, 파티 버프
  */
 
-class RaidParty {
+export default class RaidParty {
   constructor(raidManager) {
     this.raidManager = raidManager;
     this.MAX_PARTY_SIZE = 10;
@@ -257,5 +257,3 @@ class RaidParty {
     return { valid: true };
   }
 }
-
-module.exports = RaidParty;
