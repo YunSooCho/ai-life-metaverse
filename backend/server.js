@@ -41,6 +41,9 @@ import RecipeManager from './managers/RecipeManager.js'
 import CraftingManager from './managers/CraftingManager.js'
 import CraftingTable from './managers/CraftingTable.js'
 
+// 커스터마이징 확장 시스템
+import { customizationExtensionSystem } from './character-system/customization-extension-system.js'
+
 // Phase 14: 친구 시스템
 import FriendManager from './friend-system/friend-manager.js'
 import FriendRequestManager from './friend-system/friend-request.js'
@@ -1770,8 +1773,71 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ===== Phase 13 종� =====
+  // ===== Phase 13 종료 =====
 
+  // ===== 커스터마이징 확장 시스템 =====
+
+  // 사용 가능한 옵션 조회 (레벨 기반 필터링)
+  socket.on('getCustomizationOptions', (data, callback) => {
+    const { characterId, category } = data || {};
+    const character = characterRooms[characterId]
+      ? rooms[characterRooms[characterId]].characters[characterId]
+      : null;
+
+    if (!character) {
+      return callback?.({ success: false, error: 'Character not found' });
+    }
+
+    const level = character.level || 1;
+    const availableOptions = customizationExtensionSystem.getAvailableOptions(level, category);
+    callback?.({ success: true, options: availableOptions });
+  });
+
+  // 프리셋 목록 조회
+  socket.on('getCustomizationPresets', (data, callback) => {
+    const { characterId } = data || {};
+    if (!characterId) {
+      return callback?.({ success: false, error: 'characterId is required' });
+    }
+
+    const presets = customizationExtensionSystem.getPresets(characterId);
+    callback?.({ success: true, presets });
+  });
+
+  // 프리셋 저장
+  socket.on('saveCustomizationPreset', (data, callback) => {
+    const { characterId, presetName, customization } = data || {};
+    if (!characterId || !presetName || !customization) {
+      return callback?.({ success: false, error: 'Missing required parameters' });
+    }
+
+    const result = customizationExtensionSystem.savePreset(characterId, presetName, customization);
+    callback?.(result);
+  });
+
+  // 프리셋 삭제
+  socket.on('deleteCustomizationPreset', (data, callback) => {
+    const { presetId } = data || {};
+    if (!presetId) {
+      return callback?.({ success: false, error: 'presetId is required' });
+    }
+
+    const result = customizationExtensionSystem.deletePreset(presetId);
+    callback?.(result);
+  });
+
+  // 커스터마이징 히스토리 조회
+  socket.on('getCustomizationHistory', (data, callback) => {
+    const { characterId, limit } = data || {};
+    if (!characterId) {
+      return callback?.({ success: false, error: 'characterId is required' });
+    }
+
+    const history = customizationExtensionSystem.getHistory(characterId, limit || 10);
+    callback?.({ success: true, history });
+  });
+
+  // ===== 커스터마이징 확장 시스템 종료 =====
 
   // ===== Phase 14: 친구 시스템 =====
 
