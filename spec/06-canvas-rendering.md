@@ -354,14 +354,76 @@ const handleCanvasClick = (e) => {
 }
 ```
 
+## 채팅 메시지 렌더링 (Issue #152)
+
+### 채팅 버블 렌더링 시스템
+
+채팅 메시지를 캐릭터 위에 말풍선(버블)로 표시하는 시스템입니다.
+
+**구조:**
+```javascript
+const msgs = chatMessagesRef?.current || localMessagesRef.current
+```
+
+**렌더링 프로세스:**
+1. `chatMessages` prop을 받음
+2. `useEffect`에서 `localMessagesRef.current = chatMessages`로 sync
+3. render 루프에서 `chatMessagesRef?.current || localMessagesRef.current`를 사용
+4. 각 캐릭터 위에 버블 렌더링
+
+**버그 해결 (Issue #152):**
+- **문제:** chatMessagesRef가 전달되면 localMessagesRef가 업데이트되지 않음
+- **해결:** 항상 localMessagesRef를 chatMessages prop으로 sync
+- **코드:**
+```javascript
+useEffect(() => {
+  localMessagesRef.current = chatMessages
+}, [chatMessages, ...])
+```
+
+### renderChatBubble 함수
+
+채팅 버블 렌더링 함수입니다:
+
+```javascript
+function renderChatBubble(ctx, messageText, x, y, charSize, scale, canvasWidth, canvasHeight) {
+  // 1. 텍스트 길이에 따라 멀티라인 분할
+  // 2. 버블 크기 계산
+  // 3. 캔버스 범위 체크 (버그 #126: 상단/우측 범위 체크)
+  // 4. 버블 배경 렌더링
+  // 5. 꼬리 (tail) 렌더링
+  // 6. 텍스트 렌더링
+}
+```
+
 ## 테스트
 
 ### 테스트 파일
 
 - `frontend/src/components/__tests__/GameCanvas.test.jsx` - 캔버스 렌더링 테스트
+- `frontend/src/components/__tests__/GameCanvas.chat.test.jsx` - 채팅 메시지 렌더링 테스트 (Issue #152)
 - `frontend/src/utils/__tests__/pixelArtRenderer.test.js` - 픽셀 캐릭터 렌더러 테스트
 - `frontend/src/utils/__tests__/spriteRenderer.test.js` - 스프라이트 렌더러 테스트
 - `frontend/src/tests/aiCharacterPosition.test.jsx` - AI 캐릭터 위치 테스트 (Issue #121)
+
+### 채팅 메시지 테스트 (Issue #152)
+
+채팅 메시지가 제대로 렌더링되는지 검증하는 테스트입니다.
+
+**테스트 항목 (4개):**
+1. 채팅 메시지 구조 검증 (message, timestamp)
+2. 다중 채팅 메시지 처리 검증
+3. 빈 채팅 메시지 처리 검증
+4. Ref sync 패턴 검증
+
+**버그 해결 확인:**
+- ✅ chatMessagesRef와 chatMessages prop이 동기화되는지
+- ✅ 렌더링 루프에서 최신 메시지를 가져오는지
+- ✅ E2E 브라우저 테스트로 실제 버블 표시 확인 (2026-02-24)
+
+---
+
+### AI 캐릭터 위치 테스트 (Issue #121)
 
 ### AI 캐릭터 위치 테스트 (Issue #121)
 
@@ -401,4 +463,4 @@ window.__canvasHeight = canvasHeight
 
 ---
 
-**마지막 업데이트:** 2026-02-21 (Issue #65 해결 완료)
+**마지막 업데이트:** 2026-02-24 (Issue #152 해결 완료)
