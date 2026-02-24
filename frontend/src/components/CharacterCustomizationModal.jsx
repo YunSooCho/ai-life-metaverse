@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
+import { socket } from '../socket'
 import {
   getCustomization,
   saveCustomization,
@@ -17,6 +18,43 @@ import {
   CUSTOMIZATION_CATEGORIES,
   OPTIONS_BY_CATEGORY
 } from '../data/customizationOptions'
+import PresetManager from './PresetManager'
+import HistoryUI from './HistoryUI'
+
+/**
+ * 커스터마이징 옵션 레벨별 언락 데이터
+ */
+const OPTION_UNLOCK_LEVELS = {
+  hairStyle: {
+    short_bald: 1, short: 1, medium: 1, long: 1,
+    long_wavy: 5, afro: 10, curly: 15, punk: 20
+  },
+  clothingColor: {
+    gray: 1, blue: 1, red: 1, green: 1, yellow: 1,
+    purple: 5, orange: 10, pink: 15, black: 20
+  },
+  accessory: {
+    none: 1, glasses: 1, hat: 1,
+    sunglasses: 5, headphones: 10, crown: 15,
+    bow_tie: 20, flower: 20
+  },
+  hairColor: {
+    black: 1, brown: 1, gold: 1,
+    silver: 10, red: 15, pink: 20, blue: 25, rainbow: 30
+  },
+  skinTone: {
+    light: 1, medium_light: 1, medium: 1,
+    medium_dark: 1, dark: 1
+  },
+  eyeColor: {
+    brown: 1, blue: 1, green: 1,
+    gray: 10, red: 20, gold: 25
+  },
+  facialFeature: {
+    none: 1, mustache: 5, beard: 10,
+    freckles: 15, scar: 20
+  }
+}
 
 /**
  * CharacterCustomizationModal 컴포넌트
@@ -25,12 +63,15 @@ import {
  * @param {boolean} props.show - Modal 표시 여부
  * @param {Function} props.onClose - Modal 닫기 핸들러
  * @param {Function} props.onSave - 저장 완료 핸들러
+ * @param {number} props.characterLevel - 캐릭터 레벨 (기본값: 1)
  */
-function CharacterCustomizationModal({ show, onClose, onSave }) {
+function CharacterCustomizationModal({ show, onClose, onSave, characterLevel = 1 }) {
   const { t } = useI18n()
   const [selectedCategory, setSelectedCategory] = useState(CUSTOMIZATION_CATEGORIES.HAIR_STYLES)
   const [currentCustomization, setCurrentCustomization] = useState({})
   const [tempCustomization, setTempCustomization] = useState({})
+  const [showPresetManager, setShowPresetManager] = useState(false)
+  const [showHistoryUI, setShowHistoryUI] = useState(false)
 
   // Modal이 열릴 때 커스터마이징 설정 로드
   useEffect(() => {
@@ -95,6 +136,57 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
    */
   const getCharacterColor = () => {
     return getColorHex(tempCustomization.clothingColor || 'blue')
+  }
+
+  /**
+   * 옵션 잠금 해제 여부 확인
+   */
+  const isOptionUnlocked = (optionId) => {
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.HAIR_STYLES) {
+      const levels = OPTION_UNLOCK_LEVELS.hairStyle
+      return levels && levels[optionId] ? (levels[optionId] <= characterLevel) : true
+    }
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.CLOTHING_COLORS) {
+      const levels = OPTION_UNLOCK_LEVELS.clothingColor
+      return levels && levels[optionId] ? (levels[optionId] <= characterLevel) : true
+    }
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.ACCESSORIES) {
+      const levels = OPTION_UNLOCK_LEVELS.accessory
+      return levels && levels[optionId] ? (levels[optionId] <= characterLevel) : true
+    }
+    return true
+  }
+
+  /**
+   * 옵션 언락 레벨 조회
+   */
+  const getOptionUnlockLevel = (optionId) => {
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.HAIR_STYLES) {
+      return OPTION_UNLOCK_LEVELS.hairStyle?.[optionId] || 1
+    }
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.CLOTHING_COLORS) {
+      return OPTION_UNLOCK_LEVELS.clothingColor?.[optionId] || 1
+    }
+    if (selectedCategory === CUSTOMIZATION_CATEGORIES.ACCESSORIES) {
+      return OPTION_UNLOCK_LEVELS.accessory?.[optionId] || 1
+    }
+    return 1
+  }
+
+  /**
+   * 프리셋 로드 핸들러
+   */
+  const handleLoadPreset = (customization) => {
+    setTempCustomization({ ...customization })
+    setShowPresetManager(false)
+  }
+
+  /**
+   * 히스토리 복원 핸들러
+   */
+  const handleRestoreHistory = (customization) => {
+    setTempCustomization({ ...customization })
+    setShowHistoryUI(false)
   }
 
   if (!show) {
@@ -277,10 +369,12 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
           }}>
             {Object.values(OPTIONS_BY_CATEGORY[selectedCategory] || {}).map(option => {
               const isSelected = currentOptionId === option.id
+              const isUnlocked = isOptionUnlocked(option.id)
+              const unlockLevel = getOptionUnlockLevel(option.id)
               return (
               <button
                 key={option.id}
-                onClick={() => handleOptionSelect(option.id)}
+                onClick={() => isUnlocked && handleOptionSelect(option.id)}
                 style={{
                   padding: '12px 8px',
                   fontFamily: 'inherit',
@@ -288,16 +382,20 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
                   background: isSelected ? 'var(--pixel-accent-green)' : 'var(--pixel-bg-secondary)',
                   color: isSelected ? '#000' : '#fff',
                   border: '2px solid #ffffff',
-                  cursor: 'pointer',
+                  cursor: isUnlocked ? 'pointer' : 'not-allowed',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '6px',
-                  transition: 'all 0.1s'
+                  transition: 'all 0.1s',
+                  opacity: isUnlocked ? 1 : 0.5,
+                  position: 'relative'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.transform = 'translate(-2px, -2px)'
-                  e.target.style.boxShadow = '2px 2px 0 0 #000'
+                  if (isUnlocked) {
+                    e.target.style.transform = 'translate(-2px, -2px)'
+                    e.target.style.boxShadow = '2px 2px 0 0 #000'
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.transform = 'translate(0, 0)'
@@ -329,9 +427,53 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
                 }}>
                   {option.name}
                 </span>
+
+                {/* Lock indicator */}
+                {!isUnlocked && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    fontSize: '12px'
+                  }}>
+                    🔒
+                  </div>
+                )}
+
+                {/* Unlock level */}
+                {!isUnlocked && (
+                  <div style={{
+                    fontSize: '8px',
+                    color: 'var(--pixel-text-muted)'
+                  }}>
+                    Lv.{unlockLevel}
+                  </div>
+                )}
               </button>
               )
             })}
+          </div>
+
+          {/* Preset & History Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '16px'
+          }}>
+            <button
+              onClick={() => setShowPresetManager(true)}
+              className="pixel-button pixel-button-blue"
+              style={{ flex: 1 }}
+            >
+              💾 프리셋
+            </button>
+            <button
+              onClick={() => setShowHistoryUI(true)}
+              className="pixel-button pixel-button-cyan"
+              style={{ flex: 1 }}
+            >
+              📜 이력
+            </button>
           </div>
 
           {/* Button Actions */}
@@ -361,6 +503,21 @@ function CharacterCustomizationModal({ show, onClose, onSave }) {
           </div>
         </div>
       </div>
+
+      {/* PresetManager */}
+      <PresetManager
+        show={showPresetManager}
+        currentCustomization={tempCustomization}
+        onLoadPreset={handleLoadPreset}
+        onClose={() => setShowPresetManager(false)}
+      />
+
+      {/* HistoryUI */}
+      <HistoryUI
+        show={showHistoryUI}
+        onRestore={handleRestoreHistory}
+        onClose={() => setShowHistoryUI(false)}
+      />
     </div>
   )
 }
