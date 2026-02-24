@@ -128,7 +128,7 @@ describe('Weather & Time System', () => {
   describe('createWeatherParticles', () => {
     it('should create particles for rain', () => {
       const particles = createWeatherParticles(WEATHER_TYPES.RAIN, 800, 600)
-      expect(particles.length).toBe(80)
+      expect(particles.length).toBe(150)
       particles.forEach(p => {
         expect(p).toHaveProperty('x')
         expect(p).toHaveProperty('y')
@@ -140,7 +140,7 @@ describe('Weather & Time System', () => {
 
     it('should create particles for snow', () => {
       const particles = createWeatherParticles(WEATHER_TYPES.SNOW, 800, 600)
-      expect(particles.length).toBe(40)
+      expect(particles.length).toBe(100)
     })
 
     it('should return empty for clear weather', () => {
@@ -179,14 +179,23 @@ describe('Weather & Time System', () => {
       const ctx = {
         save: vi.fn(),
         restore: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        fill: vi.fn(),
         fillRect: vi.fn(),
+        arc: vi.fn(),
         globalAlpha: 1,
-        fillStyle: ''
+        fillStyle: '',
+        lineWidth: 1,
+        strokeStyle: ''
       }
-      const particles = [{ x: 10, y: 20, speed: 8, size: 2, opacity: 0.8 }]
+      const particles = [{ x: 10, y: 20, speed: 8, size: 2, opacity: 0.8, angle: 0 }]
       renderWeatherParticles(ctx, particles, WEATHER_TYPES.RAIN)
       expect(ctx.save).toHaveBeenCalled()
-      expect(ctx.fillRect).toHaveBeenCalled()
+      expect(ctx.beginPath).toHaveBeenCalled()
+      expect(ctx.stroke).toHaveBeenCalled()
       expect(ctx.restore).toHaveBeenCalled()
     })
 
@@ -195,16 +204,24 @@ describe('Weather & Time System', () => {
         save: vi.fn(),
         restore: vi.fn(),
         beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
         arc: vi.fn(),
         fill: vi.fn(),
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        closePath: vi.fn(),
+        setTransform: vi.fn(),
         globalAlpha: 1,
         fillStyle: ''
       }
-      const particles = [{ x: 10, y: 20, speed: 2, size: 3, opacity: 0.5 }]
+      const particles = [{ x: 10, y: 20, speed: 2, size: 3, opacity: 0.5, rotation: 0, swaying: 0, swayingSpeed: 0.05 }]
       renderWeatherParticles(ctx, particles, WEATHER_TYPES.SNOW)
       expect(ctx.beginPath).toHaveBeenCalled()
-      expect(ctx.arc).toHaveBeenCalled()
+      expect(ctx.moveTo).toHaveBeenCalled()
+      expect(ctx.closePath).toHaveBeenCalled()
       expect(ctx.fill).toHaveBeenCalled()
+      expect(ctx.setTransform).toHaveBeenCalled()
     })
 
     it('should not render for clear weather', () => {

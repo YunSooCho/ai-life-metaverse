@@ -226,9 +226,12 @@ export function updateWeatherParticles(particles, weather, canvasWidth, canvasHe
       p.rotation += p.rotationSpeed
     }
 
-    // 화면 밖에서 재생성
+    // 화면 밖에서 재생성 (바닥에 도달하면 위로 재생성)
     if (newY > canvasHeight + 10) {
       newY = -20
+      newX = Math.random() * canvasWidth
+    } else if (newY > canvasHeight) {
+      newY = -10
       newX = Math.random() * canvasWidth
     }
     if (newX > canvasWidth + 20) newX = -20
