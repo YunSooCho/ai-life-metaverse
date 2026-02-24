@@ -26,6 +26,7 @@ import FriendList from './components/FriendList'
 import TradeMenu from './components/TradeMenu'
 import AuctionMenu from './components/AuctionMenu'
 import CoinMenu from './components/CoinMenu'
+import GuildMenu from './components/GuildMenu'
 import './components/SettingsPanel.css'
 import { useSocketEvent } from './hooks/useSocketEvent'
 import { getAffinityColor } from './utils/characterUtils'
@@ -141,6 +142,7 @@ function AppContent() {
   const [showFriends, setShowFriends] = useState(false)
   const [showTrade, setShowTrade] = useState(false)
   const [showAuction, setShowAuction] = useState(false)
+  const [showGuild, setShowGuild] = useState(false)
   const [showCoin, setShowCoin] = useState(false)
   const [characterCustomization, setCharacterCustomization] = useState({
     hairStyle: 'short',
@@ -1259,6 +1261,12 @@ function AppContent() {
           </button>
           <button
             className="room-button"
+            onClick={() => setShowGuild(prev => !prev)}
+          >
+            🏰 길드
+          </button>
+          <button
+            className="room-button"
             onClick={() => setShowCrafting(prev => !prev)}
           >
             🔨 제작
@@ -1559,6 +1567,13 @@ function AppContent() {
         <CoinMenu
           characterId={myCharacter.id}
           onClose={() => setShowCoin(false)}
+        />
+      )}
+      {showGuild && (
+        <GuildMenu
+          socket={socket}
+          characterId={myCharacter.id}
+          onClose={() => setShowGuild(false)}
         />
       )}
      </div>

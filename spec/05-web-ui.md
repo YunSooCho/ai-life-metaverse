@@ -2993,3 +2993,253 @@ socket.on('removeFriend', ({ characterId, friendId }) => { ... })
 - Socket.io (백엔드 연동)
 - i18n (다국어 지원)
 - CSS (픽셀 스타일, FriendList.css 재사용)
+
+---
+
+## 🏰 Phase 18: 길드 시스템 UI (GuildMenu) ✅ 완료 (2026-02-24 14:45)
+
+### 개요
+Phase 18 길드 시스템 백엔드의 UI 인터페이스로, 길드 생성/조회/프로필/멤버 관리 기능을 제공
+
+### 파일 위치
+- **컴포넌트:** `frontend/src/components/GuildMenu.jsx` (11,198 bytes)
+- **스타일:** `frontend/src/components/GuildMenu.css` (5,221 bytes)
+- **테스트:** `frontend/src/components/__tests__/GuildMenu.test.jsx` (15,598 bytes)
+
+### 기능 목록
+
+**1. 길드 정보 조회**
+- 내 길드 정보 API 호출 (`GET /api/guild/my-guild`)
+- 길드가 없는 경우: "소속된 길드가 없습니다" 메시지 + "길드 만들기" 버튼
+- 길드가 있는 경우: 길드 프로필 + 멤버 목록 표시
+
+**2. 길드 생성**
+- 길드 이름 입력 (2~20자, 필수)
+- 길드 설명 입력 (100자, 선택)
+- 길드 생성 요청 API (`POST /api/guild/create`)
+- Socket.io 이벤트 `createGuild`
+- 생성 완료 시 `guildCreated` 이벤트 수신
+
+**3. 길드 프로필**
+- 길드 이름
+- 길드 레벨 (Lv. N 길드)
+- 멤버 수 (현재 / 최대)
+- 경험치 바 (퍼센트 표시)
+- 길드 골드
+- 길드 설명 (있는 경우)
+- 길드 해체 버튼 (길드장만 표시)
+
+**4. 멤버 목록**
+- 멤버 수 표시
+- 각 멤버 정보:
+  - 캐릭터 닉네임
+  - 역할 (👑 방장, ⭐ 부방장, 👤 길드원, 🌱 수습생)
+  - 기여도
+- 역할 변경 셀렉트 (길드장/부방장만)
+- 길드장의 역할은 변경 불가
+
+**5. 역할 변경**
+- 역할 변경 API (`POST /api/guild/change-role`)
+- Socket.io 이벤트 `changeGuildRole`
+- 길드장/부방장만 권한
+
+**6. 길드 해체**
+- 경고 다이얼로그 (`confirm`)
+- 길드 해체 API (`POST /api/guild/disband`)
+- Socket.io 이벤트 `disbandGuild`
+- 길드장만 권한
+
+### Socket.io 이벤트
+
+**리스너 (백엔드 → 프론트엔드):**
+```javascript
+// 길드 생성 완료
+socket.on('guildCreated', (guild) => { ... })
+
+// 길드 업데이트 (멤버 추가/제거/역할 변경)
+socket.on('guildUpdated', (guild) => { ... })
+
+// 길드 해체 완료
+socket.on('guildDisbanded', () => { ... })
+
+// 길드 경험치 업데이트
+socket.on('guildExpGained', (data) => {
+  data.exp, data.level, data.maxExp
+})
+```
+
+**이미터 (프론트엔드 → 백엔드):**
+```javascript
+// 길드 생성
+socket.emit('createGuild', { characterId, name, description })
+
+// 역할 변경
+socket.emit('changeGuildRole', { characterId, memberId, role })
+
+// 길드 해체
+socket.emit('disbandGuild', { characterId })
+```
+
+### API 엔드포인트
+
+**GET `/api/guild/my-guild`**
+- Query: `characterId`
+- Response: `{ guild, members }` or `null`
+
+**POST `/api/guild/create`**
+- Body: `{ characterId, name, description }`
+- Response: `{ success }`
+
+**POST `/api/guild/change-role`**
+- Body: `{ characterId, memberId, role }`
+- Response: `{ success }`
+
+**POST `/api/guild/disband`**
+- Body: `{ characterId }`
+- Response: `{ success }`
+
+### UI 스타일
+
+**길드 메뉴 오버레이:**
+- 배경: `rgba(0, 0, 0, 0.8)`
+- 가로: 600px, 세로: 80vh
+- 폰트: 'Press Start 2P' (픽셀 아트)
+- 스크롤: 커스텀 스크롤바
+
+**길드 프로필:**
+- 배경: `#16213e` (어두운 네이비)
+- 보더: `2px solid #4a4a6a`
+- 골드 이름: `#ffd700`
+- 경험치 바: 그라디언트 (`#4ade80` → `#22d3ee`)
+
+**멤버 목록:**
+- 각 멤버 카드: `#0f172a` 배경
+- 역할 라벨: `#ffd700` (골드)
+
+**버튼 스타일:**
+- Primary: `#e94560` (빨강)
+- Secondary: `#1d3557` (파랑)
+- Danger: `#e74c3c` (빨강, 해체용)
+
+### Prop Types
+
+```javascript
+{
+  socket: Socket,          // Socket.io 인스턴스
+  characterId: string,     // 내 캐릭터 ID
+  onClose: () => void      // 닫기 핸들러
+}
+```
+
+### App.jsx 통합
+
+**Import:**
+```javascript
+import GuildMenu from './components/GuildMenu'
+```
+
+**상태:**
+```javascript
+const [showGuild, setShowGuild] = useState(false)
+```
+
+**헤더 버튼:**
+```jsx
+<button
+  className="room-button"
+  onClick={() => setShowGuild(prev => !prev)}
+>
+  🏰 길드
+</button>
+```
+
+**오버레이 렌더링:**
+```jsx
+{showGuild && (
+  <GuildMenu
+    socket={socket}
+    characterId={myCharacter.id}
+    onClose={() => setShowGuild(false)}
+  />
+)}
+```
+
+### 테스트 (25개 테스트)
+
+**테스트 파일:** `frontend/src/components/__tests__/GuildMenu.test.jsx`
+
+**테스트 항목:**
+- 렌더링 (3개)
+  - 길드 메뉴 렌더링
+  - 길드 없는 상태 - 길드 생성 버튼
+  - 길드 생성 폼 표시
+- 길드 생성 (5개)
+  - 길드 생성 - 이름 입력
+  - 길드 생성 - 설명 입력
+  - 길드 생성 폼 취소
+  - 길드 생성 - API 호출
+  - 길드 생성 - 이름 없으면 에러 표시
+- 길드 정보 표시 (4개)
+  - 길드 정보 표시 (이름, 레벨, 멤버 수)
+  - 길드 정보 표시 (경험치, 골드)
+  - 길드 경험치 바 계산
+  - 길드 설명 표시
+- 멤버 목록 (3개)
+  - 멤버 목록 렌더링
+  - 멤버 목록 - 역할 표시
+  - 멤버 기여도 표시
+- 역할 변경 (1개)
+  - 역할 변경 API 호출
+- 길드 해체 (2개)
+  - 길드 해체 버튼 표시 (길드장)
+  - 길드 해체 API 호출
+- Socket 이벤트 (4개)
+  - guildCreated
+  - guildUpdated
+  - guildDisbanded
+  - guildExpGained
+- 로딩/에러 상태 (3개)
+  - 로딩 상태 표시
+  - 에러 상태 표시
+  - 에러 복구 버튼 클릭
+- 권한 제어 (1개)
+  - 비급드장은 역할 변경 버튼 표시 안함
+
+### 백엔드 연동 (이미 구현됨)
+
+**위치:** `backend/guild-system/GuildManager.js`
+
+**백엔드 API 핸들러:**
+```javascript
+// 길드 생성
+app.post('/api/guild/create', async (req, res) => { ... })
+
+// 내 길드 정보
+app.get('/api/guild/my-guild', async (req, res) => { ... })
+
+// 역할 변경
+app.post('/api/guild/change-role', async (req, res) => { ... })
+
+// 길드 해체
+app.post('/api/guild/disband', async (req, res) => { ... })
+```
+
+### GitHub Issue
+- **#XXX:** [feat] Phase 18: 길드 시스템 UI (GuildMenu) ✅ 완료 (2026-02-24)
+- Phase: Phase 18
+
+### 향후 개선
+- ✅ GuildMenu.jsx 완료
+- ✅ GuildMenu.css 완료
+- ✅ App.jsx 통합 완료
+- ✅ 테스트 코드 작성 (25개 테스트)
+- ⏳ RaidMenu.jsx 구현 (레이드 시스템 UI)
+- ⏳ 길드 랭킹 시스템 UI
+- ⏳ 길드 대전 시스템 UI
+- ⏳ 길드 공격/GVG 구현
+
+### 기술 스택
+- React + JSX
+- Socket.io (백엔드 연동)
+- CSS (픽셀 스타일, GuildMenu.css)
+- REST API (백엔드 연동)
