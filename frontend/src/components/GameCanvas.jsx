@@ -222,8 +222,9 @@ function GameCanvas({
   const myCharacterRef = useRef(myCharacter)
   const charactersRef = useRef(characters)
   const affinitiesRef = useRef(affinities)
-  // ✅ BUG FIX #152: Always use prop chatMessagesRef if provided
-  const messagesRef = chatMessagesRef || useRef(chatMessages)
+  // ✅ BUG FIX #152: Always sync localMessagesRef from chatMessages prop regardless of chatMessagesRef
+  // The render loop will always use the prop's chatMessagesRef if provided, otherwise localMessagesRef
+  const localMessagesRef = useRef(chatMessages)
   const clickEffectsRef = useRef(clickEffects)
   const buildingsRef = useRef(buildings)
   const characterCustomizationRef = useRef(characterCustomization)
@@ -238,15 +239,14 @@ function GameCanvas({
     myCharacterRef.current = myCharacter
     charactersRef.current = characters
     affinitiesRef.current = affinities
-    // ✅ BUG FIX #152: Sync both refs if chatMessagesRef is null (local fallback)
-    if (!chatMessagesRef) {
-      messagesRef.current = chatMessages
-    }
+    // ✅ BUG FIX #152 Always sync localMessagesRef from chatMessages prop
+    // This ensures localMessagesRef always has the latest data even when chatMessagesRef is provided
+    localMessagesRef.current = chatMessages
     clickEffectsRef.current = clickEffects
     buildingsRef.current = buildings
     characterCustomizationRef.current = characterCustomization
     weatherRef.current = weather
-  }, [myCharacter, characters, affinities, chatMessages, clickEffects, buildings, characterCustomization, weather, chatMessagesRef, messagesRef])
+  }, [myCharacter, characters, affinities, chatMessages, clickEffects, buildings, characterCustomization, weather])
 
   // Sync animatedCharacters ref
   useEffect(() => {
@@ -549,8 +549,9 @@ function GameCanvas({
       const myChar = myCharacterRef.current
       const chars = charactersRef.current
       const affs = affinitiesRef.current
-      // ✅ BUG FIX #145: Use messagesRef (prop ref or local ref)
-      const msgs = messagesRef.current
+      // ✅ BUG FIX #152: Use prop chatMessagesRef if provided, otherwise localMessagesRef
+      // This ensures the render loop always gets the latest chat messages
+      const msgs = chatMessagesRef?.current || localMessagesRef.current
 
       // Debug: 채팅 메시지 확인 (Issue #126)
       if (Object.keys(msgs).length > 0) {

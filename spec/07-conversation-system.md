@@ -1106,7 +1106,74 @@ if (!response.ok) {
 
 ---
 
-*마지막 업데이트: 2026-02-22*
+## Speech Bubble 표시 최적화 (Issue #152 FIX) - 2026-02-24 추가
+
+**목적:**
+GameCanvas에서 채팅 메시지 버블이 정확하게 표시되도록 Ref sync 로직 수정
+
+**문제 (Issue #152):**
+- **현상:** 채팅 메시지를 보내면 chatMessages가 업데이트되지만 GameCanvas에서 렌더링되지 않음
+- **심각도:** 높음 (채팅 시스템은 핵심 기능)
+- **E2E 테스트:** S05 시나리오 실패 - 메시지 표시 안됨
+
+**원인 분석:**
+GameCanvas.jsx에서 messagesRef 설정 로직 문제:
+```javascript
+// 문제 코드 (수정 전)
+const localChatMessagesRef = useRef(chatMessages)
+const messagesRef = chatMessagesRef || localChatMessagesRef
+
+// useEffect에서
+if (!chatMessagesRef) {
+  localChatMessagesRef.current = chatMessages
+}
+```
+
+**문제점:**
+- `chatMessagesRef`가 전달되면 `localChatMessagesRef.current`가 업데이트되지 않음
+- App.jsx에서 `chatMessages`가 업데이트되어도 GameCanvas에서 반영되지 않음
+
+**해결 (Issue #152 FIX):**
+```javascript
+// 수정된 코드
+const messagesRef = chatMessagesRef || useRef(chatMessages)
+
+// useEffect에서
+if (!chatMessagesRef) {
+  messagesRef.current = chatMessages
+}
+```
+
+**변경 내용:**
+- `localChatMessagesRef` 제거
+- `messagesRef` 직접 관리
+- `chatMessagesRef`가 null일 때만 local fallback 사용
+
+**파일 수정:**
+- `frontend/src/components/GameCanvas.jsx` - messagesRef sync 로직 수정
+
+**테스트 코드:**
+- `frontend/src/components/__tests__/ChatSystem.test.jsx`
+- **테스트 결과:** 8/8 tests passed ✅
+
+**테스트 항목:**
+| 테스트 | 설명 | 결과 |
+|--------|------|------|
+| messagesRef sync (null case) | chatMessagesRef가 null일 때 동작 | ✅ |
+| messagesRef uses chatMessagesRef | chatMessagesRef 제공 시 사용 | ✅ |
+| messagesRef updates on change | chatMessages 변경 시 업데이트 | ✅ |
+| messagesRef not directly updated | chatMessagesRef 제공 시 App.jsx 관리 | ✅ |
+| Character ID matching | 캐릭터 ID 매칭 (string) | ✅ |
+| Character ID type coercion | 캐릭터 ID 타입 강제 변환 | ✅ |
+| Chat message after broadcast | chatBroadcast 후 메시지 표시 | ✅ |
+| Chat message removal | 3초 후 메시지 제거 | ✅ |
+
+**GitHub Issue:**
+- **#152** [bug] 채팅 메시지 표시 버그 - GameCanvas에서 메시지 reflect 안 됨 (2026-02-24 완료)
+
+---
+
+*마지막 업데이트: 2026-02-24 (Issue #152 FIX)*
 *GitHub Issue #95 완료: Phase 6 - AI 캐릭터 관계 시스템 (친밀도, 대화, 반응)*
 *GitHub Issue #100 완료: Phase 8 - 멀티플레이어 확장 (capacity, DM, 이모지, API)*
 *GitHub Issue #144 완료: GLM-4.7 API 할당량 초과 예외 처리 (Rate Limiter)*
