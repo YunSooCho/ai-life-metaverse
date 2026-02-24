@@ -3,9 +3,9 @@
  * 길드 생성/해체, 길드 정보 관리, 멤버 관리
  */
 
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
-class GuildManager {
+export default class GuildManager {
   constructor(redisClient) {
     this.redis = redisClient;
     this.guilds = new Map(); // In-memory cache
@@ -365,5 +365,3 @@ class GuildManager {
       .slice(start, end);
   }
 }
-
-module.exports = GuildManager;

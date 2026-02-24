@@ -2,9 +2,10 @@
  * Guild System Tests
  */
 
-const GuildManager = require('../GuildManager');
-const GuildMember = require('../GuildMember');
-const GuildRole = require('../GuildRole');
+import { describe, test, expect, beforeEach } from 'vitest';
+import GuildManager from '../GuildManager.js';
+import GuildMember from '../GuildMember.js';
+import GuildRole from '../GuildRole.js';
 
 describe('GuildSystem', () => {
   let guildManager, guildMember, guildRole;
@@ -13,14 +14,14 @@ describe('GuildSystem', () => {
   beforeEach(() => {
     // Mock Redis client
     mockRedis = {
-      hset: jest.fn().mockResolvedValue(true),
-      hget: jest.fn(),
-      hdel: jest.fn(),
-      sadd: jest.fn().mockResolvedValue(true),
-      srem: jest.fn().mockResolvedValue(true),
-      del: jest.fn().mockResolvedValue(true),
-      get: jest.fn(),
-      set: jest.fn().mockResolvedValue(true)
+      hset: vi.fn().mockResolvedValue(true),
+      hget: vi.fn(),
+      hdel: vi.fn(),
+      sadd: vi.fn().mockResolvedValue(true),
+      srem: vi.fn().mockResolvedValue(true),
+      del: vi.fn().mockResolvedValue(true),
+      get: vi.fn(),
+      set: vi.fn().mockResolvedValue(true)
     };
 
     guildManager = new GuildManager(mockRedis);
@@ -411,9 +412,3 @@ describe('GuildSystem', () => {
     });
   });
 });
-
-module.exports = {
-  GuildManager,
-  GuildMember,
-  GuildRole
-};

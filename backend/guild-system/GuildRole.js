@@ -3,7 +3,7 @@
  * 길드 내 역할 생성, 수정, 삭제 및 권한 설정
  */
 
-class GuildRole {
+export default class GuildRole {
   constructor(guildManager) {
     this.guildManager = guildManager;
   }
@@ -133,5 +133,3 @@ class GuildRole {
     return guild.roles;
   }
 }
-
-module.exports = GuildRole;
