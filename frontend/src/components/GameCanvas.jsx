@@ -222,9 +222,8 @@ function GameCanvas({
   const myCharacterRef = useRef(myCharacter)
   const charactersRef = useRef(characters)
   const affinitiesRef = useRef(affinities)
-  // ✅ BUG FIX #145: Use prop chatMessagesRef if provided, otherwise create local ref
-  const localChatMessagesRef = useRef(chatMessages)
-  const messagesRef = chatMessagesRef || localChatMessagesRef
+  // ✅ BUG FIX #152: Always use prop chatMessagesRef if provided
+  const messagesRef = chatMessagesRef || useRef(chatMessages)
   const clickEffectsRef = useRef(clickEffects)
   const buildingsRef = useRef(buildings)
   const characterCustomizationRef = useRef(characterCustomization)
@@ -239,11 +238,10 @@ function GameCanvas({
     myCharacterRef.current = myCharacter
     charactersRef.current = characters
     affinitiesRef.current = affinities
-    // ✅ BUG FIX #145: Sync local ref only (external ref managed by App)
+    // ✅ BUG FIX #152: Sync both refs if chatMessagesRef is null (local fallback)
     if (!chatMessagesRef) {
-      localChatMessagesRef.current = chatMessages
+      messagesRef.current = chatMessages
     }
-    console.log('💾 messagesRef sync:', messagesRef.current)
     clickEffectsRef.current = clickEffects
     buildingsRef.current = buildings
     characterCustomizationRef.current = characterCustomization
