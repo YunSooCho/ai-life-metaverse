@@ -176,7 +176,7 @@ const CoinMenu = ({ characterId, onClose }) => {
         {activeTab === 'balance' && (
           <div className="coin-section">
             <h3 className="coin-section-title">최근 기록</h3>
-            {history.length === 0 ? (
+            {!Array.isArray(history) || history.length === 0 ? (
               <div className="coin-empty">기록이 없습니다</div>
             ) : (
               <div className="coin-list">

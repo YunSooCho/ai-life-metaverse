@@ -116,13 +116,22 @@ class AnimationController {
       }
     }
 
+    // idle 상태에서는 프레임을 업데이트하지 않음 (항상 0 유지)
+    if (this.state === 'idle') {
+      this.currentFrame = 0;
+      this.lastFrameUpdate = timestamp;
+      return;
+    }
+
     // 현재 상태의 애니메이션 프레임 업데이트
     const channelConfig = this.animationChannels[this.state];
     if (!channelConfig) return;
 
     const maxFrames = 4; // 기본 4프레임
     const loop = channelConfig.loop;
-    const speed = channelConfig.speed;
+
+    // this.animationSpeed를 우선 사용 (setAnimationSpeed로 설정한 값)
+    const speed = this.animationSpeed;
 
     if (!this.lastFrameUpdate) {
       this.lastFrameUpdate = timestamp;
