@@ -114,9 +114,10 @@
 - **실행 상태:** 작동 중
 
 ### 텔레그램
-- **봇 토큰:** `8432799176:AAHlncWLT9SxEvxF2PCWLiXyGgzwI7Xmy-w`
+- **봇 토큰:** [보안: GitHub/Notion에 저장 - 사용자 요청 시 조회]
 - **사용자 ID:** 8129283040
 - **채널:** 텔레그램 사용 (iMessage 권한 문제로 인해)
+- ⚠️ **중요:** 토큰은 보안상 코드에 절대 포함 금지
 
 ### GitHub (AI Life Metaverse)
 - **리포지토리:** https://github.com/YunSooCho/ai-life-metaverse.git
