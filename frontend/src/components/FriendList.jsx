@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import './FriendList.css';
 
@@ -37,20 +37,8 @@ function FriendList({
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 친구 목록 로드
-  useEffect(() => {
-    if (socket && characterId && visible) {
-      loadFriends();
-    }
-  }, [socket, characterId, visible]);
-
-  // friends prop이 변경되면 업데이트
-  useEffect(() => {
-    setFriendsWithStatus(friends);
-  }, [friends]);
-
-  // 친구 목록 로드
-  const loadFriends = () => {
+  // 친구 목록 로드 (useCallback으로 감싸서 함수 참조 안정화)
+  const loadFriends = useCallback(() => {
     setLoading(true);
     if (socket) {
       socket.emit('getFriends', { characterId }, (response) => {
@@ -60,7 +48,22 @@ function FriendList({
         }
       });
     }
-  };
+  }, [socket, characterId]);
+
+  // 친구 목록 로드 트리거
+  useEffect(() => {
+    if (socket && characterId && visible) {
+      loadFriends();
+    }
+  }, [socket, characterId, visible, loadFriends]);
+
+  // friends prop이 변경되면 업데이트 (무한 루프 방지를 위해 비교 로직 추가)
+  useEffect(() => {
+    // friends가 실제로 변경되었는지 확인 (배열 비교)
+    if (JSON.stringify(friendsWithStatus) !== JSON.stringify(friends)) {
+      setFriendsWithStatus(friends);
+    }
+  }, [friends]);
 
   // 친구 삭제
   const handleRemoveFriend = (friendId, friendName) => {

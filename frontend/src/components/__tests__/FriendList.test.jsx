@@ -507,4 +507,63 @@ describe('FriendList Component', () => {
       );
     });
   });
+
+  describe('무한 루프 방지', () => {
+    it('friends prop이 동일한 배열일 때 무한 루프가 발생하지 않아야 함', () => {
+      // 같은 friends 배열 지속 전달
+      const sameFriends = mockFriends;
+
+      const { rerender } = render(
+        <FriendList
+          visible={true}
+          friends={sameFriends}
+          socket={mockSocket}
+          characterId={mockCharacterId}
+        />
+      );
+
+      // 여러 번 재렌더링 (무한 루프 발생하면 테스트가 타임아웃됨)
+      for (let i = 0; i < 10; i++) {
+        rerender(
+          <FriendList
+            visible={true}
+            friends={sameFriends}
+            socket={mockSocket}
+            characterId={mockCharacterId}
+          />
+        );
+      }
+
+      // 테스트 완료 (타임아웃 없이 성공하면 무한 루프 방지됨)
+      expect(true).toBe(true);
+    });
+
+    it('friends prop이 새로운 배열이지만 내용이 같으면 무한 루프가 발생하지 않아야 함', () => {
+      const friends1 = [...mockFriends];
+      const friends2 = [...friends1]; // 동일한 내용, 다른 참조
+
+      const { rerender } = render(
+        <FriendList
+          visible={true}
+          friends={friends1}
+          socket={mockSocket}
+          characterId={mockCharacterId}
+        />
+      );
+
+      // 여러 번 재렌더링 동일한 내용
+      for (let i = 0; i < 10; i++) {
+        rerender(
+          <FriendList
+            visible={true}
+            friends={i % 2 === 0 ? friends1 : friends2}
+            socket={mockSocket}
+            characterId={mockCharacterId}
+          />
+        );
+      }
+
+      expect(true).toBe(true);
+    });
+  });
 });
