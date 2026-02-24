@@ -128,7 +128,9 @@ describe('Shop Component', () => {
     render(<Shop onClose={vi.fn()} />);
 
     await waitFor(() => {
-      expect(screen.getByText('테스트 아이템')).toBeInTheDocument();
+      expect(screen.getByText((content, element) => {
+        return content.includes('테스트 아이템') && element.tagName === 'DIV';
+      })).toBeInTheDocument();
     });
 
     const confirmMock = vi.spyOn(global, 'confirm').mockReturnValue(false);
@@ -272,16 +274,16 @@ describe('Shop Component', () => {
     render(<Shop onClose={vi.fn()} />);
 
     await waitFor(() => {
-      expect(screen.getByText('일반 상점')).toBeInTheDocument();
+      expect(screen.getAllByText('일반 상점').length).toBeGreaterThan(0);
       expect(screen.getByText('무기 상점')).toBeInTheDocument();
     });
 
     // 무기 상점 클릭
-    const weaponShopButton = screen.getByText('무기 상점');
+    const weaponShopButton = screen.getAllByText('무기 상점')[0];
     fireEvent.click(weaponShopButton);
 
     await waitFor(() => {
-      expect(screen.getByText('무기 상점')).toBeInTheDocument();
+      expect(screen.getAllByText('무기 상점').length).toBe(2); // 버튼 + h3
     });
   });
 });

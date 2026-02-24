@@ -1584,7 +1584,6 @@ function AppContent() {
           onClose={() => setShowGuild(false)}
         />
       )}
-      )}
       {showRaid && (
         <RaidMenu
           socket={socket}
