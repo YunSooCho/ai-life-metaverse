@@ -223,7 +223,7 @@ const Shop = ({ onClose }) => {
       }}>
         <h3 style={{ margin: '0 0 15px 0', color: '#E74C3C' }}>📦 판매 상품</h3>
 
-        {selectedShop.items.length === 0 ? (
+        {!selectedShop.items || selectedShop.items.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '30px',
