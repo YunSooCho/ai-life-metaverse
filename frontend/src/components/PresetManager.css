@@ -1,0 +1,166 @@
+/**
+ * PresetManager.css - 프리셋 관리 UI 스타일
+ *
+ * Created: 2026-02-24 10:55
+ * PM: Genie
+ */
+
+.preset-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+}
+
+.preset-manager {
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 20px;
+  background: var(--pixel-bg-primary);
+  border: 4px solid #ffffff;
+  box-shadow: 6px 6px 0 0 #000;
+}
+
+.preset-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--pixel-bg-secondary);
+}
+
+.preset-manager-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.preset-manager-message {
+  padding: 12px;
+  background: var(--pixel-bg-secondary);
+  border: 2px solid var(--pixel-accent-green);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.pixel-button-sm {
+  padding: 6px 8px;
+  font-size: 10px;
+}
+
+.preset-manager-new-btn {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.preset-manager-new {
+  padding: 16px;
+  background: var(--pixel-bg-secondary);
+  border: 2px solid var(--pixel-accent-blue);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.preset-manager-new h3 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+}
+
+.preset-manager-new input {
+  width: 100%;
+  padding: 10px;
+  background: var(--pixel-bg-primary);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 10px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.preset-manager-new-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.preset-manager-list {
+  padding: 16px;
+  background: var(--pixel-bg-secondary);
+  border: 2px solid var(--pixel-accent-cyan);
+  border-radius: 4px;
+}
+
+.preset-manager-list h3 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+}
+
+.preset-manager-empty {
+  text-align: center;
+  color: var(--pixel-text-muted);
+  font-size: 10px;
+  padding: 32px;
+}
+
+.preset-manager-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-manager-item {
+  padding: 12px;
+  background: var(--pixel-bg-primary);
+  border: 2px solid var(--pixel-border-medium);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.1s;
+}
+
+.preset-manager-item:hover {
+  border-color: var(--pixel-accent-blue);
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0 0 #000;
+}
+
+.preset-manager-item-info {
+  flex: 1;
+}
+
+.preset-manager-item-name {
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.preset-manager-item-date {
+  font-size: 9px;
+  color: var(--pixel-text-muted);
+}
+
+.preset-manager-item-preview {
+  font-size: 12px;
+  color: var(--pixel-text-muted);
+}
+
+.preset-manager-item-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.preset-manager-item-actions button {
+  min-width: 32px;
+}

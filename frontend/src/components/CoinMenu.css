@@ -1,0 +1,417 @@
+/**
+ * Coin Menu Styles - 픽셀아트 레트로 스타일
+ */
+
+.coin-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.coin-menu {
+  background-color: #2C3E50;
+  color: #ECF0F1;
+  width: 700px;
+  max-height: 80vh;
+  border-radius: 10px;
+  border: 3px solid #4a4a6a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  font-family: 'Press Start 2P', 'DungGeunMo', monospace;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 헤더 */
+.coin-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #F39C12 0%, #e67e22 100%);
+  border-bottom: 4px solid #d35400;
+  margin-bottom: 0;
+}
+
+.coin-menu-title {
+  margin: 0;
+  font-size: 18px;
+  color: #ECF0F1;
+  text-shadow: 2px 2px 0 #d35400;
+}
+
+.coin-menu-close {
+  background: #E74C3C;
+  color: #ECF0F1;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #c0392b;
+  transition: all 0.2s ease;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.coin-menu-close:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #922b21;
+}
+
+.coin-menu-close:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 #922b21;
+}
+
+/* 코인 잔액 카드 */
+.coin-balance-card {
+  padding: 25px;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  margin: 0;
+  text-align: center;
+  border-bottom: 3px solid #1e8449;
+}
+
+.coin-balance-label {
+  font-size: 12px;
+  color: #d5f4e6;
+  margin-bottom: 8px;
+}
+
+.coin-balance-amount {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ECF0F1;
+  text-shadow: 2px 2px 0 #1e8449;
+}
+
+/* 탭 */
+.coin-tabs {
+  display: flex;
+  gap: 0;
+  background-color: #34495E;
+  border-bottom: 3px solid #2C3E50;
+}
+
+.coin-tab {
+  flex: 1;
+  padding: 15px 20px;
+  background: #2C3E50;
+  color: #95A5A6;
+  border: none;
+  border-bottom: 3px solid #2C3E50;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+}
+
+.coin-tab:hover {
+  background: #34495E;
+  color: #ECF0F1;
+}
+
+.coin-tab-active {
+  background: #34495E;
+  color: #F39C12;
+  border-bottom: 3px solid #F39C12;
+}
+
+/* 섹션 */
+.coin-section {
+  padding: 20px;
+}
+
+.coin-section-title {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  color: #F39C12;
+  text-shadow: 1px 1px 0 #d35400;
+}
+
+.coin-section-title::before {
+  content: '■ ';
+  color: #2ECC71;
+}
+
+/* 빈 상태 */
+.coin-empty {
+  text-align: center;
+  padding: 30px;
+  color: #95A5A6;
+  font-size: 12px;
+  background-color: #2C3E50;
+  border-radius: 5px;
+  border: 2px dashed #34495E;
+}
+
+/* 기록 리스트 */
+.coin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coin-record {
+  background-color: #34495E;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.coin-record:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+}
+
+.coin-record-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coin-record-type {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.coin-record-time {
+  font-size: 10px;
+  color: #95A5A6;
+}
+
+.coin-record-description {
+  font-size: 11px;
+  color: #ECF0F1;
+}
+
+.coin-record-amount {
+  font-size: 14px;
+  font-weight: bold;
+  color: #F39C12;
+  text-shadow: 1px 1px 0 #d35400;
+}
+
+/* 전송 폼 */
+.coin-transfer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.coin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.coin-form-label {
+  font-size: 11px;
+  color: #95A5A6;
+  margin-bottom: 0;
+}
+
+.coin-form-input {
+  background-color: #2C3E50;
+  border: 2px solid #34495E;
+  border-radius: 5px;
+  padding: 12px;
+  color: #ECF0F1;
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.2s ease;
+}
+
+.coin-form-input:focus {
+  outline: none;
+  border-color: #F39C12;
+  box-shadow: 0 0 8px rgba(243, 156, 18, 0.3);
+}
+
+.coin-form-hint {
+  font-size: 10px;
+  color: #95A5A6;
+}
+
+.coin-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.coin-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+.coin-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.coin-button:disabled {
+  background: #95A5A6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.coin-button-primary {
+  background: linear-gradient(135deg, #F39C12 0%, #e67e22 100%);
+  color: #ECF0F1;
+}
+
+.coin-button-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+/* 랭킹 */
+.coin-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coin-rank-item {
+  background: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.coin-rank-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+}
+
+.coin-rank-item-me {
+  background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+  border: 2px solid #f1c40f;
+}
+
+.coin-rank-position {
+  font-size: 20px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.coin-rank-info {
+  flex: 1;
+}
+
+.coin-rank-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ECF0F1;
+}
+
+.coin-rank-amount {
+  font-size: 13px;
+  font-weight: bold;
+  color: #F39C12;
+  text-shadow: 1px 1px 0 #d35400;
+}
+
+/* 스크롤바 스타일 */
+.coin-menu::-webkit-scrollbar {
+  width: 12px;
+}
+
+.coin-menu::-webkit-scrollbar-track {
+  background: #2C3E50;
+  border-radius: 6px;
+}
+
+.coin-menu::-webkit-scrollbar-thumb {
+  background: #F39C12;
+  border-radius: 6px;
+  border: 3px solid #2C3E50;
+}
+
+.coin-menu::-webkit-scrollbar-thumb:hover {
+  background: #e67e22;
+}
+
+/* 반응형 */
+@media (max-width: 750px) {
+  .coin-menu {
+    width: 90%;
+    max-width: 550px;
+  }
+
+  .coin-balance-amount {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 500px) {
+  .coin-menu {
+    width: 95%;
+  }
+
+  .coin-tabs {
+    flex-direction: column;
+  }
+
+  .coin-record {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .coin-record-amount {
+    font-size: 12px;
+  }
+
+  .coin-menu-title {
+    font-size: 14px;
+  }
+
+  .coin-section-title {
+    font-size: 12px;
+  }
+
+  .coin-balance-amount {
+    font-size: 18px;
+  }
+}

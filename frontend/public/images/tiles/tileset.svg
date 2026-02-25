@@ -1,0 +1,105 @@
+<svg width="160" height="160" xmlns="http://www.w3.org/2000/svg">
+  <!-- 타일 1: 잔디 (0,0) -->
+  <rect x="0" y="0" width="32" height="32" fill="#4CAF50" stroke="#388E3C" stroke-width="1"/>
+  <!-- 작은 풀 효과 -->
+  <rect x="5" y="5" width="2" height="4" fill="#2E7D32"/>
+  <rect x="12" y="8" width="2" height="4" fill="#2E7D32"/>
+  <rect x="20" y="4" width="2" height="4" fill="#2E7D32"/>
+
+  <!-- 타일 2: 흙길 (32,0) -->
+  <rect x="32" y="0" width="32" height="32" fill="#8D6E63" stroke="#795548" stroke-width="1"/>
+  <circle cx="40" cy="10" r="2" fill="#6D4C41"/>
+  <circle cx="55" cy="18" r="2" fill="#6D4C41"/>
+  <circle cx="50" cy="25" r="2" fill="#6D4C41"/>
+
+  <!-- 타일 3: 돌바닥 (64,0) -->
+  <rect x="64" y="0" width="32" height="32" fill="#757575" stroke="#616161" stroke-width="1"/>
+  <rect x="68" y="4" width="8" height="8" fill="#9E9E9E" stroke="#757575" stroke-width="1"/>
+  <rect x="80" y="4" width="8" height="8" fill="#9E9E9E" stroke="#757575" stroke-width="1"/>
+  <rect x="68" y="16" width="8" height="8" fill="#9E9E9E" stroke="#757575" stroke-width="1"/>
+  <rect x="80" y="16" width="8" height="8" fill="#9E9E9E" stroke="#757575" stroke-width="1"/>
+
+  <!-- 타일 4: 물 (96,0) -->
+  <rect x="96" y="0" width="32" height="32" fill="#2196F3" stroke="#1976D2" stroke-width="1"/>
+  <path d="M100 10 Q104 6 108 10 Q112 14 116 10" stroke="#64B5F6" stroke-width="2" fill="none"/>
+  <path d="M100 18 Q104 14 108 18 Q112 22 116 18" stroke="#64B5F6" stroke-width="2" fill="none"/>
+  <path d="M100 26 Q104 22 108 26 Q112 30 116 26" stroke="#64B5F6" stroke-width="2" fill="none"/>
+
+  <!-- 타일 5: 모래 (0,32) -->
+  <rect x="0" y="32" width="32" height="32" fill="#F4E1D2" stroke="#E8D0C0" stroke-width="1"/>
+  <circle cx="8" cy="48" r="1" fill="#E0C9B8"/>
+  <circle cx="18" cy="42" r="1" fill="#E0C9B8"/>
+  <circle cx="24" cy="55" r="1" fill="#E0C9B8"/>
+
+  <!-- 타일 6: 나무바닥 (32,32) -->
+  <rect x="32" y="32" width="32" height="32" fill="#DEB887" stroke="#CD853F" stroke-width="2"/>
+  <line x1="36" y1="40" x2="60" y2="56" stroke="#8B4513" stroke-width="1"/>
+  <line x1="60" y1="40" x2="36" y2="56" stroke="#8B4513" stroke-width="1"/>
+
+  <!-- 타일 7: 잔디+경로 (64,32) -->
+  <rect x="64" y="32" width="32" height="32" fill="#4CAF50" stroke="#388E3C" stroke-width="1"/>
+  <rect x="64" y="48" width="32" height="16" fill="#8D6E63"/>
+  <rect x="5" y="37" width="2" height="4" fill="#2E7D32"/>
+
+  <!-- 타일 8: 벽돌 (96,32) -->
+  <rect x="96" y="32" width="32" height="32" fill="#A52A2A" stroke="#8B4513" stroke-width="1"/>
+  <rect x="100" y="36" width="12" height="6" fill="#CD5C5C"/>
+  <rect x="116" y="36" width="12" height="6" fill="#CD5C5C"/>
+  <rect x="104" y="44" width="12" height="6" fill="#CD5C5C"/>
+  <rect x="120" y="44" width="8" height="6" fill="#CD5C5C"/>
+  <rect x="100" y="52" width="12" height="6" fill="#CD5C5C"/>
+  <rect x="116" y="52" width="12" height="6" fill="#CD5C5C"/>
+
+  <!-- 타일 9: 어두운 잔디 (0,64) -->
+  <rect x="0" y="64" width="32" height="32" fill="#2E7D32" stroke="#1B5E20" stroke-width="1"/>
+  <rect x="5" y="69" width="2" height="4" fill="#1B5E20"/>
+  <rect x="12" y="72" width="2" height="4" fill="#1B5E20"/>
+  <rect x="20" y="68" width="2" height="4" fill="#1B5E20"/>
+
+  <!-- 타일 10: 진흙 (32,64) -->
+  <rect x="32" y="64" width="32" height="32" fill="#5D4037" stroke="#4E342E" stroke-width="1"/>
+  <circle cx="40" cy="80" r="2" fill="#4E342E"/>
+  <circle cx="55" cy="88" r="2" fill="#4E342E"/>
+
+  <!-- 타일 11: 밝은 돌바닥 (64,64) -->
+  <rect x="64" y="64" width="32" height="32" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="1"/>
+  <rect x="68" y="68" width="8" height="8" fill="#E0E0E0" stroke="#BDBDBD" stroke-width="1"/>
+  <rect x="80" y="68" width="8" height="8" fill="#E0E0E0" stroke="#BDBDBD" stroke-width="1"/>
+  <rect x="68" y="80" width="8" height="8" fill="#E0E0E0" stroke="#BDBDBD" stroke-width="1"/>
+  <rect x="80" y="80" width="8" height="8" fill="#E0E0E0" stroke="#BDBDBD" stroke-width="1"/>
+
+  <!-- 타일 12: 콘크리트 (96,64) -->
+  <rect x="96" y="64" width="32" height="32" fill="#9E9E9E" stroke="#757575" stroke-width="1"/>
+  <line x1="100" y1="68" x2="124" y2="68" stroke="#BDBDBD" stroke-width="1"/>
+  <line x1="100" y1="75" x2="124" y2="75" stroke="#BDBDBD" stroke-width="1"/>
+  <line x1="100" y1="82" x2="124" y2="82" stroke="#BDBDBD" stroke-width="1"/>
+  <line x1="100" y1="89" x2="124" y2="89" stroke="#BDBDBD" stroke-width="1"/>
+
+  <!-- 타일 13: 밭 (0,96) -->
+  <rect x="0" y="96" width="32" height="32" fill="#6D4C41" stroke="#5D4037" stroke-width="1"/>
+  <line x1="4" y1="105" x2="28" y2="105" stroke="#4E342E" stroke-width="1"/>
+  <line x1="4" y1="112" x2="28" y2="112" stroke="#4E342E" stroke-width="1"/>
+  <line x1="4" y1="119" x2="28" y2="119" stroke="#4E342E" stroke-width="1"/>
+
+  <!-- 타일 14: 꽃밭 (32,96) -->
+  <rect x="32" y="96" width="32" height="32" fill="#4CAF50" stroke="#388E3C" stroke-width="1"/>
+  <circle cx="40" cy="110" r="3" fill="#E91E63"/>
+  <circle cx="55" cy="115" r="3" fill="#FFF176"/>
+  <circle cx="47" cy="120" r="3" fill="#9C27B0"/>
+
+  <!-- 타일 15: 돌다리 (64,96) -->
+  <rect x="64" y="96" width="32" height="32" fill="#2196F3" stroke="#1976D2" stroke-width="1"/>
+  <rect x="68" y="105" width="8" height="15" fill="#795548" stroke="#5D4037" stroke-width="1"/>
+  <rect x="80" y="105" width="8" height="15" fill="#795548" stroke="#5D4037" stroke-width="1"/>
+
+  <!-- 타일 16: 울타리 (96,96) -->
+  <rect x="96" y="96" width="32" height="32" fill="#4CAF50" stroke="#388E3C" stroke-width="1"/>
+  <line x1="100" y1="96" x2="100" y2="128" stroke="#8B4513" stroke-width="2"/>
+  <line x1="110" y1="96" x2="110" y2="128" stroke="#8B4513" stroke-width="2"/>
+  <line x1="120" y1="96" x2="120" y2="128" stroke="#8B4513" stroke-width="2"/>
+  <line x1="100" y1="110" x2="120" y2="110" stroke="#8B4513" stroke-width="1"/>
+
+  <!-- 입구 하이라이트 효과 (128,0) -->
+  <rect x="128" y="0" width="32" height="32" fill="rgba(255,215,0,0.3)" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,2"/>
+  <text x="144" y="20" font-family="Arial" font-size="10" fill="#FFD700" text-anchor="middle">ENTRANCE</text>
+</svg>

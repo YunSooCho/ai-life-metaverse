@@ -1,0 +1,211 @@
+/* NotificationSystem 컴포넌트 스타일 - Phase 5 */
+
+/* 알림 시스템 컨테이너 */
+.notification-system {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+/* 알림 아이템 */
+.notification {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  min-width: 320px;
+  max-width: 400px;
+  background: var(--bg-panel, #1a1a2e);
+  border: 3px solid var(--border-light, #ffffff);
+  border-radius: 4px;
+  box-shadow:
+    4px 4px 0 var(--border-dark, #1d3557),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  font-family: 'Press Start 2P', monospace;
+  animation: slideIn 400ms ease-out, fadeOut 300ms ease-in 4.7s forwards;
+  cursor: pointer;
+  transition: all 200ms;
+}
+
+.notification:hover {
+  transform: translateX(-5px);
+  box-shadow:
+    5px 5px 0 var(--border-dark, #1d3557),
+    0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* 퀘스트 완료 스타일 */
+.notification-quest {
+  border-color: var(--text-highlight, #ffd700);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), var(--bg-panel, #1a1a2e));
+}
+
+.notification-quest .notification-icon {
+  background: var(--text-highlight, #ffd700);
+}
+
+/* 아이템 획득 스타일 */
+.notification-item {
+  border-color: var(--emotion-excited, #ff1493);
+  background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), var(--bg-panel, #1a1a2e));
+}
+
+.notification-item .notification-icon {
+  background: var(--emotion-excited, #ff1493);
+}
+
+/* 날씨 변화 스타일 */
+.notification-weather {
+  border-color: var(--emotion-happy, #4ade80);
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), var(--bg-panel, #1a1a2e));
+}
+
+.notification-weather .notification-icon {
+  background: var(--emotion-happy, #4ade80);
+}
+
+/* 기본 정보 스타일 */
+.notification-info {
+  border-color: var(--border-medium, #457b9d);
+  background: linear-gradient(135deg, rgba(69, 123, 157, 0.1), var(--bg-panel, #1a1a2e));
+}
+
+.notification-info .notification-icon {
+  background: var(--border-medium, #457b9d);
+}
+
+/* 알림 아이콘 */
+.notification-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 24px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  animation: bounce 500ms ease-out;
+}
+
+/* 알림 콘텐츠 */
+.notification-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notification-title {
+  font-size: 10px;
+  color: var(--text-accent, #e94560);
+  margin: 0;
+  font-weight: bold;
+}
+
+.notification-message {
+  font-size: 9px;
+  color: var(--text-primary, #ffffff);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.notification-details {
+  font-size: 8px;
+  color: var(--text-secondary, #f1faee);
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* 닫기 버튼 */
+.notification-dismiss {
+  flex-shrink: 0;
+  background: transparent;
+  border: 2px solid var(--text-muted, #a8dadc);
+  color: var(--text-muted, #a8dadc);
+  font-size: 14px;
+  font-family: 'Press Start 2P', monospace;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 200ms;
+}
+
+.notification-dismiss:hover {
+  background: var(--btn-danger, #e63946);
+  border-color: var(--btn-danger, #e63946);
+  color: var(--text-primary, #ffffff);
+  transform: scale(1.1);
+}
+
+/* 애니메이션 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .notification-system {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .notification {
+    min-width: auto;
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  .notification-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .notification-title {
+    font-size: 9px;
+  }
+
+  .notification-message {
+    font-size: 8px;
+  }
+
+  .notification-details {
+    font-size: 7px;
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "ai-life-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^4.19.2",
+    "redis": "^4.7.1",
+    "socket.io": "^4.7.5",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.5",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.9"
+  }
+}

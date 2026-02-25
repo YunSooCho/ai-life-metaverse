@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; background: #111; color: #fff; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+.sample { border-radius: 16px; overflow: hidden; }
+.sample h2 { padding: 12px 16px; font-size: 18px; text-align: center; }
+.sample canvas { display: block; width: 100%; }
+
+/* Style 1: Pixel Art */
+.pixel h2 { background: #2d1b69; color: #f0e68c; font-family: monospace; }
+/* Style 2: Kawaii */
+.kawaii h2 { background: #ffb6c1; color: #fff; }
+/* Style 3: Minimal */
+.minimal h2 { background: #f5f5f5; color: #333; }
+/* Style 4: Anime */
+.anime h2 { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <!-- 1. Pixel Art -->
+  <div class="sample pixel">
+    <h2>🎮 1. 픽셀아트 스타일</h2>
+    <canvas id="c1" width="500" height="400"></canvas>
+  </div>
+  <!-- 2. Kawaii -->
+  <div class="sample kawaii">
+    <h2>🌸 2. 카와이 스타일</h2>
+    <canvas id="c2" width="500" height="400"></canvas>
+  </div>
+  <!-- 3. Minimal -->
+  <div class="sample minimal">
+    <h2>✨ 3. 미니멀 플랫 스타일</h2>
+    <canvas id="c3" width="500" height="400"></canvas>
+  </div>
+  <!-- 4. Anime -->
+  <div class="sample anime">
+    <h2>🌟 4. 애니메이션 스타일</h2>
+    <canvas id="c4" width="500" height="400"></canvas>
+  </div>
+</div>
+<script>
+// === 1. Pixel Art Style ===
+(function(){
+  const c = document.getElementById('c1').getContext('2d');
+  // BG - dark purple grass
+  c.fillStyle = '#1a0a3e'; c.fillRect(0,0,500,400);
+  // Grass tiles (pixel grid)
+  for(let x=0;x<500;x+=16) for(let y=200;y<400;y+=16){
+    c.fillStyle = (x/16+y/16)%2===0 ? '#2d5a1e' : '#3a7a28';
+    c.fillRect(x,y,16,16);
+  }
+  // Sky gradient pixel
+  for(let y=0;y<200;y+=16) for(let x=0;x<500;x+=16){
+    const t = y/200;
+    c.fillStyle = `rgb(${Math.floor(20+t*30)},${Math.floor(10+t*40)},${Math.floor(80-t*20)})`;
+    c.fillRect(x,y,16,16);
+  }
+  // Stars
+  c.fillStyle='#f0e68c';
+  [[50,30],[150,60],[300,20],[420,50],[250,80]].forEach(([x,y])=>{c.fillRect(x,y,4,4);});
+  // Building - pixel house
+  c.fillStyle='#8B4513'; c.fillRect(60,140,80,60); // wall
+  c.fillStyle='#CD853F'; c.fillRect(70,150,20,20); // window
+  c.fillStyle='#CD853F'; c.fillRect(110,150,20,20); // window
+  c.fillStyle='#4a2800'; c.fillRect(85,170,30,30); // door
+  c.fillStyle='#c0392b'; // roof
+  c.beginPath(); c.moveTo(50,140); c.lineTo(100,100); c.lineTo(150,140); c.fill();
+  // Building 2 - shop
+  c.fillStyle='#3498db'; c.fillRect(250,150,90,50);
+  c.fillStyle='#2980b9'; c.fillRect(260,160,30,15); c.fillRect(300,160,30,15);
+  c.fillStyle='#1a5276'; c.fillRect(280,175,25,25);
+  c.fillStyle='#e74c3c'; c.beginPath(); c.moveTo(240,150); c.lineTo(295,115); c.lineTo(350,150); c.fill();
+  // Tree
+  c.fillStyle='#5d4037'; c.fillRect(390,160,12,40);
+  c.fillStyle='#27ae60'; c.fillRect(370,130,52,40); c.fillRect(378,120,36,20);
+  // Characters (pixel)
+  // Char 1 - pink hair girl
+  c.fillStyle='#ffb6c1'; c.fillRect(180,220,16,16); // head
+  c.fillStyle='#ff69b4'; c.fillRect(176,216,24,8); // hair
+  c.fillStyle='#ff1493'; c.fillRect(180,236,16,20); // body
+  c.fillStyle='#ffd700'; c.fillRect(180,256,7,12); c.fillRect(189,256,7,12); // legs
+  c.fillStyle='#000'; c.fillRect(183,224,3,3); c.fillRect(190,224,3,3); // eyes
+  c.fillStyle='#f00'; c.fillRect(185,229,6,2); // mouth
+  // Speech bubble
+  c.fillStyle='#fff'; c.fillRect(200,195,70,22); c.fillRect(196,217,8,8);
+  c.fillStyle='#000'; c.font='10px monospace'; c.fillText('안녕하세요!',203,210);
+  // Char 2 - blue boy
+  c.fillStyle='#87ceeb'; c.fillRect(320,230,16,16); // head
+  c.fillStyle='#4169e1'; c.fillRect(316,226,24,8); // hair
+  c.fillStyle='#1e90ff'; c.fillRect(320,246,16,20); // body
+  c.fillStyle='#333'; c.fillRect(320,266,7,12); c.fillRect(329,266,7,12); // legs
+  c.fillStyle='#000'; c.fillRect(323,234,3,3); c.fillRect(330,234,3,3); // eyes
+  // Heart
+  c.fillStyle='#ff0000'; c.font='16px monospace'; c.fillText('♥',325,225);
+  // UI overlay
+  c.fillStyle='rgba(0,0,0,0.7)'; c.fillRect(10,350,200,40);
+  c.fillStyle='#f0e68c'; c.font='12px monospace';
+  c.fillText('HP: ████████░░ 80%',20,368);
+  c.fillText('💰 Gold: 1,250',20,383);
+  // Label
+  c.fillStyle='rgba(45,27,105,0.8)'; c.fillRect(0,0,500,28);
+  c.fillStyle='#f0e68c'; c.font='bold 14px monospace';
+  c.fillText('🎮 레트로 감성 | 도트 캐릭터 | 타일맵 | 노스탤지어',10,18);
+})();
+
+// === 2. Kawaii Style ===
+(function(){
+  const c = document.getElementById('c2').getContext('2d');
+  // Pastel sky
+  const g = c.createLinearGradient(0,0,0,400);
+  g.addColorStop(0,'#a8e6cf'); g.addColorStop(0.5,'#dcedc1'); g.addColorStop(1,'#ffd3b6');
+  c.fillStyle=g; c.fillRect(0,0,500,400);
+  // Clouds
+  c.fillStyle='rgba(255,255,255,0.8)';
+  [[80,40,40],[120,35,30],[60,45,25],[300,50,35],[340,45,25],[280,55,20]].forEach(([x,y,r])=>{
+    c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
+  });
+  // Ground - soft green
+  c.fillStyle='#b5e8a3'; c.fillRect(0,280,500,120);
+  c.fillStyle='#a3d98f'; 
+  for(let i=0;i<10;i++) { c.beginPath(); c.arc(i*55+20,280,30,Math.PI,0); c.fill(); }
+  // Kawaii house
+  c.fillStyle='#ffb3ba';
+  c.beginPath(); c.moveTo(50,180); c.lineTo(50,260); c.lineTo(160,260); c.lineTo(160,180); c.fill();
+  c.fillStyle='#ff6b81'; // roof
+  c.beginPath(); c.moveTo(40,180); c.lineTo(105,130); c.lineTo(170,180); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(80,215,12,0,Math.PI*2); c.fill(); // window
+  c.fillStyle='#87ceeb'; c.beginPath(); c.arc(80,215,9,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(130,215,12,0,Math.PI*2); c.fill();
+  c.fillStyle='#87ceeb'; c.beginPath(); c.arc(130,215,9,0,Math.PI*2); c.fill();
+  c.fillStyle='#c0392b'; c.fillRect(95,230,20,30); // door
+  c.fillStyle='#f1c40f'; c.beginPath(); c.arc(110,245,3,0,Math.PI*2); c.fill(); // knob
+  // Kawaii shop
+  c.fillStyle='#c3b1e1';
+  c.beginPath(); c.moveTo(280,190); c.lineTo(280,260); c.lineTo(400,260); c.lineTo(400,190); c.fill();
+  c.fillStyle='#9b59b6';
+  c.beginPath(); c.moveTo(270,190); c.lineTo(340,145); c.lineTo(410,190); c.fill();
+  c.fillStyle='#fff'; c.fillRect(295,210,30,20); c.fillRect(345,210,30,20);
+  c.fillStyle='#dda0dd'; c.fillRect(295,210,30,20); c.globalAlpha=1;
+  // Kawaii tree
+  c.fillStyle='#d4a574'; c.fillRect(220,210,14,50);
+  c.fillStyle='#ff9a9e';
+  c.beginPath(); c.arc(227,190,30,0,Math.PI*2); c.fill();
+  c.fillStyle='#fecfef';
+  c.beginPath(); c.arc(215,180,18,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(240,175,15,0,Math.PI*2); c.fill();
+  // Flowers
+  ['#ff6b81','#f1c40f','#ff9ff3','#48dbfb'].forEach((col,i)=>{
+    c.fillStyle=col;
+    c.beginPath(); c.arc(30+i*40,295,6,0,Math.PI*2); c.fill();
+    c.fillStyle='#fff'; c.beginPath(); c.arc(30+i*40,295,2,0,Math.PI*2); c.fill();
+  });
+  ['#ff6b81','#74b9ff','#ffeaa7','#a29bfe'].forEach((col,i)=>{
+    c.fillStyle=col;
+    c.beginPath(); c.arc(310+i*35,295,5,0,Math.PI*2); c.fill();
+    c.fillStyle='#fff'; c.beginPath(); c.arc(310+i*35,295,2,0,Math.PI*2); c.fill();
+  });
+  // Kawaii character 1 - round cute
+  c.fillStyle='#ffecd2'; // face
+  c.beginPath(); c.arc(200,300,22,0,Math.PI*2); c.fill();
+  c.fillStyle='#ff6b81'; // hair
+  c.beginPath(); c.arc(200,290,24,Math.PI,0); c.fill();
+  c.fillStyle='#ff6b81'; c.fillRect(176,290,10,15); c.fillRect(214,290,10,15);
+  c.fillStyle='#000'; // eyes (kawaii style - big)
+  c.beginPath(); c.arc(192,300,4,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(208,300,4,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(193,299,1.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(209,299,1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#ffb6c1'; // blush
+  c.beginPath(); c.arc(186,306,4,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(214,306,4,0,Math.PI*2); c.fill();
+  c.fillStyle='#e74c3c'; c.beginPath(); c.arc(200,308,2,0,Math.PI); c.fill(); // mouth
+  // Body
+  c.fillStyle='#ff9ff3'; c.fillRect(188,322,24,25);
+  c.fillStyle='#ffecd2'; c.fillRect(190,347,8,12); c.fillRect(202,347,8,12);
+  // Bubble
+  c.fillStyle='#fff'; c.beginPath();
+  c.moveTo(225,270); c.quadraticCurveTo(310,260,300,280); c.quadraticCurveTo(310,300,225,290);
+  c.fill();
+  c.fillStyle='#ff6b81'; c.font='bold 11px "Hiragino Sans"';
+  c.fillText('わぁ〜可愛い！💕',232,280);
+  // Character 2
+  c.fillStyle='#ffecd2';
+  c.beginPath(); c.arc(380,310,20,0,Math.PI*2); c.fill();
+  c.fillStyle='#74b9ff';
+  c.beginPath(); c.arc(380,301,22,Math.PI,0); c.fill();
+  c.fillStyle='#000';
+  c.beginPath(); c.arc(374,310,3.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(386,310,3.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(375,309,1.2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(387,309,1.2,0,Math.PI*2); c.fill();
+  c.fillStyle='#ffb6c1';
+  c.beginPath(); c.arc(370,316,3,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(390,316,3,0,Math.PI*2); c.fill();
+  c.fillStyle='#74b9ff'; c.fillRect(368,330,24,22);
+  // Hearts floating
+  c.fillStyle='#ff6b81'; c.font='14px sans-serif';
+  c.fillText('♥',240,250); c.fillText('♥',260,240);
+  c.font='10px sans-serif'; c.fillText('♥',350,280);
+  // UI
+  c.fillStyle='rgba(255,182,193,0.85)'; 
+  c.beginPath(); c.moveTo(10,355); c.quadraticCurveTo(10,345,20,345);
+  c.lineTo(230,345); c.quadraticCurveTo(240,345,240,355);
+  c.lineTo(240,390); c.quadraticCurveTo(240,400,230,400);
+  c.lineTo(20,400); c.quadraticCurveTo(10,400,10,390); c.fill();
+  c.fillStyle='#fff'; c.font='bold 11px sans-serif';
+  c.fillText('❤️ 호감도: ████████░░ 82%',20,365);
+  c.fillText('🌸 기분: 행복해요~ ✨',20,383);
+  // Label
+  c.fillStyle='rgba(255,182,193,0.9)'; c.fillRect(0,0,500,28);
+  c.fillStyle='#fff'; c.font='bold 14px sans-serif';
+  c.fillText('🌸 둥글둥글 | 파스텔 톤 | 귀여운 캐릭터 | 꽃/하트 장식',10,18);
+})();
+
+// === 3. Minimal Flat Style ===
+(function(){
+  const c = document.getElementById('c3').getContext('2d');
+  // Clean white/light bg
+  c.fillStyle='#f8f9fa'; c.fillRect(0,0,500,400);
+  // Grid - subtle
+  c.strokeStyle='#e9ecef'; c.lineWidth=0.5;
+  for(let x=0;x<500;x+=25){c.beginPath();c.moveTo(x,0);c.lineTo(x,400);c.stroke();}
+  for(let y=0;y<400;y+=25){c.beginPath();c.moveTo(0,y);c.lineTo(500,y);c.stroke();}
+  // Ground area
+  c.fillStyle='#e8f5e9'; c.fillRect(0,250,500,150);
+  // Building 1 - clean rectangle
+  c.fillStyle='#42a5f5'; 
+  c.beginPath(); c.moveTo(50,150); c.lineTo(50,250); c.lineTo(150,250); c.lineTo(150,150); c.fill();
+  c.fillStyle='#1e88e5'; c.fillRect(50,145,100,10);
+  c.fillStyle='#fff'; c.fillRect(65,170,25,20); c.fillRect(110,170,25,20);
+  c.fillStyle='#37474f'; c.fillRect(90,210,20,40);
+  // Building 2
+  c.fillStyle='#66bb6a';
+  c.fillRect(200,170,100,80);
+  c.fillStyle='#43a047'; c.fillRect(200,165,100,10);
+  c.fillStyle='#fff'; c.fillRect(215,185,25,20); c.fillRect(260,185,25,20);
+  c.fillStyle='#37474f'; c.fillRect(240,215,20,35);
+  // Building 3
+  c.fillStyle='#ffa726';
+  c.fillRect(350,160,100,90);
+  c.fillStyle='#fb8c00'; c.fillRect(350,155,100,10);
+  c.fillStyle='#fff'; c.fillRect(365,180,25,20); c.fillRect(410,180,25,20);
+  // Tree - geometric
+  c.fillStyle='#8d6e63'; c.fillRect(170,210,6,40);
+  c.fillStyle='#66bb6a';
+  c.beginPath(); c.arc(173,200,20,0,Math.PI*2); c.fill();
+  // Character 1 - simple circle + body
+  c.fillStyle='#42a5f5';
+  c.beginPath(); c.arc(120,300,15,0,Math.PI*2); c.fill(); // head
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(115,298,2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(125,298,2,0,Math.PI*2); c.fill();
+  c.fillStyle='#42a5f5'; c.fillRect(112,315,16,20);
+  c.fillRect(112,335,6,10); c.fillRect(122,335,6,10);
+  // Character 2
+  c.fillStyle='#ef5350';
+  c.beginPath(); c.arc(300,290,15,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(295,288,2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(305,288,2,0,Math.PI*2); c.fill();
+  c.fillStyle='#ef5350'; c.fillRect(292,305,16,20);
+  c.fillRect(292,325,6,10); c.fillRect(302,325,6,10);
+  // Chat - clean box
+  c.fillStyle='#fff'; c.strokeStyle='#dee2e6'; c.lineWidth=1;
+  c.beginPath(); 
+  c.roundRect(135,268,80,25,8); c.fill(); c.stroke();
+  c.fillStyle='#495057'; c.font='11px -apple-system, sans-serif';
+  c.fillText('Hello! 👋',145,285);
+  // UI panel - bottom
+  c.fillStyle='#fff'; c.fillRect(0,355,500,45);
+  c.strokeStyle='#dee2e6'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,355); c.lineTo(500,355); c.stroke();
+  c.fillStyle='#495057'; c.font='12px -apple-system, sans-serif';
+  c.fillText('📍 상점',15,375);
+  c.fillText('💬 대화',100,375);
+  c.fillText('🎒 인벤토리',185,375);
+  c.fillText('📋 퀘스트',290,375);
+  c.fillText('🗺️ 맵',385,375);
+  // Affinity bar
+  c.fillStyle='#e0e0e0'; c.beginPath(); c.roundRect(15,382,120,8,4); c.fill();
+  c.fillStyle='#42a5f5'; c.beginPath(); c.roundRect(15,382,90,8,4); c.fill();
+  c.fillStyle='#78909c'; c.font='10px sans-serif'; c.fillText('호감도 75%',140,390);
+  // Label
+  c.fillStyle='#f8f9fa'; c.fillRect(0,0,500,28);
+  c.strokeStyle='#dee2e6'; c.beginPath(); c.moveTo(0,28); c.lineTo(500,28); c.stroke();
+  c.fillStyle='#495057'; c.font='bold 13px -apple-system, sans-serif';
+  c.fillText('✨ 깔끔한 벡터 | 모던 UI | 여백 활용 | 라이트 테마',10,18);
+})();
+
+// === 4. Anime Style ===
+(function(){
+  const c = document.getElementById('c4').getContext('2d');
+  // Anime sky gradient
+  const g = c.createLinearGradient(0,0,0,400);
+  g.addColorStop(0,'#1a0533'); g.addColorStop(0.3,'#2d1b69'); g.addColorStop(0.6,'#e96443'); g.addColorStop(1,'#904e95');
+  c.fillStyle=g; c.fillRect(0,0,500,400);
+  // Moon
+  c.fillStyle='#ffeaa7'; c.beginPath(); c.arc(400,60,35,0,Math.PI*2); c.fill();
+  c.fillStyle='#f9ca24'; c.globalAlpha=0.3; c.beginPath(); c.arc(400,60,50,0,Math.PI*2); c.fill();
+  c.globalAlpha=1;
+  // Stars
+  c.fillStyle='#fff';
+  [[30,20],[100,50],[200,30],[300,70],[450,40],[50,80],[350,25],[480,80]].forEach(([x,y])=>{
+    c.globalAlpha=0.5+Math.random()*0.5;
+    c.beginPath(); c.arc(x,y,1+Math.random(),0,Math.PI*2); c.fill();
+  });
+  c.globalAlpha=1;
+  // Ground - dark purple
+  c.fillStyle='#1a0a2e'; c.fillRect(0,300,500,100);
+  c.fillStyle='#2d1650'; c.fillRect(0,290,500,15);
+  // Sakura tree silhouette
+  c.fillStyle='#0d0520'; c.fillRect(420,200,10,100);
+  c.fillStyle='#2d1650';
+  c.beginPath(); c.arc(425,190,40,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(445,180,25,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(405,185,20,0,Math.PI*2); c.fill();
+  // Sakura petals
+  c.fillStyle='#ff9ff3'; c.globalAlpha=0.6;
+  [[410,170],[440,165],[430,195],[400,200],[450,190],[415,155]].forEach(([x,y])=>{
+    c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fill();
+  });
+  c.globalAlpha=1;
+  // Building - Japanese style
+  c.fillStyle='#1a0a2e'; c.fillRect(30,200,130,100);
+  c.fillStyle='#2d1650'; // roof
+  c.beginPath(); c.moveTo(20,200); c.lineTo(95,160); c.lineTo(170,200); c.fill();
+  c.fillStyle='#ffeaa7'; c.globalAlpha=0.8;
+  c.fillRect(50,220,25,20); c.fillRect(90,220,25,20); c.fillRect(130,220,25,20);
+  c.globalAlpha=1;
+  c.fillStyle='#e17055'; c.fillRect(85,260,25,40); // door
+  // Lantern glow
+  c.fillStyle='#ffeaa7'; c.globalAlpha=0.15;
+  c.beginPath(); c.arc(97,275,40,0,Math.PI*2); c.fill();
+  c.globalAlpha=1;
+  // Anime character 1 - girl silhouette with detail
+  // Hair
+  c.fillStyle='#ff6b81';
+  c.beginPath(); c.arc(250,280,18,0,Math.PI*2); c.fill();
+  c.fillRect(234,278,8,25); c.fillRect(262,278,8,25);
+  // Face
+  c.fillStyle='#ffecd2';
+  c.beginPath(); c.arc(250,285,14,0,Math.PI*2); c.fill();
+  // Eyes - anime style (large, sparkly)
+  c.fillStyle='#6c5ce7';
+  c.beginPath(); c.ellipse(244,283,4,5,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(256,283,4,5,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(245,282,2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(257,282,2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(243,285,0.8,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(255,285,0.8,0,Math.PI*2); c.fill();
+  c.fillStyle='#fd79a8'; c.beginPath(); c.arc(250,290,2,0,Math.PI); c.fill();
+  // Blush
+  c.fillStyle='#ff6b81'; c.globalAlpha=0.4;
+  c.beginPath(); c.arc(238,288,4,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(262,288,4,0,Math.PI*2); c.fill();
+  c.globalAlpha=1;
+  // Body - school uniform
+  c.fillStyle='#2d3436'; c.fillRect(240,299,20,25);
+  c.fillStyle='#dfe6e9'; c.fillRect(243,299,14,8); // collar
+  c.fillStyle='#e17055'; c.fillRect(248,299,4,10); // tie
+  c.fillRect(240,324,8,12); c.fillRect(252,324,8,12);
+  // Character 2 - boy
+  c.fillStyle='#74b9ff';
+  c.beginPath(); c.arc(340,285,16,0,Math.PI*2); c.fill();
+  c.fillStyle='#ffecd2';
+  c.beginPath(); c.arc(340,290,13,0,Math.PI*2); c.fill();
+  c.fillStyle='#0984e3';
+  c.beginPath(); c.ellipse(335,288,3.5,4.5,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(345,288,3.5,4.5,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff';
+  c.beginPath(); c.arc(336,287,1.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(346,287,1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#2d3436'; c.fillRect(332,303,16,22);
+  c.fillRect(332,325,6,10); c.fillRect(342,325,6,10);
+  // Dialog box - visual novel style
+  c.fillStyle='rgba(0,0,0,0.75)';
+  c.beginPath(); c.roundRect(20,340,460,55,12); c.fill();
+  c.strokeStyle='rgba(255,255,255,0.3)'; c.lineWidth=1;
+  c.beginPath(); c.roundRect(20,340,460,55,12); c.stroke();
+  c.fillStyle='#ff6b81'; c.font='bold 13px sans-serif';
+  c.fillText('유리',35,358);
+  c.fillStyle='#fff'; c.font='13px sans-serif';
+  c.fillText('오늘 밤 하늘이 정말 예쁘네요... 같이 걸을래요? 💫',35,378);
+  // Choices
+  c.fillStyle='rgba(108,92,231,0.6)';
+  c.beginPath(); c.roundRect(300,340,170,18,6); c.fill();
+  c.fillStyle='#fff'; c.font='11px sans-serif';
+  c.fillText('▶ 1. 좋아요, 같이 걸어요',308,353);
+  // Label
+  c.fillStyle='rgba(102,78,234,0.9)'; c.fillRect(0,0,500,28);
+  c.fillStyle='#fff'; c.font='bold 14px sans-serif';
+  c.fillText('🌟 일본 애니풍 | 비주얼 노벨 | 감성적 배경 | 대사창',10,18);
+})();
+</script>
+</body>
+</html>

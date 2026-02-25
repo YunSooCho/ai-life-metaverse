@@ -1,0 +1,240 @@
+/* RecipePreview.css - 레시피 미리보기 UI 스타일 */
+/* JRPG 스타일 픽셀 아트 디자인 */
+
+.recipe-preview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-info {
+  flex: 1;
+  overflow-y: auto;
+  background: #1e1e2e;
+  border: 2px solid #3b3b5c;
+  border-radius: 0 0 4px 4px;
+  padding: 16px;
+}
+
+.preview-title {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.preview-description {
+  color: #9ca3af;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.preview-divider {
+  height: 1px;
+  background: #3b3b5c;
+  margin: 12px 0;
+}
+
+/* 레벨, 난이도, 성공률 */
+.preview-level,
+.preview-difficulty,
+.preview-success-rate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: #2d2d44;
+  border-radius: 4px;
+}
+
+.preview-level .label,
+.preview-difficulty .label,
+.preview-success-rate .label {
+  color: #a0aec0;
+}
+
+.preview-level .value,
+.preview-difficulty .value,
+.preview-success-rate .value {
+  font-weight: bold;
+  color: #fff;
+}
+
+.preview-level .value.insufficient {
+  color: #ef4444;
+}
+
+.preview-difficulty .value.difficulty-easy {
+  color: #10b981;
+}
+
+.preview-difficulty .value.difficulty-normal {
+  color: #60a5fa;
+}
+
+.preview-difficulty .value.difficulty-hard {
+  color: #f59e0b;
+}
+
+.preview-difficulty .value.difficulty-expert {
+  color: #ef4444;
+}
+
+.preview-success-rate .value.high {
+  color: #10b981;
+}
+
+.preview-success-rate .value.medium {
+  color: #f59e0b;
+}
+
+.preview-success-rate .value.low {
+  color: #ef4444;
+}
+
+/* 재료 목록 */
+.preview-materials {
+  margin-bottom: 8px;
+}
+
+.materials-title {
+  color: #ffd700;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.materials-list {
+  background: #2d2d44;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.material-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #3b3b5c;
+}
+
+.material-item:last-child {
+  border-bottom: none;
+}
+
+.material-item.insufficient {
+  color: #ef4444;
+}
+
+.material-name {
+  flex: 1;
+}
+
+.material-quantity {
+  font-weight: bold;
+}
+
+.no-materials {
+  color: #6b7280;
+  text-align: center;
+  padding: 12px;
+}
+
+/* 결과물 */
+.preview-result {
+  margin-top: 8px;
+}
+
+.result-title {
+  color: #ffd700;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #064e3b;
+  border: 2px solid #10b981;
+  border-radius: 4px;
+}
+
+.result-icon {
+  color: #10b981;
+  font-size: 20px;
+}
+
+.result-name {
+  color: #10b981;
+  font-weight: bold;
+  flex: 1;
+}
+
+.result-quantity {
+  color: #fff;
+  padding: 2px 8px;
+  background: #10b981;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.result-range {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* 제작 버튼 */
+.preview-actions {
+  padding: 16px 0 0 0;
+}
+
+.craft-button {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.craft-button:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.craft-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.craft-button.pixel-button-lg {
+  padding: 16px 20px;
+  font-size: 18px;
+}
+
+.crafting-text {
+  animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.craft-warning {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #7f1d1d;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #ef4444;
+  text-align: center;
+}

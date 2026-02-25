@@ -1,0 +1,19 @@
+<svg width="120" height="100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 건물 본체 -->
+  <rect x="5" y="30" width="110" height="65" fill="#DEB887" stroke="#CD853F" stroke-width="2"/>
+  <!-- 파라솔 지붕 -->
+  <ellipse cx="60" cy="30" rx="60" ry="15" fill="#FF6347" stroke="#DC143C" stroke-width="2"/>
+  <!-- 간판 -->
+  <rect x="25" y="5" width="70" height="15" fill="#8B4513" stroke="#5C3317" stroke-width="2"/>
+  <text x="60" y="17" font-family="Arial" font-size="11" font-weight="bold" fill="#FFF" text-anchor="middle">CAFÉ</text>
+  <!-- 문 -->
+  <rect x="50" y="50" width="20" height="45" fill="#A0522D" stroke="#8B4513" stroke-width="2"/>
+  <!-- 창문 -->
+  <rect x="10" y="45" width="25" height="30" fill="#FFFACD" stroke="#F0E68C" stroke-width="2"/>
+  <rect x="85" y="45" width="25" height="30" fill="#FFFACD" stroke="#F0E68C" stroke-width="2"/>
+  <!-- 컵 모양 장식 -->
+  <path d="M18 55 Q18 50 22 50 Q26 50 26 55 L26 62 Q26 65 22 65 Q18 65 18 62 Z" fill="#6B4423" stroke="#4A3520" stroke-width="1"/>
+  <path d="M93 55 Q93 50 97 50 Q101 50 101 55 L101 62 Q101 65 97 65 Q93 65 93 62 Z" fill="#6B4423" stroke="#4A3520" stroke-width="1"/>
+  <!-- 입구 하이라이트 -->
+  <rect x="45" y="75" width="30" height="20" fill="rgba(255,255,255,0.3)" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,2"/>
+</svg>

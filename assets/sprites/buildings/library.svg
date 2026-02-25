@@ -1,0 +1,46 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 배경 -->
+  <rect x="0" y="0" width="64" height="64" fill="#4CAF50"/>
+  
+  <!-- 건물 본체 -->
+  <rect x="4" y="12" width="56" height="48" fill="#9E9E9E"/>
+  <rect x="4" y="12" width="56" height="48" stroke="#616161" stroke-width="2"/>
+  
+  <!-- 지붕 -->
+  <rect x="2" y="8" width="60" height="6" fill="#1976D2"/>
+  <rect x="2" y="8" width="60" height="6" stroke="#0D47A1" stroke-width="2"/>
+  
+  <!-- 입구 -->
+  <rect x="24" y="36" width="16" height="24" fill="#757575"/>
+  <rect x="24" y="36" width="16" height="24" stroke="#616161" stroke-width="1"/>
+  <rect x="26" y="38" width="12" height="8" fill="#BDBDBD"/>
+  <rect x="26" y="38" width="12" height="8" stroke="#9E9E9E" stroke-width="1"/>
+  
+  <!-- 큰 창문 (도서관 스타일) -->
+  <rect x="8" y="20" width="12" height="16" fill="#90CAF9"/>
+  <rect x="8" y="20" width="12" height="16" stroke="#64B5F6" stroke-width="2"/>
+  <line x1="14" y1="20" x2="14" y2="36" stroke="#64B5F6" stroke-width="1"/>
+  <line x1="8" y1="28" x2="20" y2="28" stroke="#64B5F6" stroke-width="1"/>
+  
+  <rect x="44" y="20" width="12" height="16" fill="#90CAF9"/>
+  <rect x="44" y="20" width="12" height="16" stroke="#64B5F6" stroke-width="2"/>
+  <line x1="50" y1="20" x2="50" y2="36" stroke="#64B5F6" stroke-width="1"/>
+  <line x1="44" y1="28" x2="56" y2="28" stroke="#64B5F6" stroke-width="1"/>
+  
+  <!-- 책 표시 (창문 안) -->
+  <rect x="10" y="22" width="3" height="6" fill="#C62828"/>
+  <rect x="14" y="22" width="2" height="6" fill="#1565C0"/>
+  <rect x="46" y="22" width="3" height="6" fill="#F9A825"/>
+  <rect x="50" y="22" width="2" height="6" fill="#2E7D32"/>
+  
+  <!-- LIBRARY 텍스트 -->
+  <rect x="8" y="10" width="4" height="4" fill="#FFFFFF"/>
+  <rect x="14" y="10" width="2" height="4" fill="#FFFFFF"/>
+  <rect x="20" y="10" width="4" height="4" fill="#FFFFFF"/>
+  <rect x="26" y="10" width="2" height="4" fill="#FFFFFF"/>
+  <rect x="30" y="10" width="2" height="4" fill="#FFFFFF"/>
+  <rect x="34" y="10" width="2" height="4" fill="#FFFFFF"/>
+  <rect x="38" y="10" width="4" height="4" fill="#FFFFFF"/>
+  <rect x="44" y="10" width="2" height="4" fill="#FFFFFF"/>
+  <rect x="50" y="10" width="4" height="4" fill="#FFFFFF"/>
+</svg>

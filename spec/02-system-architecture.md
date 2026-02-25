@@ -1,0 +1,716 @@
+# System Architecture
+
+## 전체 아키텍처
+
+```
+┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
+│   Frontend      │         │   Backend       │         │   Redis (DB)    │
+│   (React)       │◄────────┤   (Node.js)     │◄────────┤   (Persistence) │
+│                 │ Socket  │                 │   TCP   │                 │
+│ - GameCanvas    │  .io    │ - socket.io     │         │ - 캐릭터 데이터  │
+│ - ChatInput     │         │ - Express       │         │ - 인벤토리      │
+│ - Components    │ REST    │ - AI Agent      │         │ - 호감도        │
+└─────────────────┘  API    │   (GLM-4.7)     │         │ - 퀘스트        │
+      │                     └─────────────────┘         │ - 채팅 히스토리 │
+      │                              │                  │ - 방 데이터     │
+      │                              │                  └─────────────────┘
+      ▼                              ▼
+  Browser                    Cerebras API
+```
+
+## Frontend 구조
+
+### 주요 컴포넌트
+
+- **App.jsx**: 메인 애플리케이션
+- **GameCanvas**: 메인 게임 캔버스
+- **ChatInput**: 채팅 입력
+- **InteractionMenu**: 상호작용 메뉴
+- **AffinityDisplay**: 호감도 표시
+- **RoomMenu**: 방 메뉴
+- **Inventory**: 인벤토리
+- **Quest**: 퀘스트 시스템
+- **Reward**: 보상 시스템
+
+### Custom Hooks
+
+- **useSocketEvent**: Socket.io 이벤트 핸들러
+
+### 유틸리티 (Phase 3: 픽셀아트 시스템)
+
+- **pixelArtRenderer.js**: 픽셀아트 캐릭터 & 타일 렌더링
+  - `Tile`: 타일 클래스 (id, type, properties, style)
+  - `Tilemap`: 타일맵 클래스 (width, height, tiles, layers)
+  - `drawTile`: 단일 타일 렌더링 (grass, water, tree, path)
+  - `drawTilemap`: 타일맵 렌더링
+  - `worldToTile`: 월드 좌표 → 타일 좌표 변환
+  - `tileToWorld`: 타일 좌표 → 월드 좌표 변환
+  - `calculateTileSpacing`: 타일 간격 계산
+  - `drawPixelCharacter`: 픽셀아트 캐릭터 렌더링
+  - `validateCustomizationOptions`: 커스터마이징 옵션 유효성 검사
+
+- **TileRenderer.js**: 타일맵 레벨 렌더러
+  - `renderGroundLayer`: Ground 레이어 렌더링
+  - `renderDecorationLayer`: Decoration 레이어 렌더링
+  - `renderEntranceHighlight`: 건물 입장 하이라이트
+
+**Phase 3 완료 (2026-02-18)**
+- ✅ 배경 픽셀아트 타일 시스템 완성
+- ✅ Tile, Tilemap 클래스 추가
+- ✅ 타일 패턴 (grass, water, tree, path)
+- ✅ 타일 렌더링 함수
+- ✅ 좌표 변환 함수
+- ✅ 테스트 코드 (25 passed, 11 skipped)
+
+## Backend 구조
+
+### 핵심 모듈
+
+- **server.js**: 메인 서버 (HTTP + Socket.io)
+- **ai-agent/agent.js**: AI Agent (GLM-4.7 연동)
+- **ai-agent/character.js**: 캐릭터 대화 로직
+- **routes/*.js**: REST API 라우트
+
+#### 월드 시스템 (world-system/) ✅ (2026-02-19 완료)
+
+맵 유형별 건물, NPC, 지형 데이터를 관리하는 월드 확장 시스템
+
+- **buildings.js**: 맵 유형별 건물 데이터 시스템
+  - 맵 유형: default, beach, forest, mountain
+  - 건물 데이터 구조: ID, 이름, 위치 (x, y), 크기 (width, height), 타입, 색상, mapType, description
+  - 기능:
+    - `getBuildingsByMap(mapType)`: 맵 유형별 건물 목록
+    - `findBuildingById(buildingId)`: 건물 ID로 찾기
+    - `getAllBuildings()`: 모든 건물 목록
+
+- **maps.js**: 맵 데이터 시스템
+  - 4개 맵:
+    - 메인 광장 (default): 1000x700, 기본 건물 5개
+    - 해변 (beach): 1200x800, 건물 3개, 바다/모래사장/파도
+    - 숲 (forest): 1100x750, 건물 3개, 나무/강/동굴
+    - 산맥 (mountain): 1300x900, 건물 3개, 산/눈/구름
+  - 맵 데이터 구조: ID, 이름, 크기, 배경색, 지형색, 설명, 피처(features), 날씨(weather)
+  - 피처 타입: pavement, decorative_tree, fountain, sand, sea, wave, umbrella, palm_tree, tree_cluster, stream, fireflies, mountain_peak, snow, mountain_base, pine_tree, cloud
+  - 기능:
+    - `getMap(mapId)`: 맵 데이터 가져오기
+    - `getAllMaps()`: 모든 맵 목록
+    - `mapExists(mapId)`: 맵 존재 여부
+    - `getMapFeaturesForRendering(mapId)`: 렌더링용 피처 데이터
+
+- **npcs.js**: NPC (새로운 AI 캐릭터) 데이터 시스템
+  - 캐릭터 데이터 구조: ID, 이름, 위치 (x, y), 색상, 이모지, isAi(true), mapType, description, personality
+  - 개인성(personality) 타입: friendly, energetic, responsible, adventurous, calm, knowledgeable, wild, confident, determined, hospitable
+  - 맵 유형별 NPC:
+    - default: AI 유리, AI 히카리 (2개)
+    - beach: 수영 선생님, 서퍼, 낚꾼 (3개)
+    - forest: 숲길 안내인, 야생 동물, 등산객 (3개)
+    - mountain: 스키 강사, 산악 등반가, 산장 주인 (3개)
+  - 기능:
+    - `getNPCsByMap(mapType)`: 맵 유형별 NPC 목록
+    - `findNPCById(npcId)`: NPC ID로 찾기
+    - `getAllNPCs()`: 모든 NPC 목록
+    - `getNPCIntroduction(npc)`: NPC 소개 텍스트 생성
+
+- **index.js**: 월드 시스템 통합 모듈
+  - `initializeWorldSystem()`: 월드 시스템 초기화 및 모든 데이터 로드
+  - `getMapCompleteData(mapId)`: 맵 단위 완전 데이터 (맵 + 건물 + NPC)
+
+**테스트 커버리지:**
+- buildings.test.js: 18개 테스트 전체 통과
+- maps.test.js: 24개 테스트 전체 통과
+- npcs.test.js: 23개 테스트 전체 통과
+- index.test.js: 22개 테스트 전체 통과
+- **총 87개 테스트 전체 통과**
+
+**추가일:** 2026-02-19
+
+#### 데이터 영속성 시스템 (Redis/DB) ✅
+
+- **backend/utils/redis-client.js**: Redis 클라이언트 연결 관리
+  - `initRedis()` - Redis 클라이언트 초기화
+  - `getRedisClient()` - Redis 클라이언트 인스턴스 가져오기
+  - `closeRedis()` - Redis 연결 종료
+  - `isRedisEnabled()` - Redis 사용 가능 여부 확인
+  - **Graceful degradation**: Redis 연결 실패 시 메모리 모드로 실행
+
+- **backend/persistence.js**: 데이터 영속화 API
+  - **캐릭터 데이터**: `saveCharacter()`, `loadCharacter()`
+  - **인벤토리**: `saveInventory()`, `loadInventory()`
+  - **호감도**: `saveAffinities()`, `loadAffinities()`
+  - **퀘스트**: `saveQuests()`, `loadQuests()`
+  - **채팅 히스토리**: `saveChatHistory()`, `loadChatHistory()`
+  - **방 데이터**: `saveRoom()`, `loadRoom()`
+  - **통합 API**: `saveCharacterData()`, `loadCharacterData()`, `saveRoomData()`, `loadRoomData()`
+  - **삭제**: `deleteCharacterData()`, `deleteRoomData()`
+
+**TTL 설정:**
+- SHORT: 5분
+- MEDIUM: 1시간 (기본값)
+- LONG: 1일 (캐릭터, 인벤토리, 호감도, 퀘스트, 방)
+- WEEK: 1주일 (채팅 히스토리)
+
+**추가일:** 2026-02-19
+
+### Socket.io 이벤트
+
+**클라이언트 → 서버**:
+- `join`: 방 입장
+- `move`: 캐릭터 이동
+- `chatMessage`: 채팅 메시지
+- `interact`: 캐릭터 상호작용
+- `characterInteraction`: AI 상호작용
+- `createRoom`: 방 생성
+- `changeRoom`: 방 변경
+- `enterBuilding`: 건물 입장
+- `exitBuilding`: 건물 퇴장
+- `getInventory`: 인벤토리 조회
+- `useItem`: 아이템 사용
+- `claimReward`: 보상 수령
+- `getQuests`: 퀘스트 조회
+- `acceptQuest`: 퀘스트 수락
+- `claimQuestReward`: 퀘스트 보상 수령
+
+**서버 → 클라이언트**:
+- `characters`: 모든 캐릭터 상태
+- `characterUpdate`: 캐릭터 업데이트
+- `chatBroadcast`: 채팅 브로드캐스트
+- `characterInteractionBroadcast`: 상호작용 브로드캐스트
+- `affinities`: 호감도 데이터
+- `rooms`: 방 목록
+- `roomJoined`: 방 입장 알림
+- `buildings`: 건물 목록
+- `buildingEvent`: 건물 이벤트
+- `roomNotification`: 방 알림
+- `inventory`: 인벤토리 데이터
+- `rewardClaimed`: 보상 수령
+- `itemUsed`: 아이템 사용
+- `itemUseFailed`: 아이템 사용 실패
+- `quests`: 퀘스트 데이터
+- `questProgress`: 퀘스트 진행
+- `questAccepted`: 퀘스트 수락
+- `questRewardClaimed`: 퀘스트 보상 수령
+
+## API Endpoint
+
+### REST API
+
+- `GET /api/health`: 헬스 체크
+- `GET /api/character/:id`: 캐릭터 정보 조회
+- `GET /api/rooms`: 방 목록 조회
+- `GET /api/buildings`: 건물 목록 조회
+- `GET /api/events/:characterId`: 이벤트 로그 조회
+- `POST /api/rooms`: 방 생성
+- `POST /api/weather`: 날씨 변경
+
+## 데이터 흐름
+
+1. **캐릭터 이동**: 클라이언트 → `move` 이벤트 → 서버 업데이트 → `characterUpdate` 브로드캐스트
+2. **채팅**: 클라이언트 → `chatMessage` → 서버 저장 → `chatBroadcast` 브로드캐스트
+3. **AI 대화**: 클라이언트 → `chatMessage` → 서버 → GLM-4.7 API → 응답 → `chatBroadcast` 브로드캐스트
+
+### 이벤트 시스템 (event-system/) ✅ (2026-02-19 완료)
+
+시즌, 특별 이벤트, 일일/주간 퀘스트를 관리하는 이벤트 시스템
+
+- **event-manager.js**: 이벤트 관리 시스템
+  - 이벤트 등록, 활성화, 비활성화
+  - 기능: `registerEvent`, `activateEvent`, `deactivateEvent`, `getActiveEvents`, `joinEvent`, `claimEventReward`, `getEventStats`
+  - 이벤트 타입: seasonal, special, daily, weekly
+
+- **seasonal-event.js**: 시즌 이벤트 시스템
+  - 시즌: spring (봄), summer (여름), autumn (가을), winter (겨울)
+  - 시즌별 데이터: 색상, 아이템, 보상, 설명
+  - 기능: `getCurrentSeason`, `getSeasonalColors`, `getSeasonalItems`, `getSeasonalRewards`, `createSeasonalEvents`
+  - 시즌별 맞춤 테마와 보상 시스템
+
+- **special-event.js**: 특별 이벤트 시스템
+  - 특별 이벤트: halloween (할로완), christmas (크리스마스), new_year (신년), valentine (발렌타인), anniversary (기념일)
+  - 이벤트 데이터: 이름, 이모지, 설명, 기간, 색상, 특별 아이템, 활동
+  - 기능: `createSpecialEvent`, `getActiveSpecialEvents`, `joinSpecialEvent`, `getSpecialItem`, `completeSpecialActivity`
+  - 기간 내 맞춤 이벤트 자동 활성화
+
+- **daily-quest.js**: 일일 퀘스트 시스템
+  - 일일 퀘스트 카테고리: social, exploration, collection, combat, event
+  - 퀘스트 난이도: easy, normal, hard
+  - 기능: `createDailyQuests`, `updateQuestProgress`, `claimQuestReward`, `getCharacterDailyQuests`, `getDailyQuestStats`
+  - 매일 23:59:59 리셋
+
+- **weekly-quest.js**: 주간 퀘스트 시스템
+  - 주간 퀘스트 카테고리: social, exploration, collection, mastery, event
+  - 기능: `createWeeklyQuests`, `updateQuestProgress`, `claimQuestReward`, `getCharacterWeeklyQuests`, `getWeeklyQuestStats`, `getRemainingWeekInfo`
+  - 일요일 23:59:59 리셋
+
+- **event-reward.js**: 이벤트 보상 시스템
+  - 보상 유형: experience, coin, item, title, costume, decoration
+  - 보상 티어: common (60%), rare (30%), epic (8%), legendary (2%)
+  - 기능: `createReward`, `giveReward`, `generateRandomReward`, `drawFromRewardPool`, `getRewardStats`
+  - 확률 기반 랜덤 보상 시스템
+
+- **index.js**: 이벤트 시스템 통합 모듈
+  - `EventSystem`: 모든 이벤트 서브시스템 통합
+  - 기능: `initialize`, `createCharacterDailyQuests`, `createCharacterWeeklyQuests`, `joinEvent`, `claimEventReward`, `claimQuestReward`, `getActiveEvents`, `getCharacterQuests`, `getSystemStats`
+
+**테스트 커버리지:**
+- event-manager.test.js: 13개 테스트 ✅
+- seasonal-event.test.js: 22개 테스트 ✅
+- special-event.test.js: 28개 테스트 ✅
+- daily-quest.test.js: 30개 테스트 ✅
+- weekly-quest.test.js: 26개 테스트 ✅
+- event-reward.test.js: 32개 테스트 ✅
+- index.test.js: 19개 테스트 ✅
+
+**추가일:** 2026-02-19
+
+### 친구 시스템 (friend-system/) ✅ (2026-02-19 완료)
+
+친구 관리, 친구 요청, 온라인 상태 추적을 위한 소셜 시스템
+
+- **friend-manager.js**: 친구 관리 시스템
+  - 친구 추가/삭제/목록/검색
+  - 친구 관계 확인 및 수 가져오기
+  - 기능:
+    - `getFriendList(characterId)`: 캐릭터의 친구 목록
+    - `addFriend(characterId, friendId, friendName)`: 친구 추가
+    - `removeFriend(characterId, friendId)`: 친구 삭제
+    - `isFriend(characterId, targetId)`: 친구인지 확인
+    - `searchFriends(characterId, query)`: 친구 검색
+    - `getFriendCount(characterId)`: 친구 수
+  - Graceful degradation: Redis 연결 실패 시 메모리 모드 실행
+  - TTL: 7일 (친구 목록)
+
+- **friend-request.js**: 친구 요청 시스템
+  - 친구 요청 전송/수락/거절
+  - 수신/보낸 요청 목록
+  - 기능:
+    - `getReceivedRequests(characterId)`: 수신한 요청 목록
+    - `getSentRequests(characterId)`: 보낸 요청 목록
+    - `sendRequest(fromId, fromName, toId, toName)`: 요청 전송
+    - `acceptRequest(fromId, toId)`: 요청 수락
+    - `rejectRequest(fromId, toId)`: 요청 거절
+    - `getPendingRequestCount(characterId)`: 대기 중인 요청 수
+    - `findRequest(fromId, toId)`: 특정 요청 찾기
+  - 요청 상태: pending, accepted, rejected
+  - TTL: 24시간 (요청)
+  - 메모리 모드 지원 (Redis 연결 없음시)
+
+- **online-tracker.js**: 온라인 상태 추적 시스템
+  - 온라인/오프라인 상태 관리
+  - 마지막 접속 시간 추적
+  - 기능:
+    - `setOnline(characterId, characterName)`: 온라인 설정
+    - `setOffline(characterId)`: 오프라인 설정
+    - `isOnline(characterId)`: 온라인 상태 확인
+    - `getOnlineUsers()`: 모든 온라인 사용자
+    - `getLastSeen(characterId)`: 마지막 접속 시간
+    - `getFriendsOnlineStatus(friendIds)`: 친구들의 온라인 상태
+  - TTL: 5분 (온라인 상태)
+  - 긴 TTL: 마지막 접속 (유지)
+
+- **index.js**: 친구 시스템 통합 모듈
+  - `FriendSystem` class: 모든 서브시스템 통합
+  - 기능:
+    - `sendFriendRequest(fromId, fromName, toId, toName)`: 요청 전송 & 검증
+    - `acceptFriendRequest(fromId, toId, friendName)`: 요청 수락 & 친구 추가
+    - `rejectFriendRequest(fromId, toId)`: 요청 거절
+    - `removeFriend(characterId, friendId)`: 친구 삭제 (양방향)
+    - `getFriendListWithStatus(characterId)`: 친구 목록 & 온라인 상태
+    - `characterOnline(characterId, characterName)`: 캐릭터 접속
+    - `characterOffline(characterId)`: 캐릭터 접속 종료
+    - `clearCharacterData(characterId)`: 캐릭터 데이터 전체 삭제
+    - `getSystemStats()`: 시스템 통계 (온라인 사용자)
+  - Singleton pattern: `initializeFriendSystem(redisClient)`, `getFriendSystem()`
+
+**테스트 커버리지:**
+- friend-manager.test.js: 16개 테스트 ✅
+- friend-request.test.js: 21개 테스트 ✅
+- online-tracker.test.js: 19개 테스트 ✅
+- index.test.js: 26개 테스트 ✅
+- **총 82개 테스트 전체 통과!**
+
+**추가일:** 2026-02-19
+
+### 파티 시스템 (party-system/) ✅ (2026-02-23 완료)
+
+멀티플레이어 파티 기능을 지원하는 협동 시스템
+
+- **PartyManager.js**: 파티 관리 시스템
+  - 파티 생성 (최대 5인)
+  - 파티 초대 (플레이어 초대/수락/거절)
+  - 파티 탈퇴/추방
+  - 파티장 위임
+  - 파티 해체
+  - 파티 정보 조회
+  - 기능:
+    - `createParty(leaderId)`: 파티 생성
+    - `inviteToParty(partyId, leaderId, playerId)`: 파티 초대
+    - `acceptInvite(partyId, playerId)`: 초대 수락
+    - `declineInvite(partyId, playerId)`: 초대 거절
+    - `leaveParty(playerId)`: 파티 탈퇴
+    - `kickPlayer(partyId, leaderId, targetId)`: 파티원 추방
+    - `transferLeadership(partyId, currentLeaderId, newLeaderId)`: 파티장 위임
+    - `disbandParty(partyId, leaderId)`: 파티 해체
+    - `getPartyInfo(partyId)`: 파티 정보 조회
+    - `getPlayerParty(playerId)`: 플레이어의 파티 조회
+    - `handlePlayerDisconnect(playerId)`: 플레이어 접속 종료 처리
+
+- **PartyChat.js**: 파티 채팅 시스템
+  - 파티 전용 채팅 채널
+  - 파티 멤버만 볼 수 있는 메시지
+  - 파티 채팅 히스토리 (최대 100개)
+  - 기능:
+    - `sendMessage(partyId, playerId, playerName, message)`: 메시지 전송
+    - `sendSystemMessage(partyId, type, data)`: 시스템 메시지 전송
+    - `getChatHistory(partyId, limit)`: 채팅 히스토리 조회
+    - `getMessagesInRange(partyId, offset, limit)`: 범위 메시지 조회
+    - `setMaxHistorySize(size)`: 최대 히스토리 크기 설정
+    - `stats`: 통계 정보 조회
+
+- **ExpShare.js**: 경험치 공유 시스템
+  - 파티원 간 경험치 공유
+  - 레벨 차이에 따른 보정
+  - 파티 보너스 (파티원 1인당 +10%, 최대 +50%)
+  - 기능:
+    - `calculateSharedExp(baseExp, partyMemberCount, killerLevel, monsterLevel)`: 공유 경험치 계산
+    - `distributeExpToMembers(sharedExpInfo, members)`: 경험치 분배
+    - `calculateLevelPenalty(characterLevel, monsterLevel)`: 레벨 페널티 계산
+    - `calculatePartyBonus(partyMemberCount)`: 파티 보너스 계산
+    - `calculateTotalExp(params)`: 전체 경험치 계산 (통합)
+    - `calculateEfficiency(params)`: 효율성 비교 (개인 vs 파티)
+    - 파티 보너스: 2인 +10%, 3인 +20%, 4인 +30%, 5인 +40%, 6인+ +50%
+
+- **RewardDistribution.js**: 보상 분배 시스템
+  - 퀘스트 보상 분배 (균등/랜덤/기여도 기반)
+  - 파티 내 랜덤 퀘스트 생성
+  - 파티 전용 보상
+  - 기능:
+    - `distributeQuestReward(questId, partyMembers, distributionType)`: 퀘스트 보상 분배
+    - `generatePartyQuest(partyId, partyLevel)`: 파티 랜덤 퀘스트 생성
+    - `completePartyQuest(questId, partyMembers)`: 파티 퀘스트 완료
+    - `createPartyReward(partyId, baseReward, partyBonus)`: 파티 보너스 적용
+    - `getPartyQuests(partyId)`: 파티 퀘스트 목록
+    - `registerQuestReward(questId, reward)`: 퀘스트 보상 등록
+    - `cleanupExpiredQuests()`: 만료된 퀘스트 정리
+  - 분배 타입: equal (균등), random (랜덤), based_on_contribution (기여도)
+
+- **PartyQuests.js**: 파티 퀘스트 시스템
+  - 파티 전용 퀘스트 (보스/협동)
+  - 협동 기반 퀘스트
+  - 파티 보스전
+  - 기능:
+    - `startQuest(partyId, questId)`: 파티 퀘스트 시작
+    - `updateQuestProgress(partyId, activeQuestId, playerId, type, amount)`: 퀘스트 진행 업데이트
+    - `getActiveQuests(partyId)`: 활성 퀘스트 목록
+    - `abortQuest(partyId, activeQuestId)`: 퀘스트 포기
+    - `createBossQuest(partyLevel)`: 보스 퀘스트 생성
+    - `createCooperationQuest(partyLevel)`: 협동 퀘스트 생성
+    - `generateRandomQuest(partyLevel)`: 랜덤 퀘스트 생성
+    - `registerQuestDefinition(questId, definition)`: 퀘스트 정의 등록
+    - `cleanupPartyQuests(partyId)`: 파티 퀘스트 정리
+    - `cleanupExpiredQuests()`: 만료된 퀘스트 정리
+    - `getStats()`: 통계 정보 조회
+
+- **index.js**: 파티 시스템 통합 모듈
+  - `PartySystem` class: 모든 서브시스템 통합
+  - 이벤트 연결 (파티 생성 → 채팅 초기화 등)
+  - 기능:
+    - `createParty(leaderId)`: 파티 생성
+    - `createPartyWithQuest(leaderId, partyLevel)`: 파티 생성 + 자동 퀘스트
+    - `inviteToParty(partyId, leaderId, playerId)`: 파티 초대
+    - `acceptInvite(partyId, playerId)`: 초대 수락
+    - `declineInvite(partyId, playerId)`: 초대 거절
+    - `leaveParty(playerId)`: 파티 탈퇴
+    - `kickPlayer(partyId, leaderId, targetId)`: 파티원 추방
+    - `transferLeadership(partyId, currentLeaderId, newLeaderId)`: 파티장 위임
+    - `disbandParty(partyId, leaderId)`: 파티 해체
+    - `sendMessage(partyId, playerId, playerName, message)`: 채팅 메시지
+    - `getChatHistory(partyId, limit)`: 채팅 히스토리
+    - `calculateSharedExp(baseExp, partyMemberCount, killerLevel, monsterLevel)`: 경험치 공유
+    - `distributeExpToMembers(sharedExpInfo, members)`: 경험치 분배
+    - `processMonsterKill(params)`: 몬스터 처치 후 경험치 분배 (통합)
+    - `startQuest(partyId, questId)`: 퀘스트 시작
+    - `updateQuestProgress(partyId, activeQuestId, playerId, type, amount)`: 퀘스트 진행
+    - `generatePartyQuest(partyId, partyLevel)`: 파티 랜덤 퀘스트 생성
+    - `completePartyQuest(questId, partyMembers)`: 파티 퀘스트 완료
+    - `getActiveQuests(partyId)`: 활성 퀘스트 목록
+    - `abortQuest(partyId, activeQuestId)`: 퀘스트 포기
+    - `getSystemStats()`: 시스템 통계
+  - 완전한 워크플로우: 파티 생성 → 초대 → 채팅 → 퀘스트 → 보상 분배
+
+**테스트 커버리지:**
+- PartyManager.test.js: 14개 테스트 ✅
+- PartyChat.test.js: 15개 테스트 ✅
+- ExpShare.test.js: 18개 테스트 ✅
+- RewardDistribution.test.js: 17개 테스트 ✅
+- PartyQuests.test.js: 17개 테스트 ✅
+- PartySystem.integration.test.js: 10개 통합 테스트 ✅
+- **총 91개 테스트 작성 완료!**
+
+**파티 시스템 핵심 기능:**
+- 최대 5인 파티 지원
+- 파티장 권한 (초대, 추방, 위임, 해체)
+- 파티 채팅 (최대 100개 히스토리)
+- 경험치 공유 +50% 보너스 (최대)
+- 레벨 차이 보정 (+10% ~ -100%)
+- 보상 분배 3가지 방법 (균등/랜덤/기여도)
+- 파티 퀘스트 (보스전, 협동)
+- 완전한 워크플로우 지원
+
+**추가일:** 2026-02-23
+
+### PvP 시스템 (pvp-system/) ✅ (2026-02-23 완료)
+
+플레이어 간 1:1 턴 기반 전투 시스템
+
+- **battle-manager.js**: 전투 관리 시스템
+  - 전투 생성/종료
+  - 턴 기반 전투 시스템
+  - 전투 상태 관리 (준备, 진행 중, 종료)
+  - 전투 로그 기록
+  - 기능:
+    - `createBattle(player1, player2)`: 전투 생성
+    - `endBattle(battleId, winnerId, loserId)`: 전투 종료
+    - `getBattle(battleId)`: 전투 정보 조회
+    - `getActiveBattles()`: 활성 전투 목록
+    - `isPlayerInBattle(playerId)`: 플레이어가 전투 중인지 확인
+    - `switchTurn(battleId)`: 턴 전환
+    - `getCurrentTurn(battleId)`: 현재 턴 플레이어 확인
+    - `getBattleLog(battleId)`: 전투 로그 조회
+
+- **skill-integration.js**: 스킬 시스템 연동
+  - 장착된 스킬 사용
+  - 스킬 쿨타임 관리
+  - 스킬 효과 적용 (버프/디버프)
+  - 스킬 연계
+  - 기능:
+    - `executeSkill(battleId, playerId, skillId)`: 스킬 실행
+    - `checkSkillCooldown(battleId, playerId, skillId)`: 스킬 쿨타임 확인
+    - `applySkillEffect(battleId, skillId, targetId)`: 스킬 효과 적용
+    - `triggerCombo(battleId, player1, player2)`: 스킬 연계
+    - `getAvailableSkills(battleId, playerId)`: 사용 가능한 스킬 목록
+    - `getCooldownStatus(battleId, playerId)`: 쿨타임 상태 조회
+
+- **pvp-ranking.js**: 랭킹 시스템
+  - 전투 승패 기록
+  - 승점 계산
+  - 랭킹표
+  - 계절별 랭킹
+  - 기능:
+    - `recordMatch(player1, player2, winnerId)`: 대전 기록
+    - `calculateRatingChange(winnerRating, loserRating)`: 승점 계산 (ELO 기반)
+    - `getLeaderboard(limit)`: 랭킹표 조회
+    - `getPlayerRank(characterId)`: 플레이어 순위 확인
+    - `getPlayerStats(characterId)`: 플레이어 전투 통계
+    - `getSeasonRankings(season)`: 계절별 랭킹
+    - `startNewSeason()`: 새 시즌 시작
+
+- **battle-rewards.js**: 전투 보상 시스템
+  - 승리 보상 (코인, 경험치)
+  - 패배 보상 (경험치만)
+  - 연승 보너스
+  - 기능:
+    - `calculateVictoryReward(battleId, playerId)`: 승리 보상 계산
+    - `calculateDefeatReward(battleId, playerId)`: 패배 보상 계산
+    - `applyWinStreakBonus(playerId, baseReward)`: 연승 보너스 적용
+    - `getWinStreak(playerId)`: 연승 기록 확인
+    - `resetWinStreak(playerId)`: 연승 기록 초기화
+
+- **index.js**: PvP 시스템 통합 모듈
+  - `PVPSystem` class: 모든 서브시스템 통합
+  - 기능:
+    - `createBattle(player1, player2)`: 전투 생성 (통합)
+    - `endBattle(battleId, winnerId, loserId)`: 전투 종료 & 보상 & 랭킹 (통합)
+    - `executeSkill(battleId, playerId, skillId)`: 스킬 실행 & 쿨타임 (통합)
+    - `getBattleInfo(battleId)`: 전투 정보 (통합)
+    - `getPlayerPvpStats(playerId)`: 플레이어 전투 통계 (통합)
+    - `getLeaderboard(limit)`: 랭킹표 조회 (통합)
+
+**테스트 커버리지:**
+- battle-manager.test.js: 18개 테스트 ✅
+- skill-integration.test.js: 18개 테스트 ✅
+- pvp-ranking.test.js: 18개 테스트 ✅
+- battle-rewards.test.js: 18개 테스트 ✅
+- **총 72개 테스트 전체 통과!**
+
+**PvP 시스템 핵심 기능:**
+- 1:1 턴 기반 전투
+- 스킬 시스템 연동 (쿨타임, 버프/디버프, 연계)
+- ELO 랭킹 시스템
+- 계절별 랭킹
+- 전투 보상 (승리/패배/연승 보너스)
+
+**추가일:** 2026-02-23
+
+### 애완동물 시스템 (pet-system/) ✅ (2026-02-23 완료)
+
+캐릭터와 함께 성장하는 펫 시스템 (관리, AI, 훈련, 진화)
+
+- **pet-manager.js**: 펫 관리 시스템
+  - 펫 데이터 구조 (ID, 이름, 종류, 레벨, 경험치, 스탯)
+  - 펫 생성/삭제
+  - 펫 장착/해제
+  - 플레이어별 펫 목록
+  - 펫 이름 변경
+  - 보유 수 관리 (최대 10마리)
+  - 기능:
+    - `createPet(ownerId, name, type)`: 펫 생성
+    - `deletePet(petId)`: 펫 삭제
+    - `getPet(petId)`: 펫 정보 조회
+    - `getPlayerPets(ownerId)`: 플레이어의 모든 펫 조회
+    - `equipPet(playerId, petId)`: 펫 장착
+    - `unequipPet(playerId)`: 펫 해제
+    - `getEquippedPet(playerId)`: 장착된 펫 조회
+    - `renamePet(petId, newName)`: 펫 이름 변경
+    - `getPetCount(ownerId)`: 펫 수 조회
+  - 펫 종류: cat, dog, dragon, phoenix, bunny, fox
+  - 펫 데이터: level, exp, maxExp, affinity, skills, stats, evolutionStage
+
+- **pet-ai.js**: 펫 AI 행동 시스템
+  - 캐릭터 따라다님 (위치 추적)
+  - 자동 행동 (친밀도 기반)
+  - 감정 표현
+  - 친밀도 증가/감소
+  - 배고픔 상태 관리
+  - 기능:
+    - `updatePetPosition(petId, characterPosition)`: 펫 위치 업데이트
+    - `getPetPosition(petId)`: 펫 위치 조회
+    - `executeAutoAction(petId)`: 자동 행동 실행
+    - `updateEmotion(petId, emotionType)`: 감정 업데이트
+    - `getEmotion(petId)`: 감정 조회
+    - `increaseAffinity(petId, amount)`: 친밀도 증가
+    - `decreaseAffinity(petId, amount)`: 친밀도 감소
+    - `updateHunger(petId, hungerLevel)`: 배고픔 상태 업데이트
+    - `getActionHistory(petId, limit)`: 행동 기록 조회
+  - 감정 지속 시간: 5초
+  - 친밀도 범위: 0~100
+
+- **pet-training.js**: 펫 훈련 시스템
+  - 훈련 시스템 (기본/집중/특별)
+  - 경험치 계산 (레벨 보정)
+  - 레벨업 시 스탯 증가
+  - 레벨 5단위 스킬 획득
+  - 일일 훈련 제한 (5회)
+  - 기능:
+    - `trainPet(petId, trainingType)`: 펫 훈련 실행
+    - `getRemainingTraining(petId)`: 남은 훈련 횟수 조회
+    - `isTrainingComplete(petId)`: 훈련 완료 여부 확인
+    - `getPetLevelInfo(petId)`: 펫 레벨 정보 조회
+    - `getPetSkills(petId)`: 펫 스킬 목록 조회
+  - 경험치: 기본 20, 집중 40, 특별 80
+  - 최대 경험치: 레벨 * 50 (최소 100, 최대 10000)
+  - 스탯 증가: 레벨업 시 health +10, attack/defense/speed +2
+
+- **pet-evolution.js**: 펫 진화 시스템
+  - 진화 조건
+  - 4단계 진화 (basic → evolved1 → evolved2 → final)
+  - 스탯 보너스 증가
+  - 외형 변화 (emoji, size, color)
+  - 기능:
+    - `evolvePet(petId, itemType)`: 펫 진화 실행
+    - `canEvolve(petId)`: 진화 가능 여부 확인
+    - `getEvolutionStage(petId)`: 진화 단계 조회
+    - `getEvolutionPath(petType)`: 진화 경로 조회
+    - `getEvolutionAppearance(petType, stage)`: 진화 외형 조회
+  - 진화 조건:
+    - basic → evolved1: 레벨 10, 친밀도 50, evolution_stone_1
+    - evolved1 → evolved2: 레벨 20, 친밀도 70, evolution_stone_2
+    - evolved2 → final: 레벨 30, 친밀도 90, evolution_stone_3
+  - 스탯 보너스:
+    - evolved1: health +50, attack/defense/speed +10
+    - evolved2: health +100, attack/defense/speed +20
+    - final: health +200, attack/defense/speed +40
+
+- **index.js**: 애완동물 시스템 통합 모듈
+  - `PetSystem` class: 모든 서브시스템 통합
+  - Singleton pattern
+  - 기능:
+    - `createPet(playerId, name, type)`: 펫 생성
+    - `deletePet(petId)`: 펫 삭제
+    - `equipPet(playerId, petId)`: 펫 장착
+    - `unequipPet(playerId)`: 펫 해제
+    - `carePet(petId)`: 펫 케어 (먹이주기 + 친밀도)
+    - `getPlayerPetInfo(playerId)`: 플레이어 펫 정보 완전 조회
+    - `getPetDetailedInfo(petId)`: 펫 상세 정보 통합 조회
+
+**테스트 커버리지:**
+- pet-manager.test.js: 22개 테스트 ✅
+- pet-ai.test.js: 24개 테스트 ✅
+- pet-training.test.js: 23개 테스트 ✅
+- pet-evolution.test.js: 24개 테스트 ✅
+- index.test.js: 15개 통합 테스트 ✅
+- **총 108개 테스트 전체 통과!**
+
+**애완동물 시스템 핵심 기능:**
+- 펫 관리 (생성/삭제/장착/해제)
+- AI 행동 (따라다님/자동 행동/감정 표현)
+- 훈련 시스템 (기본/집중/특별/레벨업/스킬 획득)
+- 진화 시스템 (4단계/스탯 증가/외형 변화)
+
+**추가일:** 2026-02-23
+
+#### 길드 시스템 (routes/guild.ts, routes/guildChat.ts) ✅ (2026-02-24 완료)
+
+길드 CRUD, 멤버 관리, 채팅을 지원하는 커뮤니티 시스템
+
+- **guild.ts**: 길드 CRUD API
+  - 길드 데이터 구조 (ID, 이름, 설명, 레벨, 경험치, 리더 정보, 멤버 목록, 생성일)
+  - 길드 CRUD (생성/조회/수정/삭제)
+  - 멤버 관리 (가입/탈퇴/역할 변경/추방)
+  - 경험치 및 레벨업 시스템
+  - 기능:
+    - `POST /`: 길드 생성
+    - `GET /`: 길드 목록 조회
+    - `GET /:id`: 특정 길드 조회
+    - `PUT /:id`: 길드 정보 수정 (리더만 가능)
+    - `DELETE /:id`: 길드 해체 (리더만 가능)
+    - `POST /:id/join`: 길드 가입 신청
+    - `DELETE /:id/leave`: 길드 탈퇴
+    - `PUT /:id/members/:memberId/role`: 멤버 역할 변경
+    - `DELETE /:id/members/:memberId`: 멤버 추방
+    - `POST /:id/experience`: 길드 경험치 획득
+  - 멤버 역할: leader (길드장), officer (임원), member (멤버)
+  - 레벨업: 각 레벨마다 100 * 레벨 경험치 필요
+  - 권한 체크:
+    - 리더: 길드 정보 수정, 해체, 역할 변경, 추방
+    - 임원: 일반 멤버 추방
+    - 멤버: 기본 멤버 기능만 가능
+
+- **guildChat.ts**: 길드 채팅 시스템
+  - 채팅 메시지 구조 (ID, 길드 ID, 보내는 사람 정보, 내용, 시간, 타입)
+  - 메시지 타입: normal (일반), system (시스템), notice (공지)
+  - 메시지 저장 (길드당 100개 최대)
+  - 기능:
+    - `GET /:guildId`: 길드 채팅 메시지 조회
+    - `POST /`: 채팅 메시지 전송
+    - `GET /:guildId/since/:timestamp`: 특정 시간 이후 메시지 조회
+    - `DELETE /:guildId`: 길드 채팅 전체 삭제 (길드 해체 시)
+
+**Frontend:**
+- **Guild.jsx**: 길드 UI 컴포넌트
+  - 길드 목록 표시
+  - 길드 생성 폼
+  - 길드 상세 정보 (이름, 레벨, 경험치, 멤버 수)
+  - 멤버 목록 (역할, 이름, 가입일)
+  - 길드 채팅 (메시지 히스토리, 전송)
+  - 길드 가입/탈퇴 기능
+
+- **Guild.css**: 길드 UI 스타일
+  - 길드 카드 그리드 레이아웃
+  - 채팅 메시지 스타일 (내 메시지/다른 사람 메시지)
+  - 역할별 색상 (길드장: gold, 임원: red, 멤버: white)
+  - 반응형 디자인
+
+**테스트 커버리지:**
+- guild.test.js: 25개 테스트 ✅
+  - 길드 CRUD: 8개 테스트 ✅
+  - 길드 멤버 관리: 7개 테스트 ✅
+  - 길드 경험치 & 레벨업: 4개 테스트 ✅
+  - 길드 채팅: 6개 테스트 ✅
+- **25개 테스트 전체 통과!**
+
+**길드 시스템 핵심 기능:**
+- 길드 CRUD (생성/조회/수정/삭제)
+- 멤버 관리 (가입/탈퇴/역할/추방)
+- 경험치 & 레벨업 시스템
+- 길드 채팅 (메시지 전송/조회/공지)
+
+**추가일:** 2026-02-24

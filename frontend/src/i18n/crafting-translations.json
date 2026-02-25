@@ -1,0 +1,28 @@
+{
+  "ui": {
+    "crafting": {
+      "title": "제작",
+      "level": "제작 레벨",
+      "recipes": "레시피 목록",
+      "preview": "미리보기",
+      "selectRecipe": "레시피를 선택하세요",
+      "noRecipes": "제작 가능한 레시피가 없습니다",
+      "canCraft": "제작 가능",
+      "cannotCraft": "제작 불가",
+      "requiredLevel": "필요 레벨",
+      "difficulty": "난이도",
+      "successRate": "성공 확률",
+      "materials": "재료",
+      "noMaterials": "필요한 재료가 없습니다",
+      "result": "결과물",
+      "missingMaterials": "부족한 재료",
+      "craft": "제작하기",
+      "crafting": "제작 중",
+      "craftingSuccess": "제작 성공!",
+      "craftingFailed": "제작 실패!",
+      "disabled": "사용 불가",
+      "levelRequired": "필요 레벨",
+      "materialsInsufficient": "재료 부족"
+    }
+  }
+}

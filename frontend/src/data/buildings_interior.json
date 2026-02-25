@@ -1,0 +1,508 @@
+{
+  "shop": {
+    "type": "shop",
+    "name": "상점",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#8B4513",
+        "floorColor": "#DEB887"
+      },
+      "npcs": [
+        {
+          "id": "shopkeeper",
+          "name": "상점 주인",
+          "x": 300,
+          "y": 250,
+          "sprite": "npc_shopkeeper",
+          "color": "#FFD700",
+          "isAi": true,
+          "dialogue": ["어서 오세요!", "무엇을 도와드릴까요?", "오늘 할인 상품이 있어요!"]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_health_potion",
+          "name": "체력 포션",
+          "x": 150,
+          "y": 150,
+          "sprite": "item_health",
+          "emoji": "🧪",
+          "description": "체력을 회복합니다"
+        },
+        {
+          "id": "item_speed_potion",
+          "name": "신속의 포션",
+          "x": 200,
+          "y": 150,
+          "sprite": "item_speed",
+          "emoji": "⚡",
+          "description": "이동 속도가 증가합니다"
+        },
+        {
+          "id": "item_lucky_charm",
+          "name": "행운의 부적",
+          "x": 250,
+          "y": 150,
+          "sprite": "item_lucky",
+          "emoji": "🍀",
+          "description": "호감도 상승 효과"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "shelf_main",
+          "name": "메인 선반",
+          "x": 100,
+          "y": 180,
+          "width": 300,
+          "height": 60,
+          "sprite": "furniture_shelf",
+          "color": "#654321"
+        },
+        {
+          "id": "counter",
+          "name": "계산대",
+          "x": 400,
+          "y": 200,
+          "width": 150,
+          "height": 80,
+          "sprite": "furniture_counter",
+          "color": "#8B4513"
+        },
+        {
+          "id": "plant",
+          "name": "화분",
+          "x": 550,
+          "y": 250,
+          "width": 40,
+          "height": 50,
+          "sprite": "furniture_plant",
+          "color": "#228B22"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  },
+  "cafe": {
+    "type": "cafe",
+    "name": "카페",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#F5DEB3",
+        "floorColor": "#8B7355"
+      },
+      "npcs": [
+        {
+          "id": "barista",
+          "name": "바리스타",
+          "x": 350,
+          "y": 280,
+          "sprite": "npc_barista",
+          "color": "#E9C2A6",
+          "isAi": true,
+          "dialogue": ["어떤 드링크를 원하세요?", "특별 라떼가 준비되어 있어요!", "맛있게 드세요!"]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_coffee",
+          "name": "쌍화차 라떼",
+          "x": 200,
+          "y": 180,
+          "sprite": "item_coffee",
+          "emoji": "☕",
+          "description": "기분이 좋아집니다"
+        },
+        {
+          "id": "item_cake",
+          "name": "치즈 케이크",
+          "x": 260,
+          "y": 180,
+          "sprite": "item_cake",
+          "emoji": "🍰",
+          "description": "맛있는 디저트"
+        },
+        {
+          "id": "item_tea",
+          "name": "허브 티",
+          "x": 320,
+          "y": 180,
+          "sprite": "item_tea",
+          "emoji": "🍵",
+          "description": "편안한 휴식"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "table_1",
+          "name": "테이블 1",
+          "x": 150,
+          "y": 250,
+          "width": 80,
+          "height": 60,
+          "sprite": "furniture_table",
+          "color": "#8B4513"
+        },
+        {
+          "id": "table_2",
+          "name": "테이블 2",
+          "x": 250,
+          "y": 250,
+          "width": 80,
+          "height": 60,
+          "sprite": "furniture_table",
+          "color": "#8B4513"
+        },
+        {
+          "id": "coffee_machine",
+          "name": "커피 머신",
+          "x": 350,
+          "y": 180,
+          "width": 100,
+          "height": 80,
+          "sprite": "furniture_coffee_machine",
+          "color": "#2F2F2F"
+        },
+        {
+          "id": "decorative_plant",
+          "name": "장식 화분",
+          "x": 550,
+          "y": 280,
+          "width": 50,
+          "height": 60,
+          "sprite": "furniture_plant_decorative",
+          "color": "#32CD32"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  },
+  "library": {
+    "type": "library",
+    "name": "도서관",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#F5F5DC",
+        "floorColor": "#8B7355"
+      },
+      "npcs": [
+        {
+          "id": "librarian",
+          "name": "사서",
+          "x": 400,
+          "y": 300,
+          "sprite": "npc_librarian",
+          "color": "#4A4A8A",
+          "isAi": true,
+          "dialogue": ["조용히 읽어주세요.", "원하시는 책을 찾아드릴게요.", "독서는 영혼의 양식입니다."]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_book_wisdom",
+          "name": "지혜의 책",
+          "x": 180,
+          "y": 160,
+          "sprite": "item_book",
+          "emoji": "📚",
+          "description": "지혜가 증가합니다"
+        },
+        {
+          "id": "item_book_adventure",
+          "name": "모험의 책",
+          "x": 240,
+          "y": 160,
+          "sprite": "item_book",
+          "emoji": "📖",
+          "description": "새로운 지식을 얻습니다"
+        },
+        {
+          "id": "item_book_history",
+          "name": "역사의 책",
+          "x": 300,
+          "y": 160,
+          "sprite": "item_book",
+          "emoji": "🏛️",
+          "description": "과거를 배웁니다"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "bookshelf_1",
+          "name": "책장 1",
+          "x": 100,
+          "y": 180,
+          "width": 250,
+          "height": 180,
+          "sprite": "furniture_bookshelf",
+          "color": "#654321"
+        },
+        {
+          "id": "bookshelf_2",
+          "name": "책장 2",
+          "x": 450,
+          "y": 180,
+          "width": 250,
+          "height": 180,
+          "sprite": "furniture_bookshelf",
+          "color": "#654321"
+        },
+        {
+          "id": "reading_table",
+          "name": "독서 테이블",
+          "x": 350,
+          "y": 400,
+          "width": 120,
+          "height": 70,
+          "sprite": "furniture_reading_table",
+          "color": "#8B4513"
+        },
+        {
+          "id": "lamp",
+          "name": "독서등",
+          "x": 400,
+          "y": 380,
+          "width": 30,
+          "height": 40,
+          "sprite": "furniture_lamp",
+          "color": "#FFD700"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  },
+  "park": {
+    "type": "park",
+    "name": "공원",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#90EE90",
+        "floorColor": "#228B22"
+      },
+      "npcs": [
+        {
+          "id": "old_man",
+          "name": "노인",
+          "x": 250,
+          "y": 350,
+          "sprite": "npc_old_man",
+          "color": "#808080",
+          "isAi": true,
+          "dialogue": ["오늘 날씨가 좋군요.", "벤치에서 쉬어가세요.", "자연을 즐기는 것은 중요합니다."]
+        },
+        {
+          "id": "child",
+          "name": "아이",
+          "x": 550,
+          "y": 420,
+          "sprite": "npc_child",
+          "color": "#FF69B4",
+          "isAi": true,
+          "dialogue": ["놀고 싶어요!", "같이 놀아요!", "너무 재미있어요!"]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_flower",
+          "name": "꽃",
+          "x": 450,
+          "y": 250,
+          "sprite": "item_flower",
+          "emoji": "🌸",
+          "description": "예쁜 꽃"
+        },
+        {
+          "id": "item_bird_food",
+          "name": "새 먹이",
+          "x": 150,
+          "y": 250,
+          "sprite": "item_bird_food",
+          "emoji": "🐦",
+          "description": "새들에게 먹이를 줄 수 있습니다"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "bench_1",
+          "name": "벤치 1",
+          "x": 200,
+          "y": 300,
+          "width": 120,
+          "height": 40,
+          "sprite": "furniture_bench",
+          "color": "#8B4513"
+        },
+        {
+          "id": "bench_2",
+          "name": "벤치 2",
+          "x": 500,
+          "y": 300,
+          "width": 120,
+          "height": 40,
+          "sprite": "furniture_bench",
+          "color": "#8B4513"
+        },
+        {
+          "id": "tree_1",
+          "name": "나무 1",
+          "x": 100,
+          "y": 200,
+          "width": 80,
+          "height": 100,
+          "sprite": "furniture_tree",
+          "color": "#228B22"
+        },
+        {
+          "id": "tree_2",
+          "name": "나무 2",
+          "x": 650,
+          "y": 200,
+          "width": 80,
+          "height": 100,
+          "sprite": "furniture_tree",
+          "color": "#228B22"
+        },
+        {
+          "id": "fountain",
+          "name": "분수",
+          "x": 400,
+          "y": 280,
+          "width": 80,
+          "height": 60,
+          "sprite": "furniture_fountain",
+          "color": "#4682B4"
+        },
+        {
+          "id": "flower_bed",
+          "name": "화단",
+          "x": 400,
+          "y": 180,
+          "width": 150,
+          "height": 60,
+          "sprite": "furniture_flower_bed",
+          "color": "#FFB6C1"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  },
+  "gym": {
+    "type": "gym",
+    "name": "체육관",
+    "interior": {
+      "background": {
+        "type": "color",
+        "color": "#E6E6FA",
+        "floorColor": "#4A4A4A"
+      },
+      "npcs": [
+        {
+          "id": "trainer",
+          "name": "트레이너",
+          "x": 400,
+          "y": 280,
+          "sprite": "npc_trainer",
+          "color": "#FF4500",
+          "isAi": true,
+          "dialogue": ["오늘도 운동합시다!", "최선을 다해주세요!", "휴식도 중요합니다."]
+        }
+      ],
+      "items": [
+        {
+          "id": "item_protein",
+          "name": "프로틴",
+          "x": 200,
+          "y": 170,
+          "sprite": "item_protein",
+          "emoji": "🥤",
+          "description": "체력 회복"
+        },
+        {
+          "id": "item_energy_drink",
+          "name": "에너지 음료",
+          "x": 260,
+          "y": 170,
+          "sprite": "item_energy",
+          "emoji": "⚡",
+          "description": "속도 증가"
+        },
+        {
+          "id": "item_water",
+          "name": "물",
+          "x": 320,
+          "y": 170,
+          "sprite": "item_water",
+          "emoji": "💧",
+          "description": "갈증 해소"
+        }
+      ],
+      "furniture": [
+        {
+          "id": "treadmill",
+          "name": "런닝머신",
+          "x": 100,
+          "y": 200,
+          "width": 150,
+          "height": 80,
+          "sprite": "furniture_treadmill",
+          "color": "#708090"
+        },
+        {
+          "id": "weights",
+          "name": "역기",
+          "x": 280,
+          "y": 200,
+          "width": 100,
+          "height": 80,
+          "sprite": "furniture_weights",
+          "color": "#2F2F2F"
+        },
+        {
+          "id": "workout_bench",
+          "name": "웨이트 벤치",
+          "x": 400,
+          "y": 250,
+          "width": 120,
+          "height": 70,
+          "sprite": "furniture_workout_bench",
+          "color": "#8B4513"
+        },
+        {
+          "id": "mat",
+          "name": "매트",
+          "x": 550,
+          "y": 300,
+          "width": 150,
+          "height": 100,
+          "sprite": "furniture_mat",
+          "color": "#4682B4"
+        },
+        {
+          "id": "lockers",
+          "name": "라커",
+          "x": 700,
+          "y": 180,
+          "width": 80,
+          "height": 200,
+          "sprite": "furniture_lockers",
+          "color": "#708090"
+        }
+      ],
+      "width": 800,
+      "height": 600,
+      "spawnPoint": { "x": 400, "y": 500 }
+    }
+  }
+}

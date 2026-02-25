@@ -1,0 +1,389 @@
+
+> ai-life-frontend@0.1.0 dev
+> vite
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+  VITE v5.4.21  ready in 90 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://10.76.29.91:3000/
+11:07:43 PM [vite] hmr update /src/App.jsx
+11:07:44 PM [vite] hmr update /src/App.jsx
+11:07:44 PM [vite] hmr update /src/App.jsx
+11:07:49 PM [vite] vite.config.js changed, restarting server...
+11:07:49 PM [vite] server restarted.
+11:39:53 PM [vite] hmr update /src/App.jsx
+11:39:54 PM [vite] hmr update /src/App.css
+12:08:11 AM [vite] hmr update /src/App.jsx
+12:08:12 AM [vite] hmr update /src/App.jsx
+12:08:13 AM [vite] hmr update /src/App.jsx
+12:08:15 AM [vite] hmr update /src/App.css
+1:00:45 AM [vite] hmr update /src/App.jsx
+6:04:27 AM [vite] hmr update /src/App.jsx
+6:04:29 AM [vite] hmr update /src/App.jsx
+6:04:30 AM [vite] hmr update /src/App.jsx
+6:04:31 AM [vite] hmr update /src/App.jsx
+6:04:34 AM [vite] hmr update /src/App.jsx
+9:01:40 AM [vite] vite.config.js changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+9:01:40 AM [vite] server restarted.
+9:03:38 AM [vite] vite.config.js changed, restarting server...
+Re-optimizing dependencies because vite config has changed
+9:03:38 AM [vite] server restarted.
+9:04:01 AM [vite] hmr update /src/components/GameCanvas.jsx
+11:01:00 AM [vite] hmr update /src/App.jsx
+11:01:03 AM [vite] hmr update /src/App.jsx
+11:01:03 AM [vite] hmr update /src/App.jsx
+11:01:05 AM [vite] hmr update /src/App.jsx
+11:01:06 AM [vite] hmr update /src/App.jsx
+11:01:07 AM [vite] hmr update /src/App.jsx
+11:01:08 AM [vite] hmr update /src/App.jsx
+12:01:01 PM [vite] hmr update /src/components/ChatInput.jsx
+12:01:02 PM [vite] hmr update /src/components/ChatBubble.jsx
+12:01:04 PM [vite] hmr update /src/components/ChatBubble.jsx
+12:01:10 PM [vite] hmr update /src/App.jsx
+12:01:12 PM [vite] hmr update /src/App.jsx
+1:01:24 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:25 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:26 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:27 PM [vite] hmr update /src/components/GameCanvas.jsx
+1:01:29 PM [vite] hmr update /src/App.jsx
+1:01:30 PM [vite] hmr update /src/App.jsx
+1:01:31 PM [vite] hmr update /src/App.jsx
+1:01:33 PM [vite] hmr update /src/App.jsx
+2:01:15 PM [vite] hmr update /src/App.jsx
+2:01:16 PM [vite] hmr update /src/App.jsx
+2:01:20 PM [vite] hmr update /src/App.css
+2:01:21 PM [vite] hmr update /src/App.jsx
+2:01:22 PM [vite] hmr update /src/App.jsx
+2:01:23 PM [vite] hmr update /src/App.jsx
+2:01:25 PM [vite] hmr update /src/App.jsx
+2:01:27 PM [vite] hmr update /src/App.jsx
+2:01:28 PM [vite] hmr update /src/App.jsx
+2:01:29 PM [vite] hmr update /src/App.css
+2:01:32 PM [vite] hmr update /src/components/EventLog.jsx
+2:01:38 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (513:2)
+
+  511 |   
+  512 |
+> 513 |   return (
+      |   ^
+  514 |     <div className="app">
+  515 |       <div className="header">
+  516 |         <h1>🧞 AI 라이프 POC</h1>
+3:02:00 PM [vite] hmr update /src/App.jsx
+3:02:04 PM [vite] hmr update /src/App.jsx
+3:02:06 PM [vite] hmr update /src/App.jsx
+3:02:09 PM [vite] hmr update /src/App.css
+3:02:18 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (545:2)
+
+  543 |   
+  544 |
+> 545 |   return (
+      |   ^
+  546 |     <div className="app">
+  547 |       <div className="header">
+  548 |         <h1>🧞 AI 라이프 POC</h1>
+4:01:39 PM [vite] hmr update /src/App.jsx
+4:01:43 PM [vite] hmr update /src/App.jsx
+4:01:46 PM [vite] hmr update /src/App.jsx
+4:01:49 PM [vite] hmr update /src/App.jsx
+4:01:51 PM [vite] hmr update /src/App.jsx
+4:01:56 PM [vite] hmr update /src/App.jsx
+4:02:03 PM [vite] hmr update /src/App.css
+4:02:25 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (631:2)
+
+  629 |   
+  630 |
+> 631 |   return (
+      |   ^
+  632 |     <div className="app">
+  633 |       <div className="header">
+  634 |         <h1>🧞 AI 라이프 POC</h1>
+5:01:46 PM [vite] hmr update /src/App.jsx
+5:01:47 PM [vite] hmr update /src/App.jsx
+5:01:49 PM [vite] hmr update /src/App.jsx
+5:01:50 PM [vite] hmr update /src/App.jsx
+5:01:50 PM [vite] hmr update /src/App.jsx
+5:01:51 PM [vite] hmr update /src/App.jsx
+5:01:53 PM [vite] hmr update /src/App.jsx
+5:02:03 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+6:02:27 PM [vite] hmr update /src/components/Character.jsx
+6:02:29 PM [vite] hmr update /src/components/Character.jsx
+6:02:37 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+7:00:34 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:36 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:37 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:38 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:39 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:00:41 PM [vite] hmr update /src/components/GameCanvas.jsx
+7:02:24 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:00:21 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:30:07 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:31:05 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:07 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:10 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:11 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:31:37 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:31:44 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:32:31 PM [vite] Pre-transform error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+10:32:32 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:32:57 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:33:11 PM [vite] Internal server error: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx: 'return' outside of function. (723:2)
+
+  721 |   
+  722 |
+> 723 |   return (
+      |   ^
+  724 |     <div className="app">
+  725 |       <div className="header">
+  726 |         <h1>🧞 AI 라이프 POC</h1>
+  Plugin: vite:react-babel
+  File: /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/src/App.jsx:723:2
+  721|    
+  722|  
+  723|    return (
+     |    ^
+  724|      <div className="app">
+  725|        <div className="header">
+      at constructor (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:365:19)
+      at JSXParserMixin.raise (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:6599:19)
+      at JSXParserMixin.parseReturnStatement (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13136:12)
+      at JSXParserMixin.parseStatementContent (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:13309:10)
+      at JSXParserMixin.parseProgram (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:12612:25)
+      at JSXParserMixin.parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14488:25)
+      at parse (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:261:32)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:189:28
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:113:33
+      at step (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:287:14)
+      at /Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/clks001/.openclaw/workspace/ai-life-metaverse/frontend/node_modules/gensync/index.js:223:11)
+10:33:36 PM [vite] hmr update /src/App.jsx
+10:38:10 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:38:10 PM [vite] hmr invalidate /src/components/GameCanvas.jsx Could not Fast Refresh ("MAP_SIZE" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:38:10 PM [vite] hmr update /src/App.jsx
+10:38:30 PM [vite] hmr update /src/App.css
+10:38:39 PM [vite] hmr update /src/components/GameCanvas.jsx
+10:38:40 PM [vite] hmr invalidate /src/components/GameCanvas.jsx Could not Fast Refresh ("MAP_SIZE" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+10:38:40 PM [vite] hmr update /src/App.jsx
+10:42:44 PM [vite] hmr update /src/App.jsx
+10:42:54 PM [vite] hmr update /src/App.jsx
+10:42:59 PM [vite] hmr update /src/App.jsx
+10:43:18 PM [vite] hmr update /src/App.jsx
+10:43:25 PM [vite] hmr update /src/App.jsx
+10:43:39 PM [vite] hmr update /src/App.jsx
+11:00:36 PM [vite] hmr update /src/components/GameCanvas.jsx
+11:30:26 PM [vite] hmr update /src/components/ChatBubble.jsx
+11:30:27 PM [vite] hmr update /src/components/ChatInput.jsx
+11:30:28 PM [vite] hmr update /src/components/InteractionMenu.jsx
+11:30:30 PM [vite] hmr update /src/components/Inventory.jsx
+11:30:34 PM [vite] hmr update /src/components/Quest.jsx
+11:30:38 PM [vite] hmr update /src/components/Quest.css
+11:30:40 PM [vite] hmr update /src/components/RoomMenu.jsx
+11:30:41 PM [vite] hmr update /src/components/Toast.jsx
+11:30:43 PM [vite] hmr update /src/components/Reward.jsx
+11:30:47 PM [vite] hmr update /src/App.jsx
+11:31:49 PM [vite] hmr update /src/components/ChatBubble.jsx
+11:31:56 PM [vite] hmr update /src/components/ChatBubble.jsx
+12:31:21 AM [vite] hmr update /src/components/GameCanvas.jsx
+12:31:24 AM [vite] hmr update /src/components/GameCanvas.jsx
+12:31:27 AM [vite] hmr update /src/components/GameCanvas.jsx
+12:31:35 AM [vite] hmr update /src/components/GameCanvas.jsx
+1:33:40 AM [vite] hmr update /src/components/GameCanvas.jsx, /src/components/MiniMap.jsx
+1:33:50 AM [vite] hmr update /src/components/GameCanvas.jsx, /src/components/MiniMap.jsx
+1:33:57 AM [vite] hmr update /src/components/GameCanvas.jsx, /src/components/MiniMap.jsx
+1:33:58 AM [vite] hmr update /src/components/GameCanvas.jsx, /src/components/MiniMap.jsx
+4:34:00 AM [vite] hmr update /src/App.css
+5:34:36 AM [vite] hmr update /src/components/GameCanvas.jsx
+5:34:45 AM [vite] hmr update /src/components/GameCanvas.jsx
+5:34:54 AM [vite] hmr update /src/components/GameCanvas.jsx
+5:35:01 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:00:45 AM [vite] hmr update /src/components/Character.jsx
+9:00:46 AM [vite] hmr update /src/components/Character.jsx
+9:00:49 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:00:50 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:00:51 AM [vite] hmr update /src/components/RoomMenu.jsx
+9:00:53 AM [vite] hmr update /src/components/RoomMenu.jsx
+9:01:00 AM [vite] hmr update /src/components/RoomMenu.jsx
+9:01:01 AM [vite] hmr update /src/App.jsx
+9:01:08 AM [vite] hmr update /src/App.jsx
+9:01:10 AM [vite] hmr update /src/App.jsx
+9:01:14 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:03:10 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:03:16 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:03:33 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:03:47 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:30:18 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:30:19 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:30:26 AM [vite] hmr update /src/components/GameCanvas.jsx
+9:31:43 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:52 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:53 AM [vite] hmr update /src/components/MiniMap.jsx
+9:31:55 AM [vite] hmr update /src/App.jsx
+10:01:11 AM [vite] hmr update /src/App.jsx
+10:01:14 AM [vite] hmr update /src/App.jsx
+10:01:15 AM [vite] hmr update /src/App.jsx
+10:01:17 AM [vite] hmr update /src/App.jsx
+11:30:43 AM [vite] hmr update /src/components/GameCanvas.jsx
+11:30:45 AM [vite] hmr update /src/components/GameCanvas.jsx
+11:30:46 AM [vite] hmr update /src/components/GameCanvas.jsx
+11:32:16 AM [vite] hmr update /src/App.jsx
+11:32:18 AM [vite] hmr update /src/App.jsx
+11:32:40 AM [vite] hmr update /src/App.jsx
+11:32:45 AM [vite] hmr update /src/App.jsx
